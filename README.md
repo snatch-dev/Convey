@@ -1,3 +1,2 @@
-# Convey
-## A simple recipe for .NET Core microservices.
-## Read the docs [here]([https://convey-stack.github.io](https://convey-stack.github.io/)).
+# Convey - a simple recipe for .NET Core microservices 
+## Read the docs [here](https://convey-stack.github.io).

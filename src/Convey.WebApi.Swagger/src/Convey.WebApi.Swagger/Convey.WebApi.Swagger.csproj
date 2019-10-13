@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Convey.WebApi.Swagger</Description>
+    <Authors>DevMentors.io</Authors>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <AssemblyName>Convey.WebApi.Swagger</AssemblyName>
+    <Title>Convey.WebApi.Swagger</Title>
+    <PackageId>Convey.WebApi.Swagger</PackageId>
+    <PackageTags>Convey.WebApi.Swagger</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\..\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
+    <ProjectReference Include="..\..\..\Convey.Docs.Swagger\src\Convey.Docs.Swagger\Convey.Docs.Swagger.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Convey.WebApi" Version="0.0.*" />
+    <PackageReference Include="Convey.Docs.Swagger" Version="0.0.*" />
+  </ItemGroup>
+  
+</Project>

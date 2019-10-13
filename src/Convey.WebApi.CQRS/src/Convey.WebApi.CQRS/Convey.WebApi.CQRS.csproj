@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Convey.WebApi.CQRS</Description>
+    <Authors>DevMentors.io</Authors>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <AssemblyName>Convey.WebApi.CQRS</AssemblyName>
+    <Title>Convey.WebApi.CQRS</Title>
+    <PackageId>Convey.WebApi.CQRS</PackageId>
+    <PackageTags>Convey.WebApi.CQRS</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\..\Convey.CQRS.Commands\src\Convey.CQRS.Commands\Convey.CQRS.Commands.csproj" />
+    <ProjectReference Include="..\..\..\Convey.CQRS.Events\src\Convey.CQRS.Events\Convey.CQRS.Events.csproj" />
+    <ProjectReference Include="..\..\..\Convey.CQRS.Queries\src\Convey.CQRS.Queries\Convey.CQRS.Queries.csproj" />
+    <ProjectReference Include="..\..\..\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Convey.CQRS.Commands" Version="0.0.*" />
+    <PackageReference Include="Convey.CQRS.Events" Version="0.0.*" />
+    <PackageReference Include="Convey.CQRS.Queries" Version="0.0.*" />
+    <PackageReference Include="Convey.WebApi" Version="0.0.*" />
+  </ItemGroup>
+
+</Project>

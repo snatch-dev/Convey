@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
+    <ProjectReference Include="..\..\..\Convey.Logging\src\Convey.Logging\Convey.Logging.csproj" />
+    <ProjectReference Include="..\..\..\Convey.CQRS.Commands\src\Convey.CQRS.Commands\Convey.CQRS.Commands.csproj" />
+    <ProjectReference Include="..\..\..\Convey.CQRS.Events\src\Convey.CQRS.Events\Convey.CQRS.Events.csproj" />
+    <ProjectReference Include="..\..\..\Convey.CQRS.Queries\src\Convey.CQRS.Queries\Convey.CQRS.Queries.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Convey" Version="0.0.*" />
+    <PackageReference Include="Convey.Logging" Version="0.0.*" />
+    <PackageReference Include="Convey.CQRS.Commands" Version="0.0.*" />
+    <PackageReference Include="Convey.CQRS.Events" Version="0.0.*" />
+    <PackageReference Include="Convey.CQRS.Queries" Version="0.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SmartFormat.NET" Version="2.4.2" />
+  </ItemGroup>
+
+</Project>

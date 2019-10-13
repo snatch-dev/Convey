@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+
+  <PropertyGroup>
+    <Description>Convey.MessageBrokers.Outbox</Description>
+    <Authors>DevMentors.io</Authors>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <AssemblyName>Convey.MessageBrokers.Outbox</AssemblyName>
+    <Title>Convey.MessageBrokers.Outbox</Title>
+    <PackageId>Convey.MessageBrokers.Outbox</PackageId>
+    <PackageTags>Convey.MessageBrokers.Outbox</PackageTags>
+    <LangVersion>8</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
+    <ProjectReference Include="..\..\..\Convey.Persistence.MongoDB\src\Convey.Persistence.MongoDB\Convey.Persistence.MongoDB.csproj" />
+    <ProjectReference Include="..\..\..\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <PackageReference Include="Convey" Version="0.0.*" />
+    <PackageReference Include="Convey.MessageBrokers" Version="0.0.*" />
+    <PackageReference Include="Convey.MessageBrokers.Persistence.MongoDB" Version="0.0.*" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.2.0" />
+  </ItemGroup>
+  
+</Project>

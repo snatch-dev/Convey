@@ -1,0 +1,15 @@
+language: csharp
+mono: none
+sudo: required
+dist: xenial
+dotnet: 2.2
+branches:
+  only:
+    - master
+    - develop
+script:
+  - dotnet build
+notifications:
+  email:
+    on_success: never
+    on_failure: always

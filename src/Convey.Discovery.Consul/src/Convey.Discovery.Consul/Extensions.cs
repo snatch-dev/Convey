@@ -9,6 +9,7 @@ using Convey.HTTP;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Convey.Discovery.Consul
 {
@@ -108,7 +109,7 @@ namespace Convey.Discovery.Consul
 
         private static void DeregisterConsulServiceOnShutdown(this IApplicationBuilder app)
         {
-            var applicationLifetime = app.ApplicationServices.GetService<IApplicationLifetime>();
+            var applicationLifetime = app.ApplicationServices.GetService<IHostApplicationLifetime>();
             applicationLifetime.ApplicationStopped.Register(() =>
             {
                 var registration = app.ApplicationServices.GetService<AgentServiceRegistration>();

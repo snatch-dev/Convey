@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Tracing.Jaeger.RabbitMQ</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Tracing.Jaeger.RabbitMQ</AssemblyName>
     <Title>Convey.Tracing.Jaeger.RabbitMQ</Title>

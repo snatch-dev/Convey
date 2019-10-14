@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Docs.Swagger</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Docs.Swagger</AssemblyName>
     <Title>Convey.Docs.Swagger</Title>
@@ -24,4 +24,5 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="4.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="4.0.1" />
   </ItemGroup>
+  
 </Project>

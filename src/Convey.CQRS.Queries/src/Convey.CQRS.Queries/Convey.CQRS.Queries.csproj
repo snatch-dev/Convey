@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.CQRS.Queries</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.CQRS.Queries</AssemblyName>
     <Title>Convey.CQRS.Queries</Title>
@@ -18,9 +18,5 @@
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <PackageReference Include="Convey" Version="0.0.*" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-  </ItemGroup>
-
+  
 </Project>

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.MessageBrokers</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.MessageBrokers</AssemblyName>
     <Title>Convey.MessageBrokers</Title>

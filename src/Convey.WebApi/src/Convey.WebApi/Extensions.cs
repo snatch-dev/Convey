@@ -59,7 +59,6 @@ namespace Convey.WebApi
             builder.Services.AddRouting()
                 .AddLogging()
                 .AddMvcCore()
-                .AddJsonFormatters()
                 .AddDataAnnotations()
                 .AddApiExplorer()
                 .AddDefaultJsonOptions()
@@ -77,7 +76,7 @@ namespace Convey.WebApi
         }
 
         private static IMvcCoreBuilder AddDefaultJsonOptions(this IMvcCoreBuilder builder)
-            => builder.AddJsonOptions(o =>
+            => builder.AddNewtonsoftJson(o =>
             {
                 o.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 o.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;

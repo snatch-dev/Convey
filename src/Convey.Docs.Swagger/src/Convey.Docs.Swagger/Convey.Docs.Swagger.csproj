@@ -1,12 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <PropertyGroup>
     <Description>Convey.Docs.Swagger</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Docs.Swagger</AssemblyName>
     <Title>Convey.Docs.Swagger</Title>
     <PackageId>Convey.Docs.Swagger</PackageId>

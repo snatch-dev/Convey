@@ -4,7 +4,8 @@
   <PropertyGroup>
     <Description>Convey.MessageBrokers.Outbox</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.MessageBrokers.Outbox</AssemblyName>
     <Title>Convey.MessageBrokers.Outbox</Title>
     <PackageId>Convey.MessageBrokers.Outbox</PackageId>

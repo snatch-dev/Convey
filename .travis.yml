@@ -1,8 +1,8 @@
 language: csharp
 mono: none
 sudo: required
-dist: xenial
-dotnet: 2.2
+dist: bionic
+dotnet: 3.0.100
 branches:
   only:
     - master

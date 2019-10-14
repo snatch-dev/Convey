@@ -1,12 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <PropertyGroup>
     <Description>Convey.HTTP.RestEase</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.HTTP.RestEase</AssemblyName>
     <Title>Convey.HTTP.RestEase</Title>
     <PackageId>Convey.HTTP.RestEase</PackageId>

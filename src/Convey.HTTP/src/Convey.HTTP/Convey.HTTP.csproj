@@ -1,13 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup>
     <Description>Convey.HTTP</Description>
-    <HTTPors>DevMentors.io</HTTPors>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Authors>DevMentors.io</Authors>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.HTTP</AssemblyName>
     <Title>Convey.HTTP</Title>
     <PackageId>Convey.HTTP</PackageId>

@@ -1,12 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <PropertyGroup>
     <Description>Convey.Tracing.Jaeger.RabbitMQ</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Tracing.Jaeger.RabbitMQ</AssemblyName>
     <Title>Convey.Tracing.Jaeger.RabbitMQ</Title>
     <PackageId>Convey.Tracing.Jaeger.RabbitMQ</PackageId>

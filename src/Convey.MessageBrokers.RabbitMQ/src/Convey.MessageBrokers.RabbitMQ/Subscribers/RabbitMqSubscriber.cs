@@ -107,16 +107,16 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     Task<Exception> Next()
                         => TryHandleAsync(message, messageId, correlationId, correlationContext, handle);
                     
-                    if (_hasMiddlewares)
-                    {
-                        foreach (var middleware in _middlewares)
-                        {
-                            await middleware.HandleAsync(Next, message, correlationContext, args);
-                        }
-
-                        _channel.BasicAck(args.DeliveryTag, false);
-                        return;
-                    }
+//                    if (_hasMiddlewares)
+//                    {
+//                        foreach (var middleware in _middlewares)
+//                        {
+//                            await middleware.HandleAsync(Next, message, correlationContext, args);
+//                        }
+//
+//                        _channel.BasicAck(args.DeliveryTag, false);
+//                        return;
+//                    }
 
                     var exception = await Next();
                     if (exception is null)

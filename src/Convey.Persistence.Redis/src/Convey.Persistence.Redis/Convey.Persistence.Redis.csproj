@@ -19,8 +19,8 @@
     <PackageReference Include="Convey" Version="0.0.*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />
-  </ItemGroup>
+<!--  <ItemGroup>-->
+<!--    <PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.2.0" />-->
+<!--  </ItemGroup>-->
 
 </Project>

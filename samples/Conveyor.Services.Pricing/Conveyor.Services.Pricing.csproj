@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Convey.Discovery.Consul\src\Convey.Discovery.Consul\Convey.Discovery.Consul.csproj" />
+    <ProjectReference Include="..\..\src\Convey.LoadBalancing.Fabio\src\Convey.LoadBalancing.Fabio\Convey.LoadBalancing.Fabio.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Logging\src\Convey.Logging\Convey.Logging.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Metrics.AppMetrics\src\Convey.Metrics.AppMetrics\Convey.Metrics.AppMetrics.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />
+    <ProjectReference Include="..\..\src\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
+  </ItemGroup>
+  
+</Project>

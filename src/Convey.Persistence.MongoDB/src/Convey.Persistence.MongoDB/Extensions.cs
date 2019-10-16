@@ -48,7 +48,7 @@ namespace Convey.Persistence.MongoDB
             builder.Services.AddTransient(sp =>
             {
                 var options = sp.GetService<MongoDbOptions>();
-                var client = sp.GetService<MongoClient>();
+                var client = sp.GetService<IMongoClient>();
                 return client.GetDatabase(options.Database);
             });
 

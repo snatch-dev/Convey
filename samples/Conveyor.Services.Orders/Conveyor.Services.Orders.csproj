@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.6.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Convey.Configurations.Vault\src\Convey.Configurations.Vault\Convey.Configurations.Vault.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Discovery.Consul\src\Convey.Discovery.Consul\Convey.Discovery.Consul.csproj" />
+    <ProjectReference Include="..\..\src\Convey.HTTP\src\Convey.HTTP\Convey.HTTP.csproj" />
+    <ProjectReference Include="..\..\src\Convey.LoadBalancing.Fabio\src\Convey.LoadBalancing.Fabio\Convey.LoadBalancing.Fabio.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Logging\src\Convey.Logging\Convey.Logging.csproj" />
+    <ProjectReference Include="..\..\src\Convey.MessageBrokers.CQRS\src\Convey.MessageBrokers.CQRS\Convey.MessageBrokers.CQRS.csproj" />
+    <ProjectReference Include="..\..\src\Convey.MessageBrokers.RabbitMQ\src\Convey.MessageBrokers.RabbitMQ\Convey.MessageBrokers.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Metrics.AppMetrics\src\Convey.Metrics.AppMetrics\Convey.Metrics.AppMetrics.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Persistence.MongoDB\src\Convey.Persistence.MongoDB\Convey.Persistence.MongoDB.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Persistence.Redis\src\Convey.Persistence.Redis\Convey.Persistence.Redis.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger.RabbitMQ\src\Convey.Tracing.Jaeger.RabbitMQ\Convey.Tracing.Jaeger.RabbitMQ.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />
+    <ProjectReference Include="..\..\src\Convey.WebApi.CQRS\src\Convey.WebApi.CQRS\Convey.WebApi.CQRS.csproj" />
+    <ProjectReference Include="..\..\src\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
+  </ItemGroup>
+
+</Project>

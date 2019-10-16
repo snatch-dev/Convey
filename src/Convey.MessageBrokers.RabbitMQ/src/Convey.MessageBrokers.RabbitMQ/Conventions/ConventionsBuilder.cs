@@ -28,7 +28,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
         {
             var attribute = GeAttribute(type);
             var exchange = string.IsNullOrWhiteSpace(attribute?.Exchange)
-                ? string.IsNullOrWhiteSpace(_options.Exchange?.Name) ? type.Namespace : _options.Exchange.Name
+                ? string.IsNullOrWhiteSpace(_options.Exchange?.Name) ? type.Assembly.GetName().Name :
+                _options.Exchange.Name
                 : attribute.Exchange;
 
             return WithCasing(exchange);
@@ -37,7 +38,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
         public string GetQueue(Type type)
         {
             var attribute = GeAttribute(type);
-            var queue = string.IsNullOrWhiteSpace(attribute?.Queue) ? $"{type.Namespace}.{type.Name}" : attribute.Queue;
+            var queue = string.IsNullOrWhiteSpace(attribute?.Queue)
+                ? $"{type.Assembly.GetName().Name}/{type.Name}"
+                : attribute.Queue;
 
             return WithCasing(queue);
         }
@@ -46,7 +49,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
 
         private static string SnakeCase(string value)
             => string.Concat(value.Select((x, i) =>
-                    i > 0 && value[i - 1] != '.' && char.IsUpper(x) ? "_" + x : x.ToString()))
+                    i > 0 && value[i - 1] != '.' && value[i - 1] != '/' && char.IsUpper(x) ? "_" + x : x.ToString()))
                 .ToLowerInvariant();
 
         private static MessageAttribute GeAttribute(MemberInfo type) => type.GetCustomAttribute<MessageAttribute>();

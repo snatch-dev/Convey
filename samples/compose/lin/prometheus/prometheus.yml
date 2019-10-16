@@ -1,0 +1,25 @@
+global:
+  scrape_interval:     5s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 5s # Evaluate rules every 15 seconds. The default is every 1 minute.
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  - job_name: 'deliveries'
+    static_configs:
+      - targets: ['localhost:5001']
+
+  - job_name: 'orders'
+    static_configs:
+      - targets: ['localhost:5002']
+
+  - job_name: 'pricing'
+    static_configs:
+      - targets: ['localhost:5003']
+
+
+      
+
+  

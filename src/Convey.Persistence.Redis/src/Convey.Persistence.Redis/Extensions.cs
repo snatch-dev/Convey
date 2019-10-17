@@ -28,6 +28,7 @@ namespace Convey.Persistence.Redis
                 return builder;
             }
             
+            //TODO: Still 2.2
             builder.Services.AddDistributedRedisCache(o => 
             {
                 o.Configuration = options.ConnectionString;

@@ -11,16 +11,10 @@
     <PackageTags>Convey.MessageBrokers.CQRS</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
     <ProjectReference Include="..\..\..\Convey.CQRS.Commands\src\Convey.CQRS.Commands\Convey.CQRS.Commands.csproj" />
     <ProjectReference Include="..\..\..\Convey.CQRS.Events\src\Convey.CQRS.Events\Convey.CQRS.Events.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Convey.MessageBrokers" Version="0.0.*" />
-    <PackageReference Include="Convey.CQRS.Commands" Version="0.0.*" />
-    <PackageReference Include="Convey.CQRS.Events" Version="0.0.*" />
   </ItemGroup>
   
 </Project>

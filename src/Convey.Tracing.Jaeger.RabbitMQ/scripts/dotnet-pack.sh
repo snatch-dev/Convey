@@ -3,7 +3,7 @@ echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
 cd src/Convey.Tracing.Jaeger.RabbitMQ
-dotnet pack -c release /p:PackageVersion=0.0.$TRAVIS_BUILD_NUMBER --no-restore -o .
+dotnet pack -c release /p:PackageVersion=0.3.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.Tracing.Jaeger.RabbitMQ package to Nuget using branch $TRAVIS_BRANCH
 

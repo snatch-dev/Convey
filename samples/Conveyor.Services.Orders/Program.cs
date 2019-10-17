@@ -21,8 +21,6 @@ using Conveyor.Services.Orders.Domain;
 using Conveyor.Services.Orders.DTO;
 using Conveyor.Services.Orders.Events.External;
 using Conveyor.Services.Orders.Queries;
-using Conveyor.Services.Orders.RabbitMQ;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

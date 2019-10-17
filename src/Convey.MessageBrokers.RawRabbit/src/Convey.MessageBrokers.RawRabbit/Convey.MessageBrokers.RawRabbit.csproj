@@ -11,17 +11,10 @@
     <PackageTags>Convey.MessageBrokers.RawRabbit</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     <ProjectReference Include="..\..\..\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
     <ProjectReference Include="..\..\..\Convey.Persistence.Redis\src\Convey.Persistence.Redis\Convey.Persistence.Redis.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Convey" Version="0.0.*" />
-    <PackageReference Include="Convey.MessageBrokers" Version="0.0.*" />
-    <PackageReference Include="Convey.Persistence.Redis" Version="0.0.*" />
-
   </ItemGroup>
   
   <ItemGroup>

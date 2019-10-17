@@ -11,18 +11,11 @@
     <PackageTags>Convey.HTTP.RestEase</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     <ProjectReference Include="..\..\..\Convey.HTTP\src\Convey.HTTP\Convey.HTTP.csproj" />
     <ProjectReference Include="..\..\..\Convey.Discovery.Consul\src\Convey.Discovery.Consul\Convey.Discovery.Consul.csproj" />
     <ProjectReference Include="..\..\..\Convey.LoadBalancing.Fabio\src\Convey.LoadBalancing.Fabio\Convey.LoadBalancing.Fabio.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Convey" Version="0.0.*" />
-    <PackageReference Include="Convey.HTTP" Version="0.0.*" />
-    <PackageReference Include="Convey.Discovery.Consul" Version="0.0.*" />
-    <PackageReference Include="Convey.LoadBalancing.Fabio" Version="0.0.*" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using Convey.MessageBrokers;
 using Convey.MessageBrokers.RabbitMQ;
 using Jaeger;
 using OpenTracing;

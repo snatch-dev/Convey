@@ -7,7 +7,6 @@ using Convey.Discovery.Consul.MessageHandlers;
 using Convey.Discovery.Consul.Registries;
 using Convey.HTTP;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

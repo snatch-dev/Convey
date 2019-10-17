@@ -1,5 +1,3 @@
-using Convey.MessageBrokers;
-
 namespace Conveyor.Services.Deliveries.RabbitMQ
 {
     public class CorrelationContext

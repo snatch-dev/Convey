@@ -28,11 +28,11 @@ namespace Convey.Persistence.Redis
                 return builder;
             }
             
-//            builder.Services.AddDistributedRedisCache(o => 
-//            {
-//                o.Configuration = options.ConnectionString;
-//                o.InstanceName = options.Instance;
-//            });
+            builder.Services.AddDistributedRedisCache(o => 
+            {
+                o.Configuration = options.ConnectionString;
+                o.InstanceName = options.Instance;
+            });
 
             return builder;
         }

@@ -11,12 +11,8 @@
     <PackageTags>Convey.CQRS.Events</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Convey" Version="0.0.*" />
   </ItemGroup>
   
 </Project>

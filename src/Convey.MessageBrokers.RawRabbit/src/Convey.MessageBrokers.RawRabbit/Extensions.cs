@@ -11,7 +11,6 @@ using Convey.Persistence.Redis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RawRabbit;
 using RawRabbit.Common;
 using RawRabbit.Configuration;
@@ -19,8 +18,6 @@ using RawRabbit.Enrichers.MessageContext;
 using RawRabbit.Instantiation;
 using RawRabbit.Pipe;
 using RawRabbit.Pipe.Middleware;
-using RawRabbit.Serialization;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Convey.MessageBrokers.RawRabbit
 {

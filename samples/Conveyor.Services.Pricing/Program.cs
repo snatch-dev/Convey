@@ -7,7 +7,6 @@ using Convey.Tracing.Jaeger;
 using Convey.WebApi;
 using Conveyor.Services.Pricing.DTO;
 using Conveyor.Services.Pricing.Queries;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;

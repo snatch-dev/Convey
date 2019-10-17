@@ -8,7 +8,7 @@ branches:
     - master
     - develop
 script:
-  - dotnet build
+  - dotnet build -c release
 notifications:
   email:
     on_success: never

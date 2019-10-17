@@ -11,14 +11,9 @@
     <PackageTags>Convey.Discovery.Consul</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     <ProjectReference Include="..\..\..\Convey.HTTP\src\Convey.HTTP\Convey.HTTP.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="Convey" Version="0.0.*" />
-    <PackageReference Include="Convey.HTTP" Version="0.0.*" />
   </ItemGroup>
 
   <ItemGroup>

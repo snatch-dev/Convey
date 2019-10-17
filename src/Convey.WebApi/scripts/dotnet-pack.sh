@@ -2,7 +2,7 @@
 echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
-cd src/Convey.WebApi
+cd src/Convey.WebApi/src/Convey.WebApi
 dotnet pack -c release /p:PackageVersion=0.3.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.WebApi package to Nuget using branch $TRAVIS_BRANCH

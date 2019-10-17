@@ -330,3 +330,5 @@ ASALocalRun/
 .mfractor/
 
 logs/
+
+nuget_packages.txt

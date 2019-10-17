@@ -2,7 +2,7 @@
 echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
-cd src/Convey.LoadBalancing.Fabio
+cd src/Convey.LoadBalancing.Fabio/src/Convey.LoadBalancing.Fabio
 dotnet pack -c release /p:PackageVersion=0.3.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.LoadBalancing.Fabio package to Nuget using branch $TRAVIS_BRANCH

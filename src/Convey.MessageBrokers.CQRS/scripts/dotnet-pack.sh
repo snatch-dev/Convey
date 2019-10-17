@@ -2,7 +2,7 @@
 echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
-cd src/Convey.MessageBrokers.CQRS
+cd src/Convey.MessageBrokers.CQRS/src/Convey.MessageBrokers.CQRS
 dotnet pack -c release /p:PackageVersion=0.3.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.MessageBrokers.CQRS package to Nuget using branch $TRAVIS_BRANCH

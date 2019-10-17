@@ -7,8 +7,11 @@ branches:
   only:
     - master
     - develop
+before_script:
+  - chmod -R a+x scripts
 script:
   - dotnet build -c release
+  - ./scripts/pack.sh
 notifications:
   email:
     on_success: never

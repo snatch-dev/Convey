@@ -9,6 +9,7 @@ branches:
     - develop
 before_script:
   - chmod -R a+x scripts
+  - chmod -R a+x src
 script:
   - dotnet build -c release
   - ./scripts/pack.sh

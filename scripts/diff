@@ -1,8 +1,4 @@
-   5.2% samples/Conveyor.Services.Deliveries/
-   5.2% samples/Conveyor.Services.Orders/
-   5.2% scripts/
-  36.8% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Plugins/
-   5.2% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Subscribers/
-  31.5% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/
-   5.2% src/Convey.Tracing.Jaeger.RabbitMQ/src/Convey.Tracing.Jaeger.RabbitMQ/Plugins/
-   5.2% src/Convey.Tracing.Jaeger.RabbitMQ/src/Convey.Tracing.Jaeger.RabbitMQ/
+   9.0% scripts/
+  63.6% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Plugins/
+   9.0% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Subscribers/
+  18.1% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/

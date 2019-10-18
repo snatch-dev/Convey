@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
@@ -26,7 +24,6 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly IExceptionToMessageMapper _exceptionToMessageMapper;
         private readonly int _retries;
         private readonly int _retryInterval;
-        private readonly bool _hasMiddlewares;
         private readonly IModel _channel;
         private readonly bool _loggerEnabled;
         private readonly RabbitMqOptions _options;

@@ -6,12 +6,10 @@ namespace Convey.Tracing.Jaeger.RabbitMQ
 {
     public static class Extensions
     {
-
-        public static IConveyBuilder AddJaegerRabbitMqMiddleware(this IConveyBuilder builder)
+        public static IRabbitMqPluginsRegistry AddJaegerRabbitMqPlugin(this IRabbitMqPluginsRegistry registry)
         {
-            builder.Services.AddTransient<IRabbitMqMiddleware, JaegerMiddleware>();
-
-            return builder;
+            registry.Add<JaegerPlugin>();
+            return registry;
         }
     }
 }

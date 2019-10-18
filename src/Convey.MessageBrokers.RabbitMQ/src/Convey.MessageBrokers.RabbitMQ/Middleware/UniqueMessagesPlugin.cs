@@ -5,21 +5,21 @@ using RabbitMQ.Client.Events;
 
 namespace Convey.MessageBrokers.RabbitMQ.Middleware
 {
-    public class UniqueMessagesMiddleware : IUniqueMessagesMiddleware
+    internal sealed class UniqueMessagesPlugin : RabbitMqPlugin
     {
         private readonly IMessageProcessor _messageProcessor;
-        private readonly ILogger<UniqueMessagesMiddleware> _logger;
+        private readonly ILogger<UniqueMessagesPlugin> _logger;
         private readonly bool _loggerEnabled;
 
-        public UniqueMessagesMiddleware(IMessageProcessor messageProcessor, RabbitMqOptions options,
-            ILogger<UniqueMessagesMiddleware> logger)
+        public UniqueMessagesPlugin(IMessageProcessor messageProcessor, RabbitMqOptions options,
+            ILogger<UniqueMessagesPlugin> logger)
         {
             _messageProcessor = messageProcessor;
             _logger = logger;
             _loggerEnabled = options.Logger?.Enabled == true;
         }
 
-        public async Task HandleAsync(Func<Task> next, object message, object correlationContext,
+        public override async Task HandleAsync(object message, object correlationContext,
             BasicDeliverEventArgs args)
         {
             var messageId = args.BasicProperties.MessageId;
@@ -45,7 +45,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Middleware
                     _logger.LogTrace($"Processing a unique message with id: '{messageId}'...");
                 }
 
-                await next();
+                await Next(message, correlationContext, args);
 
                 if (_loggerEnabled)
                 {

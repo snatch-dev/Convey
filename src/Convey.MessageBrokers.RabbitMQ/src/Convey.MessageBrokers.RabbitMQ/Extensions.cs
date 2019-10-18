@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Clients;
@@ -20,7 +21,8 @@ namespace Convey.MessageBrokers.RabbitMQ
         private const string SectionName = "rabbitmq";
         private const string RegistryName = "messageBrokers.rabbitmq";
 
-        public static IConveyBuilder AddRabbitMq(this IConveyBuilder builder, string sectionName = SectionName)
+        public static IConveyBuilder AddRabbitMq(this IConveyBuilder builder, string sectionName = SectionName,
+            Func<IRabbitMqPluginsRegistry, IRabbitMqPluginsRegistry> plugins = null)
         {
             var options = builder.GetOptions<RabbitMqOptions>(sectionName);
             builder.Services.AddSingleton(options);
@@ -39,10 +41,15 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IRabbitMqClient, RabbitMqClient>();
             builder.Services.AddSingleton<IBusPublisher, RabbitMqPublisher>();
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();
+            
+            var pluginsRegistry = new RabbitMqPluginsRegistry();
+            builder.Services.AddSingleton<IRabbitMqPluginsRegistryAccessor>(pluginsRegistry);
+            builder.Services.AddSingleton<IRabbitMqPluginsExecutor, RabbitMqPluginsExecutor>();
+            plugins?.Invoke(pluginsRegistry);
+            
             if (options.MessageProcessor?.Enabled == true)
             {
-                builder.Services.AddSingleton<IRabbitMqMiddleware, UniqueMessagesMiddleware>();
-                builder.Services.AddSingleton<IUniqueMessagesMiddleware, UniqueMessagesMiddleware>();
+                pluginsRegistry.Add<UniqueMessagesPlugin>();
                 switch (options.MessageProcessor.Type?.ToLowerInvariant())
                 {
                     default:
@@ -100,6 +107,9 @@ namespace Convey.MessageBrokers.RabbitMQ
                 return connection;
             });
 
+            ((IRabbitMqPluginsRegistryAccessor)pluginsRegistry).Get().ToList().ForEach(p => 
+                builder.Services.AddTransient(p.PluginType));
+            
             return builder;
         }
 

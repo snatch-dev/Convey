@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Convey;
 using Convey.Configurations.Vault;
 using Convey.CQRS.Commands;
@@ -8,6 +9,7 @@ using Convey.Discovery.Consul;
 using Convey.HTTP;
 using Convey.LoadBalancing.Fabio;
 using Convey.Logging;
+using Convey.MessageBrokers;
 using Convey.MessageBrokers.CQRS;
 using Convey.MessageBrokers.RabbitMQ;
 using Convey.Metrics.AppMetrics;
@@ -57,8 +59,7 @@ namespace Conveyor.Services.Orders
                         .AddInMemoryCommandDispatcher()
                         .AddInMemoryEventDispatcher()
                         .AddInMemoryQueryDispatcher()
-                        .AddRabbitMq()
-                        .AddJaegerRabbitMqMiddleware()
+                        .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
                         .AddMetrics()
                         .AddWebApi()
                         .Build())

@@ -9,13 +9,13 @@ using RabbitMQ.Client.Events;
 
 namespace Convey.Tracing.Jaeger.RabbitMQ.Middlewares
 {
-    internal sealed class JaegerMiddleware : IRabbitMqMiddleware
+    internal sealed class JaegerPlugin : RabbitMqPlugin
     {
         private readonly ITracer _tracer;
 
-        public JaegerMiddleware(ITracer tracer) => _tracer = tracer;
+        public JaegerPlugin(ITracer tracer) => _tracer = tracer;
 
-        public async Task HandleAsync(Func<Task> next, object message, object correlationContext,
+        public override async Task HandleAsync(object message, object correlationContext,
             BasicDeliverEventArgs args)
         {
             var messageName = message.GetType().Name;
@@ -33,7 +33,7 @@ namespace Convey.Tracing.Jaeger.RabbitMQ.Middlewares
                 span.Log($"Started processing: {messageName} [id: {messageId}]");
                 try
                 {
-                    await next();
+                    await Next(message, correlationContext, args);
                 }
                 catch (Exception ex)
                 {

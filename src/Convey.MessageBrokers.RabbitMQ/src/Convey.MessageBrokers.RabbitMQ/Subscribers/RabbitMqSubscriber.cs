@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Convey.MessageBrokers.RabbitMQ.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,7 +22,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly IConventionsProvider _conventionsProvider;
         private readonly IContextProvider _contextProvider;
         private readonly ILogger _logger;
-        private readonly IEnumerable<IRabbitMqMiddleware> _middlewares;
+        private readonly IRabbitMqPluginsExecutor _pluginsExecutor;
         private readonly IExceptionToMessageMapper _exceptionToMessageMapper;
         private readonly int _retries;
         private readonly int _retryInterval;
@@ -42,8 +43,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             _logger = app.ApplicationServices.GetService<ILogger<RabbitMqSubscriber>>();
             _exceptionToMessageMapper = _serviceProvider.GetService<IExceptionToMessageMapper>() ??
                                         new EmptyExceptionToMessageMapper();
-            _middlewares = _serviceProvider.GetServices<IRabbitMqMiddleware>();
-            _hasMiddlewares = _middlewares.Any();
+            _pluginsExecutor = _serviceProvider.GetService<IRabbitMqPluginsExecutor>();
             _options = _serviceProvider.GetService<RabbitMqOptions>();
             _loggerEnabled = _options.Logger?.Enabled ?? false;
             _retries = _options.Retries >= 0 ? _options.Retries : 3;
@@ -104,29 +104,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     correlationContextAccessor.CorrelationContext = correlationContext;
                     var message = _rabbitMqSerializer.Deserialize<T>(payload);
 
-                    Task<Exception> Next()
-                        => TryHandleAsync(message, messageId, correlationId, correlationContext, handle);
-                    
-//                    if (_hasMiddlewares)
-//                    {
-//                        foreach (var middleware in _middlewares)
-//                        {
-//                            await middleware.HandleAsync(Next, message, correlationContext, args);
-//                        }
-//
-//                        _channel.BasicAck(args.DeliveryTag, false);
-//                        return;
-//                    }
+                    Task Next(object m, object ctx, BasicDeliverEventArgs a)
+                        => TryHandleAsync((T)m, messageId, correlationId, ctx, a, handle);
 
-                    var exception = await Next();
-                    if (exception is null)
-                    {
-                        _channel.BasicAck(args.DeliveryTag, false);
-                        return;
-                    }
-
-                    throw exception;
-
+                    await _pluginsExecutor.ExecuteAsync(Next, message, correlationContext, args);
                 }
                 catch (Exception ex)
                 {
@@ -139,8 +120,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             return this;
         }
 
-        private Task<Exception> TryHandleAsync<TMessage>(TMessage message, string messageId, string correlationId, 
-            object correlationContext, Func<IServiceProvider, TMessage, object, Task> handle)
+        private async Task TryHandleAsync<TMessage>(TMessage message, string messageId, string correlationId, 
+            object correlationContext, BasicDeliverEventArgs args,Func<IServiceProvider, TMessage, object, Task> handle)
         {
             var currentRetry = 0;
             var messageName = message.GetType().Name;
@@ -148,7 +129,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 .Handle<Exception>()
                 .WaitAndRetryAsync(_retries, i => TimeSpan.FromSeconds(_retryInterval));
 
-            return retryPolicy.ExecuteAsync(async () =>
+            var exception = await retryPolicy.ExecuteAsync(async () =>
             {
                 try
                 {
@@ -199,6 +180,14 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                          $"'{rejectedEventName}' was published.", ex);
                 }
             });
+            
+            if (exception is null)
+            {
+                _channel.BasicAck(args.DeliveryTag, false);
+                return;
+            }
+
+            throw exception;
         }
 
         private class EmptyExceptionToMessageMapper : IExceptionToMessageMapper

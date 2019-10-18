@@ -1,9 +1,8 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Events;
 
-namespace Convey.MessageBrokers.RabbitMQ.Middleware
+namespace Convey.MessageBrokers.RabbitMQ.Plugins
 {
     internal sealed class UniqueMessagesPlugin : RabbitMqPlugin
     {

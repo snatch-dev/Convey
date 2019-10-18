@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Convey.MessageBrokers.RabbitMQ.Middleware;
+using Convey.MessageBrokers.RabbitMQ.Plugins;
 using RabbitMQ.Client.Events;
 
 namespace Convey.MessageBrokers.RabbitMQ

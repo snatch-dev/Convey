@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
-namespace Convey.MessageBrokers.RabbitMQ.Middleware
+namespace Convey.MessageBrokers.RabbitMQ.Plugins
 {
     internal sealed class RabbitMqPluginsExecutor : IRabbitMqPluginsExecutor
     {

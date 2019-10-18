@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-namespace Convey.MessageBrokers.RabbitMQ.Middleware
+namespace Convey.MessageBrokers.RabbitMQ.Plugins
 {
     internal sealed class RabbitMqPluginsRegistry : IRabbitMqPluginsRegistry, IRabbitMqPluginsRegistryAccessor
     {

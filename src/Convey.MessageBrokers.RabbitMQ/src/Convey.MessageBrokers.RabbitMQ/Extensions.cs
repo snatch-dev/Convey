@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Clients;
 using Convey.MessageBrokers.RabbitMQ.Contexts;
 using Convey.MessageBrokers.RabbitMQ.Conventions;
-using Convey.MessageBrokers.RabbitMQ.Middleware;
+using Convey.MessageBrokers.RabbitMQ.Plugins;
 using Convey.MessageBrokers.RabbitMQ.Processors;
 using Convey.MessageBrokers.RabbitMQ.Publishers;
 using Convey.MessageBrokers.RabbitMQ.Serializers;

@@ -1,9 +1,8 @@
-   5.0% samples/Conveyor.Services.Deliveries/
-   5.0% samples/Conveyor.Services.Orders/
-   5.0% scripts/
-  35.0% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Middleware/
-   5.0% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Subscribers/
-  30.0% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/
-   5.0% src/Convey.Tracing.Jaeger.RabbitMQ/src/Convey.Tracing.Jaeger.RabbitMQ/Middlewares/
-   5.0% src/Convey.Tracing.Jaeger.RabbitMQ/src/Convey.Tracing.Jaeger.RabbitMQ/
-   5.0% src/Convey.WebApi/src/Convey.WebApi/
+   5.2% samples/Conveyor.Services.Deliveries/
+   5.2% samples/Conveyor.Services.Orders/
+   5.2% scripts/
+  36.8% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Plugins/
+   5.2% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/Subscribers/
+  31.5% src/Convey.MessageBrokers.RabbitMQ/src/Convey.MessageBrokers.RabbitMQ/
+   5.2% src/Convey.Tracing.Jaeger.RabbitMQ/src/Convey.Tracing.Jaeger.RabbitMQ/Plugins/
+   5.2% src/Convey.Tracing.Jaeger.RabbitMQ/src/Convey.Tracing.Jaeger.RabbitMQ/

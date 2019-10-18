@@ -1,18 +1,10 @@
 #!/bin/bash
-echo Diff between the previous commit:
-cat scripts/diff
-echo Preparing NuGet packages...
-
-while read f; do
-  if [[ $f == src/Convey.*/src/Convey.* ]];
-  then
-    dir="$f../../scripts"
-    if [ -d $dir ]; then
-      echo Publishing NuGet package: $f
-      exec ./$dir/dotnet-pack.sh &
-      wait
-    fi
-  fi
-done <scripts/diff | sort | uniq
+for dir in src/*/
+do
+    dir=${dir%*/}
+    echo Publishing NuGet package:  ${dir##*/}
+    exec ./$dir/scripts/dotnet-pack.sh &
+    wait
+done
 
 echo Finished publishing NuGet packages.

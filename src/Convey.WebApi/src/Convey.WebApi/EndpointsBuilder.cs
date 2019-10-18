@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Convey.WebApi.Helpers;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
@@ -11,9 +12,9 @@ namespace Convey.WebApi
     public class EndpointsBuilder : IEndpointsBuilder
     {
         private readonly WebApiEndpointDefinitions _definitions;
-        private readonly IRouteBuilder _routeBuilder;
+        private readonly IEndpointRouteBuilder _routeBuilder;
 
-        public EndpointsBuilder(IRouteBuilder routeBuilder, WebApiEndpointDefinitions definitions)
+        public EndpointsBuilder(IEndpointRouteBuilder routeBuilder, WebApiEndpointDefinitions definitions)
         {
             _routeBuilder = routeBuilder;
             _definitions = definitions;
@@ -21,7 +22,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Get(string path, Func<HttpContext, Task> context = null)
         {
-            _routeBuilder.MapGet(path, (req, res, data) => context?.Invoke(req.HttpContext));
+            _routeBuilder.MapGet(path, ctx => context?.Invoke(ctx));
             AddEndpointDefinition(HttpMethods.Get, path);
 
             return this;
@@ -29,7 +30,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Get<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
         {
-            _routeBuilder.MapGet(path, (req, res, data) => BuildQueryContext(req, context));
+            _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
             AddEndpointDefinition<T>(HttpMethods.Get, path);
 
             return this;
@@ -37,7 +38,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Get<T, U>(string path, Func<T, HttpContext, Task> context = null) where T : class
         {
-            _routeBuilder.MapGet(path, (req, res, data) => BuildQueryContext(req, context));
+            _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
             AddEndpointDefinition<T, U>(HttpMethods.Get, path);
 
             return this;
@@ -45,7 +46,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Post(string path, Func<HttpContext, Task> context = null)
         {
-            _routeBuilder.MapPost(path, (req, res, data) => context?.Invoke(req.HttpContext));
+            _routeBuilder.MapPost(path, ctx => context?.Invoke(ctx));
             AddEndpointDefinition(HttpMethods.Post, path);
 
             return this;
@@ -53,7 +54,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Post<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
         {
-            _routeBuilder.MapPost(path, (req, res, data) => BuildCommandContext(req, context));
+            _routeBuilder.MapPost(path, ctx => BuildCommandContext(ctx, context));
             AddEndpointDefinition<T>(HttpMethods.Post, path);
 
             return this;
@@ -61,7 +62,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Put(string path, Func<HttpContext, Task> context = null)
         {
-            _routeBuilder.MapPut(path, (req, res, data) => context?.Invoke(req.HttpContext));
+            _routeBuilder.MapPut(path, ctx => context?.Invoke(ctx));
             AddEndpointDefinition(HttpMethods.Put, path);
 
             return this;
@@ -69,7 +70,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Put<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
         {
-            _routeBuilder.MapPut(path, (req, res, data) => BuildCommandContext(req, context));
+            _routeBuilder.MapPut(path, ctx=> BuildCommandContext(ctx, context));
             AddEndpointDefinition<T>(HttpMethods.Put, path);
 
             return this;
@@ -77,7 +78,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Delete(string path, Func<HttpContext, Task> context = null)
         {
-            _routeBuilder.MapDelete(path, (req, res, data) => context?.Invoke(req.HttpContext));
+            _routeBuilder.MapDelete(path, ctx => context?.Invoke(ctx));
             AddEndpointDefinition(HttpMethods.Delete, path);
 
             return this;
@@ -85,25 +86,23 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Delete<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
         {
-            _routeBuilder.MapDelete(path, (req, res, data) => BuildQueryContext(req, context));
+            _routeBuilder.MapDelete(path, ctx => BuildQueryContext(ctx, context));
             AddEndpointDefinition<T>(HttpMethods.Delete, path);
 
             return this;
         }
 
-        private static Task BuildCommandContext<T>(HttpRequest req, Func<T, HttpContext, Task> context = null)
+        private static Task BuildCommandContext<T>(HttpContext httpContext, Func<T, HttpContext, Task> context = null)
             where T : class
         {
-            var httpContext = req.HttpContext;
             var request = httpContext.ReadJson<T>();
 
             return request is null ? Task.CompletedTask : context?.Invoke(request, httpContext);
         }
 
-        private static Task BuildQueryContext<T>(HttpRequest req, Func<T, HttpContext, Task> context = null)
+        private static Task BuildQueryContext<T>(HttpContext httpContext, Func<T, HttpContext, Task> context = null)
             where T : class
         {
-            var httpContext = req.HttpContext;
             var request = httpContext.ReadQuery<T>();
 
             return context?.Invoke(request, httpContext);

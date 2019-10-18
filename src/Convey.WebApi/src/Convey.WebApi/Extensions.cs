@@ -26,6 +26,7 @@ namespace Convey.WebApi
     public static class Extensions
     {
         private static readonly byte[] InvalidJsonRequestBytes = Encoding.UTF8.GetBytes("An invalid JSON was sent.");
+
         private static readonly JsonSerializer Serializer = new JsonSerializer
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -40,11 +41,16 @@ namespace Convey.WebApi
         private const string JsonContentType = "application/json";
 
         public static IApplicationBuilder UseEndpoints(this IApplicationBuilder app, Action<IEndpointsBuilder> build)
-            => app.UseRouter(router =>
+        {
+            app.UseRouting();
+            app.UseEndpoints(router =>
             {
                 var definitions = app.ApplicationServices.GetService<WebApiEndpointDefinitions>();
                 build(new EndpointsBuilder(router, definitions));
             });
+
+            return app;
+        }
 
         public static IConveyBuilder AddWebApi(this IConveyBuilder builder, string sectionName = SectionName)
         {
@@ -55,7 +61,7 @@ namespace Convey.WebApi
 
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton(new WebApiEndpointDefinitions());
-            builder.Services.AddRouting()
+            builder.Services
                 .AddLogging()
                 .AddMvcCore()
                 .AddDataAnnotations()
@@ -224,24 +230,26 @@ namespace Convey.WebApi
                     var payload = Serializer.Deserialize<T>(jsonTextReader);
                     var results = new List<ValidationResult>();
                     var request = httpContext.Request;
-                    
+
                     if (HasRouteData(request))
                     {
                         var values = request.HttpContext.GetRouteData().Values;
-                    
+
                         foreach (var value in values)
                         {
                             var field = payload.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                                .SingleOrDefault(f => f.Name.ToLowerInvariant().StartsWith($"<{value.Key}>", StringComparison.InvariantCultureIgnoreCase));
+                                .SingleOrDefault(f => f.Name.ToLowerInvariant().StartsWith($"<{value.Key}>",
+                                    StringComparison.InvariantCultureIgnoreCase));
 
                             if (!(field is null))
                             {
-                                var fieldValue = TypeDescriptor.GetConverter(field.FieldType).ConvertFromInvariantString(value.Value.ToString());
+                                var fieldValue = TypeDescriptor.GetConverter(field.FieldType)
+                                    .ConvertFromInvariantString(value.Value.ToString());
                                 field.SetValue(payload, fieldValue);
                             }
                         }
                     }
-                    
+
                     if (Validator.TryValidateObject(payload, new ValidationContext(payload), results))
                     {
                         return payload;

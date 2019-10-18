@@ -223,6 +223,25 @@ namespace Convey.WebApi
                 {
                     var payload = Serializer.Deserialize<T>(jsonTextReader);
                     var results = new List<ValidationResult>();
+                    var request = httpContext.Request;
+                    
+                    if (HasRouteData(request))
+                    {
+                        var values = request.HttpContext.GetRouteData().Values;
+                    
+                        foreach (var value in values)
+                        {
+                            var field = payload.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
+                                .SingleOrDefault(f => f.Name.ToLowerInvariant().StartsWith($"<{value.Key}>", StringComparison.InvariantCultureIgnoreCase));
+
+                            if (!(field is null))
+                            {
+                                var fieldValue = TypeDescriptor.GetConverter(field.FieldType).ConvertFromInvariantString(value.Value.ToString());
+                                field.SetValue(payload, fieldValue);
+                            }
+                        }
+                    }
+                    
                     if (Validator.TryValidateObject(payload, new ValidationContext(payload), results))
                     {
                         return payload;

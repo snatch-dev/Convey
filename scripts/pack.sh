@@ -1,4 +1,6 @@
 #!/bin/bash
+echo Diff between the previous commit:
+cat scripts/diff
 echo Preparing NuGet packages...
 
 while read f; do

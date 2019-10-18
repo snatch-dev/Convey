@@ -1,8 +1,5 @@
 #!/bin/bash
 echo Preparing NuGet packages...
-file=nuget_packages.txt
-rm -f $file
-git diff --dirstat=files,0 HEAD~1 | sed 's/^[ 0-9.]\+% //g' >> $file
 
 while read f; do
   if [[ $f == src/Convey.*/src/Convey.* ]];
@@ -14,6 +11,6 @@ while read f; do
       wait
     fi
   fi
-done <$file | sort | uniq
+done <scripts/diff | sort | uniq
 
 echo Finished publishing NuGet packages.

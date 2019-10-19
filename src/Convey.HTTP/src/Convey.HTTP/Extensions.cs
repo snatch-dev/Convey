@@ -16,7 +16,7 @@ namespace Convey.HTTP
 
             var options = builder.GetOptions<HttpClientOptions>(sectionName);
             builder.Services.AddSingleton(options);
-            builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>();
+            builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>("convey");
 
             return builder;
         }

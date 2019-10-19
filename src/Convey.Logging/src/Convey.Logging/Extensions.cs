@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Convey.Logging.Options;
 using Microsoft.AspNetCore.Hosting;
@@ -42,12 +43,17 @@ namespace Convey.Logging
                 {
                     serviceId = serviceIdEnv;
                 }
-
+                
                 loggerConfiguration.Enrich.FromLogContext()
                     .MinimumLevel.Is(level)
                     .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
                     .Enrich.WithProperty("ApplicationName", applicationName)
                     .Enrich.WithProperty("ServiceId", serviceId);
+
+                foreach (var (key, value) in options.Tags ?? new Dictionary<string, object>())
+                {
+                    loggerConfiguration.Enrich.WithProperty(key, value);
+                }
 
                 options.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
                     .ByExcluding(Matching.WithProperty<string>("RequestPath", n => n.EndsWith(p))));

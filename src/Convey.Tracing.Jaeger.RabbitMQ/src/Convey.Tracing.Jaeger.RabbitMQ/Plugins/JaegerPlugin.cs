@@ -7,7 +7,7 @@ using OpenTracing;
 using OpenTracing.Tag;
 using RabbitMQ.Client.Events;
 
-namespace Convey.Tracing.Jaeger.RabbitMQ.Middlewares
+namespace Convey.Tracing.Jaeger.RabbitMQ.Plugins
 {
     internal sealed class JaegerPlugin : RabbitMqPlugin
     {

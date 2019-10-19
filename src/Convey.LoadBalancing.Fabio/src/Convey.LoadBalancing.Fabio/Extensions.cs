@@ -53,9 +53,9 @@ namespace Convey.LoadBalancing.Fabio
             if (httpClientOptions.Type?.ToLowerInvariant() == "fabio")
             {
                 builder.Services.AddTransient<FabioMessageHandler>();
-                builder.Services.AddHttpClient<IFabioHttpClient, FabioHttpClient>()
+                builder.Services.AddHttpClient<IFabioHttpClient, FabioHttpClient>("fabio-http")
                     .AddHttpMessageHandler<FabioMessageHandler>();
-                builder.Services.AddHttpClient<IHttpClient, FabioHttpClient>()
+                builder.Services.AddHttpClient<IHttpClient, FabioHttpClient>("fabio")
                     .AddHttpMessageHandler<FabioMessageHandler>();
             }
 

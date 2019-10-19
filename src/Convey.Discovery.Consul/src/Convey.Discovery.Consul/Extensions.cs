@@ -44,9 +44,9 @@ namespace Convey.Discovery.Consul
             if (httpClientOptions.Type?.ToLowerInvariant() == "consul")
             {
                 builder.Services.AddTransient<ConsulServiceDiscoveryMessageHandler>();
-                builder.Services.AddHttpClient<IConsulHttpClient, ConsulHttpClient>()
+                builder.Services.AddHttpClient<IConsulHttpClient, ConsulHttpClient>("consul-http")
                     .AddHttpMessageHandler<ConsulServiceDiscoveryMessageHandler>();
-                builder.Services.AddHttpClient<IHttpClient, ConsulHttpClient>()
+                builder.Services.AddHttpClient<IHttpClient, ConsulHttpClient>("consul")
                     .AddHttpMessageHandler<ConsulServiceDiscoveryMessageHandler>();
             }
 

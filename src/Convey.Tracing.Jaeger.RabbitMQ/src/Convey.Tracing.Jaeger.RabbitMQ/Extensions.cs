@@ -1,5 +1,5 @@
 using Convey.MessageBrokers.RabbitMQ;
-using Convey.Tracing.Jaeger.RabbitMQ.Middlewares;
+using Convey.Tracing.Jaeger.RabbitMQ.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Convey.Tracing.Jaeger.RabbitMQ

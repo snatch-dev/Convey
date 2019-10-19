@@ -45,6 +45,7 @@ namespace Conveyor.Services.Deliveries
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Deliveries Service")))
                         .UseJaeger()
+                        .UseInitializers()
                         .UseMetrics()
                         .UseErrorHandler()
                         .UseRabbitMq()

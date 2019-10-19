@@ -4,11 +4,13 @@ using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Clients;
 using Convey.MessageBrokers.RabbitMQ.Contexts;
 using Convey.MessageBrokers.RabbitMQ.Conventions;
+using Convey.MessageBrokers.RabbitMQ.Initializers;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
 using Convey.MessageBrokers.RabbitMQ.Processors;
 using Convey.MessageBrokers.RabbitMQ.Publishers;
 using Convey.MessageBrokers.RabbitMQ.Serializers;
 using Convey.MessageBrokers.RabbitMQ.Subscribers;
+using Convey.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,6 +33,7 @@ namespace Convey.MessageBrokers.RabbitMQ
                 return builder;
             }
 
+           
             builder.Services.AddSingleton<IContextProvider, ContextProvider>();
             builder.Services.AddSingleton<ICorrelationContextAccessor>(new CorrelationContextAccessor());
             builder.Services.AddSingleton<IMessagePropertiesAccessor>(new MessagePropertiesAccessor());
@@ -41,6 +44,8 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IRabbitMqClient, RabbitMqClient>();
             builder.Services.AddSingleton<IBusPublisher, RabbitMqPublisher>();
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();
+            builder.Services.AddTransient<RabbitMqExchangeInitializer>();
+            builder.AddInitializer<RabbitMqExchangeInitializer>();
             
             var pluginsRegistry = new RabbitMqPluginsRegistry();
             builder.Services.AddSingleton<IRabbitMqPluginsRegistryAccessor>(pluginsRegistry);

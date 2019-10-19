@@ -52,7 +52,7 @@ namespace Convey
                     throw new InvalidOperationException("Startup initializer was not found.");
                 }
 
-                Task.Run(() => initializer.InitializeAsync());
+                Task.Run(() => initializer.InitializeAsync()).GetAwaiter().GetResult();
             }
 
             return builder;

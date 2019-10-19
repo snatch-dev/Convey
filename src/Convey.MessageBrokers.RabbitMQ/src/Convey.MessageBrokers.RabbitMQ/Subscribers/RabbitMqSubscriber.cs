@@ -96,7 +96,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     {
                         MessageId = messageId,
                         CorrelationId = correlationId,
-                        Timestamp = timestamp
+                        Timestamp = timestamp,
+                        Headers = args.BasicProperties.Headers
                     };
                     var correlationContextAccessor = _serviceProvider.GetService<ICorrelationContextAccessor>();
                     var correlationContext = _contextProvider.Get(args.BasicProperties.Headers);

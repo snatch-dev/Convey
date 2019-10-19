@@ -15,6 +15,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         private readonly bool _contextEnabled;
         private readonly IModel _channel;
         private readonly bool _loggerEnabled;
+        private readonly string _spanContextHeader;
 
         public RabbitMqClient(IConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
             RabbitMqOptions options, ILogger<RabbitMqClient> logger)
@@ -25,10 +26,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             _contextEnabled = options.Context?.Enabled == true;
             _channel = connection.CreateModel();
             _loggerEnabled = options.Logger?.Enabled ?? false;
+            _spanContextHeader = string.IsNullOrWhiteSpace(options.SpanContextHeader)
+                ? "span_context"
+                : options.SpanContextHeader;
         }
 
         public void Send(object message, IConventions conventions, string messageId = null, string correlationId = null,
-            object correlationContext = null)
+            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
         {
             var json = _serializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(json);
@@ -43,7 +47,20 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             properties.Headers = new Dictionary<string, object>();
             if (_contextEnabled)
             {
-                IncludeCorrelationContext(correlationContext, properties);
+                IncludeMessageContext(messageContext, properties);
+            }
+
+            if (!string.IsNullOrWhiteSpace(spanContext))
+            {
+                properties.Headers.Add(_spanContextHeader, spanContext);
+            }
+
+            if (!(headers is null))
+            {
+                foreach (var (key, value) in headers)
+                {
+                    properties.Headers.TryAdd(key, value);
+                }
             }
 
             if (_loggerEnabled)
@@ -56,7 +73,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             _channel.BasicPublish(conventions.Exchange, conventions.RoutingKey, properties, body);
         }
 
-        private void IncludeCorrelationContext(object context, IBasicProperties properties)
+        private void IncludeMessageContext(object context, IBasicProperties properties)
         {
             if (!(context is null))
             {

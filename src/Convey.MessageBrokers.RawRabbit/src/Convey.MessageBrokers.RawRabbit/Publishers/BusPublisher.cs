@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using RawRabbit;
 using RawRabbit.Enrichers.MessageContext;
@@ -14,9 +15,10 @@ namespace Convey.MessageBrokers.RawRabbit.Publishers
         }
 
         public Task PublishAsync<T>(T message, string messageId = null, string correlationId = null,
-            object context = null) where T : class
+            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
+            where T : class
         {
-            return _busClient.PublishAsync(message, ctx => ctx.UseMessageContext(context));
+            return _busClient.PublishAsync(message, ctx => ctx.UseMessageContext(messageContext));
         }
     }
 }

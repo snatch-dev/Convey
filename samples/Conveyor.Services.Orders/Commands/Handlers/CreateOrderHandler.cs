@@ -42,7 +42,7 @@ namespace Conveyor.Services.Orders.Commands.Handlers
 
             await _repository.AddAsync(order);
             _logger.LogInformation($"Created an order with id: {command.OrderId}.");
-            await _publisher.PublishAsync(new OrderCreated(order.Id), context: new CorrelationContext());
+            await _publisher.PublishAsync(new OrderCreated(order.Id), messageContext: new CorrelationContext());
         }
     }
 }

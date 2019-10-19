@@ -26,6 +26,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public MessageProcessorOptions MessageProcessor { get; set; }
         public SslOptions Ssl { get; set; }
         public QueueOptions Queue { get; set; }
+        public string SpanContextHeader { get; set; }
 
         public class LoggerOptions
         {

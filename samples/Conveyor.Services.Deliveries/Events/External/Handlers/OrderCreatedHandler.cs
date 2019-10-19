@@ -23,7 +23,7 @@ namespace Conveyor.Services.Deliveries.Events.External.Handlers
             _logger.LogInformation($"Received 'order created' event with order id: {@event.OrderId}");
             var deliveryId = Guid.NewGuid();
             _logger.LogInformation($"Starting a delivery with id: {deliveryId}");
-            return _publisher.PublishAsync(new DeliveryStarted(deliveryId), context: new CorrelationContext());
+            return _publisher.PublishAsync(new DeliveryStarted(deliveryId), messageContext: new CorrelationContext());
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Convey.MessageBrokers.RabbitMQ.Publishers
@@ -14,9 +15,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Publishers
         }
 
         public Task PublishAsync<T>(T message, string messageId = null, string correlationId = null,
-            object context = null) where T : class
+            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
+            where T : class
         {
-            _client.Send(message, _conventionsProvider.Get<T>(), messageId, correlationId, context);
+            _client.Send(message, _conventionsProvider.Get<T>(), messageId, correlationId, spanContext, messageContext,
+                headers);
 
             return Task.CompletedTask;
         }

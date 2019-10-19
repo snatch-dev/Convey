@@ -34,8 +34,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             _connection = app.ApplicationServices.GetRequiredService<IConnection>();
             _channel = _connection.CreateModel();
             _publisher = app.ApplicationServices.GetRequiredService<IBusPublisher>();
-            _rabbitMqSerializer = app.ApplicationServices.GetRequiredService<IRabbitMqSerializer>();;
-            _conventionsProvider = app.ApplicationServices.GetRequiredService<IConventionsProvider>();;
+            _rabbitMqSerializer = app.ApplicationServices.GetRequiredService<IRabbitMqSerializer>();
+            ;
+            _conventionsProvider = app.ApplicationServices.GetRequiredService<IConventionsProvider>();
+            ;
             _contextProvider = app.ApplicationServices.GetRequiredService<IContextProvider>();
             _logger = app.ApplicationServices.GetService<ILogger<RabbitMqSubscriber>>();
             _exceptionToMessageMapper = _serviceProvider.GetService<IExceptionToMessageMapper>() ??
@@ -56,7 +58,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             var exclusive = _options.Queue?.Exclusive ?? false;
             var autoDelete = _options.Queue?.AutoDelete ?? false;
             var info = string.Empty;
-            
+
             if (_loggerEnabled)
             {
                 info = $"[queue: '{conventions.Queue}', routing key: '{conventions.RoutingKey}', " +
@@ -69,11 +71,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     _channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
                 }
             }
-            
+
             _channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
             _channel.BasicQos(0, 1, false);
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            
+
             consumer.Received += async (model, args) =>
             {
                 try
@@ -102,7 +104,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     var message = _rabbitMqSerializer.Deserialize<T>(payload);
 
                     Task Next(object m, object ctx, BasicDeliverEventArgs a)
-                        => TryHandleAsync((T)m, messageId, correlationId, ctx, a, handle);
+                        => TryHandleAsync((T) m, messageId, correlationId, ctx, a, handle);
 
                     await _pluginsExecutor.ExecuteAsync(Next, message, correlationContext, args);
                 }
@@ -117,8 +119,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             return this;
         }
 
-        private async Task TryHandleAsync<TMessage>(TMessage message, string messageId, string correlationId, 
-            object correlationContext, BasicDeliverEventArgs args,Func<IServiceProvider, TMessage, object, Task> handle)
+        private async Task TryHandleAsync<TMessage>(TMessage message, string messageId, string correlationId,
+            object messageContext, BasicDeliverEventArgs args, Func<IServiceProvider, TMessage, object, Task> handle)
         {
             var currentRetry = 0;
             var messageName = message.GetType().Name;
@@ -141,7 +143,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         _logger.LogInformation(preLogMessage);
                     }
 
-                    await handle(_serviceProvider, message, correlationContext);
+                    await handle(_serviceProvider, message, messageContext);
 
                     if (_loggerEnabled)
                     {
@@ -165,7 +167,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     }
 
                     var rejectedEventName = rejectedEvent.GetType().Name;
-                    await _publisher.PublishAsync(rejectedEvent, correlationId, null, correlationContext);
+                    await _publisher.PublishAsync(rejectedEvent, correlationId: correlationId,
+                        messageContext: messageContext);
                     if (_loggerEnabled)
                     {
                         _logger.LogWarning($"Published a rejected event: '{rejectedEventName}' " +
@@ -177,7 +180,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                          $"'{rejectedEventName}' was published.", ex);
                 }
             });
-            
+
             if (exception is null)
             {
                 _channel.BasicAck(args.DeliveryTag, false);

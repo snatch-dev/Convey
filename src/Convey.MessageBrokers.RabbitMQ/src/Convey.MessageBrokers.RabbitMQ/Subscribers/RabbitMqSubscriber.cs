@@ -112,6 +112,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, ex.Message);
+                    _channel.BasicAck(args.DeliveryTag, false);
                     throw;
                 }
             };

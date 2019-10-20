@@ -28,12 +28,12 @@ namespace Convey.HTTP
             return builder;
         }
 
-        [Description("This is a hack related to the HttpClient issue.")]
+        [Description("This is a hack related to HttpClient issue: https://github.com/aspnet/AspNetCore/issues/13346")]
         internal static void RemoveHttpClient(this IConveyBuilder builder)
         {
             var registryType = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
                 .SingleOrDefault(t => t.Name == "HttpClientMappingRegistry");
-            var registry = builder.Services.Single(sd => sd.ServiceType == registryType).ImplementationInstance;
+            var registry = builder.Services.SingleOrDefault(s => s.ServiceType == registryType)?.ImplementationInstance;
             var registrations = registry?.GetType().GetProperty("TypedClientRegistrations");
             var clientRegistrations = registrations?.GetValue(registry) as IDictionary<Type, string>;
             clientRegistrations?.Remove(typeof(IHttpClient));

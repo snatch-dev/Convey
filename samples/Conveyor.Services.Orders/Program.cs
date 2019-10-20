@@ -8,6 +8,7 @@ using Convey.HTTP;
 using Convey.LoadBalancing.Fabio;
 using Convey.Logging;
 using Convey.MessageBrokers.CQRS;
+using Convey.MessageBrokers.Outbox;
 using Convey.MessageBrokers.RabbitMQ;
 using Convey.Metrics.AppMetrics;
 using Convey.Persistence.MongoDB;
@@ -57,6 +58,7 @@ namespace Conveyor.Services.Orders
                         .AddInMemoryEventDispatcher()
                         .AddInMemoryQueryDispatcher()
                         .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
+                        .AddMessageOutbox()
                         .AddMetrics()
                         .AddWebApi()
                         .Build())

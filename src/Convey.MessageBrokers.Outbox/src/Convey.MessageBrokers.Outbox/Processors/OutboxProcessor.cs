@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ namespace Convey.MessageBrokers.Outbox.Processors
     {
         private readonly IMessageOutboxAccessor _outbox;
         private readonly IBusPublisher _publisher;
+        private Timer _timer;
 
         public OutboxProcessor(IMessageOutbox outbox, IBusPublisher publisher)
         {
@@ -17,20 +19,25 @@ namespace Convey.MessageBrokers.Outbox.Processors
             _publisher = publisher;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            while (true)
-            {
-                var messages = await _outbox.GetUnsentAsync();
-                var publishTasks = messages.Select(om => _publisher.PublishAsync(om.Message, om.MessageId.ToString()));
-                await Task.WhenAll(publishTasks);
-                await _outbox.ProcessAsync(messages);
-               
-                await Task.Delay(2000, cancellationToken);
-            }
+           _timer = new Timer(SendOutboxMessages, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+           return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
-            => Task.CompletedTask;
+        {
+            _timer?.Change(Timeout.Infinite, 0);
+            return Task.CompletedTask;
+        }
+
+        private async void SendOutboxMessages(object state)
+        {
+            var messages = await _outbox.GetUnsentAsync();
+            var publishTasks = messages.Select(om => _publisher.PublishAsync(om.Message, om.MessageId, 
+                om.CorrelationId, om.SpanContext, om.MessageContext, om.Headers));
+            await Task.WhenAll(publishTasks);
+            await _outbox.ProcessAsync(messages);
+        }
     }
 }

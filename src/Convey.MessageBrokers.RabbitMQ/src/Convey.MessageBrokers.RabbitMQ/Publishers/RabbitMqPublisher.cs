@@ -18,7 +18,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Publishers
             string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
             where T : class
         {
-            _client.Send(message, _conventionsProvider.Get<T>(), messageId, correlationId, spanContext, messageContext,
+            _client.Send(message, _conventionsProvider.Get(message.GetType()), messageId, correlationId, spanContext, messageContext,
                 headers);
 
             return Task.CompletedTask;

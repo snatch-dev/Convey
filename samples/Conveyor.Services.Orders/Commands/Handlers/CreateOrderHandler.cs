@@ -39,10 +39,15 @@ namespace Conveyor.Services.Orders.Commands.Handlers
 
             _logger.LogInformation($"Fetching a price for order with id: {command.OrderId}...");
             var pricingDto = await _pricingServiceClient.GetAsync(command.OrderId);
+            if (pricingDto is null)
+            {
+                throw new InvalidOperationException($"Pricing was not found for order: {command.OrderId}");
+            }
+            
             _logger.LogInformation($"Order with id: {command.OrderId} will cost: {pricingDto.TotalAmount}$.");
             var order = new Order(command.OrderId, command.CustomerId, pricingDto.TotalAmount);
             await _repository.AddAsync(order);
-            _logger.LogInformation($"Created an order with id: {command.OrderId}.");
+            _logger.LogInformation($"Created an order with id: {command.OrderId}, customer: {command.CustomerId}.");
             var spanContext = _tracer.ActiveSpan.Context.ToString();
             await _publisher.PublishAsync(new OrderCreated(order.Id), spanContext: spanContext);
         }

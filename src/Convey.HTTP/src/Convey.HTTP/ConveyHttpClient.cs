@@ -70,24 +70,11 @@ namespace Convey.HTTP
         protected virtual Task<HttpResponseMessage> SendAsync(string uri, Method method, object data = null)
             => Policy.Handle<Exception>()
                 .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
-                .ExecuteAsync(async () =>
+                .ExecuteAsync(() =>
                 {
-                    var methodName = method.ToString().ToUpperInvariant();
                     var requestUri = uri.StartsWith("http://") ? uri : $"http://{uri}";
-                    _logger.LogDebug($"Sending HTTP {methodName} request to URI: {uri}");
-                    var response = await GetResponseAsync(requestUri, method, data);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        _logger.LogDebug($"Received a valid response to HTTP {methodName} request from URI: " +
-                                         $"{requestUri}{Environment.NewLine}{response}");
-                    }
-                    else
-                    {
-                        _logger.LogError($"Received an invalid response to HTTP {methodName} request from URI: " +
-                                         $"{requestUri}{Environment.NewLine}{response}");
-                    }
-
-                    return response;
+                    
+                    return GetResponseAsync(requestUri, method, data);
                 });
 
         protected virtual Task<HttpResponseMessage> GetResponseAsync(string uri, Method method, object data = null)
@@ -103,8 +90,7 @@ namespace Convey.HTTP
                 case Method.Delete:
                     return _client.DeleteAsync(uri);
                 default:
-                    throw new InvalidOperationException($"Unsupported HTTP method: " +
-                                                        $"{method.ToString().ToUpperInvariant()}.");
+                    throw new InvalidOperationException($"Unsupported HTTP method: {method}");
             }
         }
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -15,25 +14,17 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using Utf8Json;
+using Utf8Json.AspNetCoreMvcFormatter;
+using Utf8Json.Resolvers;
 
 namespace Convey.WebApi
 {
     public static class Extensions
     {
         private static readonly byte[] InvalidJsonRequestBytes = Encoding.UTF8.GetBytes("An invalid JSON was sent.");
-
-        private static readonly JsonSerializer Serializer = new JsonSerializer
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            Formatting = Formatting.Indented,
-            Converters = {new StringEnumConverter(new CamelCaseNamingStrategy())}
-        };
-
+        private static readonly IJsonFormatterResolver Resolver = StandardResolver.AllowPrivateCamelCase;
         private const string SectionName = "webapi";
         private const string RegistryName = "webapi";
         private const string EmptyJsonObject = "{}";
@@ -64,9 +55,15 @@ namespace Convey.WebApi
             builder.Services
                 .AddLogging()
                 .AddMvcCore()
+                .AddMvcOptions(o =>
+                {
+                    o.OutputFormatters.Clear();
+                    o.OutputFormatters.Add(new JsonOutputFormatter(Resolver));
+                    o.InputFormatters.Clear();
+                    o.InputFormatters.Add(new JsonInputFormatter());
+                })
                 .AddDataAnnotations()
                 .AddApiExplorer()
-                .AddDefaultJsonOptions()
                 .AddAuthorization();
 
             builder.Services.Scan(s =>
@@ -79,18 +76,6 @@ namespace Convey.WebApi
 
             return builder;
         }
-
-        private static IMvcCoreBuilder AddDefaultJsonOptions(this IMvcCoreBuilder builder)
-            => builder.AddNewtonsoftJson(o =>
-            {
-                o.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                o.SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-                o.SerializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
-                o.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.None;
-                o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                o.SerializerSettings.Formatting = Formatting.Indented;
-                o.SerializerSettings.Converters.Add(new StringEnumConverter());
-            });
 
         public static IApplicationBuilder UseErrorHandler(this IApplicationBuilder builder)
             => builder.UseMiddleware<ErrorHandlerMiddleware>();
@@ -146,7 +131,7 @@ namespace Convey.WebApi
             response.StatusCode = 200;
             if (!(data is null))
             {
-                response.WriteJson(data);
+                response.WriteJsonAsync(data);
             }
 
             return Task.CompletedTask;
@@ -198,75 +183,62 @@ namespace Convey.WebApi
             return Task.CompletedTask;
         }
 
-        public static void WriteJson<T>(this HttpResponse response, T obj)
+        public static Task WriteJsonAsync<T>(this HttpResponse response, T obj)
         {
             response.ContentType = JsonContentType;
-            using (var writer = new HttpResponseStreamWriter(response.Body, Encoding.UTF8))
-            {
-                using (var jsonWriter = new JsonTextWriter(writer))
-                {
-                    jsonWriter.CloseOutput = false;
-                    jsonWriter.AutoCompleteOnClose = false;
-                    Serializer.Serialize(jsonWriter, obj);
-                }
-            }
+            return JsonSerializer.SerializeAsync(response.Body, obj, Resolver);
         }
 
-        public static T ReadJson<T>(this HttpContext httpContext)
+        public static async Task<T> ReadJsonAsync<T>(this HttpContext httpContext)
         {
             if (httpContext.Request.Body is null)
             {
                 httpContext.Response.StatusCode = 400;
-                httpContext.Response.Body.Write(InvalidJsonRequestBytes, 0, InvalidJsonRequestBytes.Length);
+                await httpContext.Response.Body.WriteAsync(InvalidJsonRequestBytes, 0, InvalidJsonRequestBytes.Length);
 
                 return default;
             }
 
-            using (var streamReader = new StreamReader(httpContext.Request.Body))
-            using (var jsonTextReader = new JsonTextReader(streamReader))
+            try
             {
-                try
+                var payload = await JsonSerializer.DeserializeAsync<T>(httpContext.Request.Body, Resolver);
+                var results = new List<ValidationResult>();
+                var request = httpContext.Request;
+                if (HasRouteData(request))
                 {
-                    var payload = Serializer.Deserialize<T>(jsonTextReader);
-                    var results = new List<ValidationResult>();
-                    var request = httpContext.Request;
+                    var values = request.HttpContext.GetRouteData().Values;
 
-                    if (HasRouteData(request))
+                    foreach (var value in values)
                     {
-                        var values = request.HttpContext.GetRouteData().Values;
+                        var field = payload.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
+                            .SingleOrDefault(f => f.Name.ToLowerInvariant().StartsWith($"<{value.Key}>",
+                                StringComparison.InvariantCultureIgnoreCase));
 
-                        foreach (var value in values)
+                        if (!(field is null))
                         {
-                            var field = payload.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                                .SingleOrDefault(f => f.Name.ToLowerInvariant().StartsWith($"<{value.Key}>",
-                                    StringComparison.InvariantCultureIgnoreCase));
-
-                            if (!(field is null))
-                            {
-                                var fieldValue = TypeDescriptor.GetConverter(field.FieldType)
-                                    .ConvertFromInvariantString(value.Value.ToString());
-                                field.SetValue(payload, fieldValue);
-                            }
+                            var fieldValue = TypeDescriptor.GetConverter(field.FieldType)
+                                .ConvertFromInvariantString(value.Value.ToString());
+                            field.SetValue(payload, fieldValue);
                         }
                     }
-
-                    if (Validator.TryValidateObject(payload, new ValidationContext(payload), results))
-                    {
-                        return payload;
-                    }
-
-                    httpContext.Response.StatusCode = 400;
-                    httpContext.Response.WriteJson(results);
-
-                    return default;
                 }
-                catch
+
+                if (Validator.TryValidateObject(payload, new ValidationContext(payload), results))
                 {
-                    httpContext.Response.StatusCode = 400;
-                    httpContext.Response.Body.Write(InvalidJsonRequestBytes, 0, InvalidJsonRequestBytes.Length);
-
-                    return default;
+                    return payload;
                 }
+
+                httpContext.Response.StatusCode = 400;
+                await httpContext.Response.WriteJsonAsync(results);
+
+                return default;
+            }
+            catch
+            {
+                httpContext.Response.StatusCode = 400;
+                await httpContext.Response.Body.WriteAsync(InvalidJsonRequestBytes, 0, InvalidJsonRequestBytes.Length);
+
+                return default;
             }
         }
 
@@ -291,17 +263,17 @@ namespace Convey.WebApi
 
             if (values is null)
             {
-                return JsonConvert.DeserializeObject<T>(EmptyJsonObject);
+                return JsonSerializer.Deserialize<T>(EmptyJsonObject, Resolver);
             }
 
-            var serialized = JsonConvert.SerializeObject(values)
+            var serialized = Encoding.UTF8.GetString(JsonSerializer.Serialize(values, Resolver))
                 .Replace("\\\"", "\"")
                 .Replace("\"{", "{")
                 .Replace("}\"", "}")
                 .Replace("\"[", "[")
                 .Replace("]\"", "]");
 
-            return JsonConvert.DeserializeObject<T>(serialized);
+            return JsonSerializer.Deserialize<T>(serialized, Resolver);
         }
 
         private static bool HasQueryString(this HttpRequest request)

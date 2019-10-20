@@ -27,7 +27,7 @@ namespace Convey.WebApi.CQRS.Middlewares
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Converters = new List<JsonConverter>
             {
-                new StringEnumConverter(new CamelCaseNamingStrategy())
+                new StringEnumConverter(true)
             },
             Formatting = Formatting.Indented
         };

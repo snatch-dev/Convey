@@ -9,10 +9,10 @@ using Conveyor.Services.Pricing.DTO;
 using Conveyor.Services.Pricing.Queries;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
+using Utf8Json;
+using Utf8Json.Resolvers;
 
 namespace Conveyor.Services.Pricing
 {
@@ -27,7 +27,6 @@ namespace Conveyor.Services.Pricing
             => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
-                        .Configure<KestrelServerOptions>(options => { options.AllowSynchronousIO = true; })
                         .AddOpenTracing()
                         .AddConvey()
                         .AddConsul()
@@ -43,14 +42,10 @@ namespace Conveyor.Services.Pricing
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Pricing Service"))
                             .Get<GetOrderPricing>("orders/{orderId}/pricing", (query, ctx) =>
-                            {
-                                var json = JsonConvert.SerializeObject(new PricingDto
+                                JsonSerializer.SerializeAsync(ctx.Response.Body, new PricingDto
                                 {
                                     OrderId = query.OrderId, TotalAmount = 20.50m
-                                });
-
-                                return ctx.Response.WriteAsync(json);
-                            })))
+                                }, StandardResolver.CamelCase))))
                     .UseLogging();
             });
     }

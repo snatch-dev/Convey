@@ -12,24 +12,24 @@ namespace Convey.CQRS.Queries.Dispatchers
             _serviceFactory = serviceFactory;
         }
 
-        public Task<TResult> QueryAsync<TResult>(IQuery<TResult> query)
+        public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query)
         {
             using (var scope = _serviceFactory.CreateScope())
             {
                 var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
                 dynamic handler = scope.ServiceProvider.GetRequiredService(handlerType);
                 
-                return handler.HandleAsync((dynamic) query);
+                return await handler.HandleAsync((dynamic) query);
             }
         }
 
-        public Task<TResult> QueryAsync<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>
+        public async Task<TResult> QueryAsync<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>
         {
             using (var scope = _serviceFactory.CreateScope())
             {
                 var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<TQuery, TResult>>();
-
-                return handler.HandleAsync(query);
+                
+                return await handler.HandleAsync(query);
             }
         }
     }

@@ -12,13 +12,12 @@ namespace Convey.CQRS.Commands.Dispatchers
             _serviceFactory = serviceFactory;
         }
 
-        public Task SendAsync<T>(T command) where T : class, ICommand
+        public async Task SendAsync<T>(T command) where T : class, ICommand
         {
             using (var scope = _serviceFactory.CreateScope())
             {
                 var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<T>>();
-
-                return handler.HandleAsync(command);
+                await handler.HandleAsync(command);
             }
         }
     }

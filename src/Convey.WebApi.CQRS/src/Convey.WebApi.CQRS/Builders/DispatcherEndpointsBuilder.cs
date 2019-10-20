@@ -44,7 +44,7 @@ namespace Convey.WebApi.CQRS.Builders
                         return;
                     }
 
-                    ctx.Response.WriteJson(result);
+                    await ctx.Response.WriteJsonAsync(result);
                     return;
                 }
 

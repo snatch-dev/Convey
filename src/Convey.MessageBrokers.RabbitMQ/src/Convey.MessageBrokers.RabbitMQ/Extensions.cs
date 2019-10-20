@@ -10,7 +10,6 @@ using Convey.MessageBrokers.RabbitMQ.Processors;
 using Convey.MessageBrokers.RabbitMQ.Publishers;
 using Convey.MessageBrokers.RabbitMQ.Serializers;
 using Convey.MessageBrokers.RabbitMQ.Subscribers;
-using Convey.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

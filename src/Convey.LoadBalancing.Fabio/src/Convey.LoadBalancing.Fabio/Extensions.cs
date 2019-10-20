@@ -55,6 +55,7 @@ namespace Convey.LoadBalancing.Fabio
                 builder.Services.AddTransient<FabioMessageHandler>();
                 builder.Services.AddHttpClient<IFabioHttpClient, FabioHttpClient>("fabio-http")
                     .AddHttpMessageHandler<FabioMessageHandler>();
+                builder.RemoveHttpClient();
                 builder.Services.AddHttpClient<IHttpClient, FabioHttpClient>("fabio")
                     .AddHttpMessageHandler<FabioMessageHandler>();
             }

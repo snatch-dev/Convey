@@ -5,9 +5,9 @@ using Convey.MessageBrokers;
 using Convey.Persistence.MongoDB;
 using Conveyor.Services.Orders.Domain;
 using Conveyor.Services.Orders.Events;
-using Conveyor.Services.Orders.RabbitMQ;
 using Conveyor.Services.Orders.Services;
 using Microsoft.Extensions.Logging;
+using OpenTracing;
 
 namespace Conveyor.Services.Orders.Commands.Handlers
 {
@@ -17,13 +17,15 @@ namespace Conveyor.Services.Orders.Commands.Handlers
         private readonly IBusPublisher _publisher;
         private readonly IPricingServiceClient _pricingServiceClient;
         private readonly ILogger<CreateOrderHandler> _logger;
+        private readonly ITracer _tracer;
 
         public CreateOrderHandler(IMongoRepository<Order, Guid> repository, IBusPublisher publisher,
-            IPricingServiceClient pricingServiceClient, ILogger<CreateOrderHandler> logger)
+            IPricingServiceClient pricingServiceClient, ITracer tracer, ILogger<CreateOrderHandler> logger)
         {
             _repository = repository;
             _publisher = publisher;
             _pricingServiceClient = pricingServiceClient;
+            _tracer = tracer;
             _logger = logger;
         }
 
@@ -39,10 +41,10 @@ namespace Conveyor.Services.Orders.Commands.Handlers
             var pricingDto = await _pricingServiceClient.GetAsync(command.OrderId);
             _logger.LogInformation($"Order with id: {command.OrderId} will cost: {pricingDto.TotalAmount}$.");
             var order = new Order(command.OrderId, command.CustomerId, pricingDto.TotalAmount);
-
             await _repository.AddAsync(order);
             _logger.LogInformation($"Created an order with id: {command.OrderId}.");
-            await _publisher.PublishAsync(new OrderCreated(order.Id), messageContext: new CorrelationContext());
+            var spanContext = _tracer.ActiveSpan.Context.ToString();
+            await _publisher.PublishAsync(new OrderCreated(order.Id), spanContext: spanContext);
         }
     }
 }

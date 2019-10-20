@@ -25,8 +25,8 @@ namespace Conveyor.Services.Deliveries
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
+        public static IHostBuilder CreateHostBuilder(string[] args)
+            => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
                         .Configure<KestrelServerOptions>(options => { options.AllowSynchronousIO = true; })
@@ -45,7 +45,6 @@ namespace Conveyor.Services.Deliveries
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Deliveries Service")))
                         .UseJaeger()
-                        .UseInitializers()
                         .UseMetrics()
                         .UseErrorHandler()
                         .UseRabbitMq()

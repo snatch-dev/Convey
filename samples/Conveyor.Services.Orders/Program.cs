@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Convey;
-using Convey.Configurations.Vault;
 using Convey.CQRS.Commands;
 using Convey.CQRS.Events;
 using Convey.CQRS.Queries;
@@ -9,7 +7,6 @@ using Convey.Discovery.Consul;
 using Convey.HTTP;
 using Convey.LoadBalancing.Fabio;
 using Convey.Logging;
-using Convey.MessageBrokers;
 using Convey.MessageBrokers.CQRS;
 using Convey.MessageBrokers.RabbitMQ;
 using Convey.Metrics.AppMetrics;
@@ -39,8 +36,8 @@ namespace Conveyor.Services.Orders
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
+        public static IHostBuilder CreateHostBuilder(string[] args)
+            => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
                         .Configure<KestrelServerOptions>(options => { options.AllowSynchronousIO = true; })
@@ -64,6 +61,8 @@ namespace Conveyor.Services.Orders
                         .AddWebApi()
                         .Build())
                     .Configure(app => app
+                        .UseRouting()
+                        .UseEndpoints(r => r.MapControllers())
                         .UseDispatcherEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Orders Service"))
                             .Get<GetOrder, OrderDto>("orders/{orderId}")
@@ -74,11 +73,8 @@ namespace Conveyor.Services.Orders
                         .UseInitializers()
                         .UseMetrics()
                         .UseErrorHandler()
-                        .UseRouting()
-                        .UseEndpoints(b => b.MapControllers())
                         .UseRabbitMq()
                         .SubscribeEvent<DeliveryStarted>())
-                    .UseVault()
                     .UseLogging();
             });
     }

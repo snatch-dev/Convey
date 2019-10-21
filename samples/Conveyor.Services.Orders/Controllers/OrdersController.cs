@@ -37,7 +37,7 @@ namespace Conveyor.Services.Orders.Controllers
         public async Task<ActionResult> Post(CreateOrder command)
         {
             await _commandDispatcher.SendAsync(command);
-            return Created($"orders/{command.OrderId}", null);
+            return CreatedAtAction(nameof(Get), new {orderId = command.OrderId}, new object());
         }
     }
 }

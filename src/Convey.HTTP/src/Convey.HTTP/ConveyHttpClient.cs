@@ -101,16 +101,15 @@ namespace Convey.HTTP
 
         protected static T DeserializeJsonFromStream<T>(Stream stream)
         {
-            if (stream == null || stream.CanRead == false)
+            if (stream is null || stream.CanRead is false)
             {
                 return default;
             }
 
-            using (var streamReader = new StreamReader(stream))
-            using (var jsonTextReader = new JsonTextReader(streamReader))
-            {
-                return JsonSerializer.Deserialize<T>(jsonTextReader);
-            }
+            using var streamReader = new StreamReader(stream);
+            using var jsonTextReader = new JsonTextReader(streamReader);
+            
+            return JsonSerializer.Deserialize<T>(jsonTextReader);
         }
 
         protected enum Method

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Convey;
 using Convey.CQRS.Commands;
 using Convey.CQRS.Events;
@@ -24,6 +25,7 @@ using Conveyor.Services.Orders.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -31,15 +33,14 @@ namespace Conveyor.Services.Orders
 {
     public class Program
     {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+        public static Task Main(string[] args)
+            => CreateHostBuilder(args).Build().RunAsync();
 
         public static IHostBuilder CreateHostBuilder(string[] args)
             => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
+                        .Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true)
                         .AddOpenTracing()
                         .AddConvey()
                         .AddServices()
@@ -61,6 +62,7 @@ namespace Conveyor.Services.Orders
                         .AddWebApi()
                         .Build())
                     .Configure(app => app
+                        .UseErrorHandler()
                         .UseRouting()
                         .UseEndpoints(r => r.MapControllers())
                         .UseDispatcherEndpoints(endpoints => endpoints
@@ -72,7 +74,6 @@ namespace Conveyor.Services.Orders
                         .UseJaeger()
                         .UseInitializers()
                         .UseMetrics()
-                        .UseErrorHandler()
                         .UseRabbitMq()
                         .SubscribeEvent<DeliveryStarted>())
                     .UseLogging();

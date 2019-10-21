@@ -14,13 +14,11 @@ namespace Convey.CQRS.Events.Dispatchers
 
         public async Task PublishAsync<T>(T @event) where T : class, IEvent
         {
-            using (var scope = _serviceFactory.CreateScope())
+            using var scope = _serviceFactory.CreateScope();
+            var handlers = scope.ServiceProvider.GetServices<IEventHandler<T>>();
+            foreach (var handler in handlers)
             {
-                var handlers = scope.ServiceProvider.GetServices<IEventHandler<T>>();
-                foreach (var handler in handlers)
-                {
-                    await handler.HandleAsync(@event);
-                }
+                await handler.HandleAsync(@event);
             }
         }
     }

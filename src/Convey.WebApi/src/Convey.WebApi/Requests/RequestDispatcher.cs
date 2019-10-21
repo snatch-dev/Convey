@@ -12,14 +12,11 @@ namespace Convey.WebApi.Requests
             _serviceFactory = serviceFactory;
         }
 
-        public Task<TResult> DispatchAsync<TRequest, TResult>(TRequest request) where TRequest : class, IRequest
+        public async Task<TResult> DispatchAsync<TRequest, TResult>(TRequest request) where TRequest : class, IRequest
         {
-            using (var scope = _serviceFactory.CreateScope())
-            {
-                var handler = scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResult>>();
-
-                return handler.HandleAsync(request);
-            }
+            using var scope = _serviceFactory.CreateScope();
+            var handler = scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResult>>();
+            return await handler.HandleAsync(request);
         }
     }
 }

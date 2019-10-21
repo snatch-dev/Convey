@@ -60,7 +60,7 @@ namespace Convey.WebApi
                     o.OutputFormatters.Clear();
                     o.OutputFormatters.Add(new JsonOutputFormatter(Resolver));
                     o.InputFormatters.Clear();
-                    o.InputFormatters.Add(new JsonInputFormatter());
+                    o.InputFormatters.Add(new JsonInputFormatter(Resolver));
                 })
                 .AddDataAnnotations()
                 .AddApiExplorer()

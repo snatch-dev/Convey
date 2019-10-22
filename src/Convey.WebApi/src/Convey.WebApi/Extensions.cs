@@ -257,7 +257,7 @@ namespace Convey.WebApi
                 values = request.HttpContext.GetRouteData().Values;
             }
 
-            if (_bindRequestsFromRoute && HasQueryString(request))
+            if (HasQueryString(request))
             {
                 var queryString = HttpUtility.ParseQueryString(request.HttpContext.Request.QueryString.Value);
                 values ??= new RouteValueDictionary();

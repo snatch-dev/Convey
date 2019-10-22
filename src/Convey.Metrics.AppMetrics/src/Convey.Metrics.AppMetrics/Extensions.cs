@@ -44,7 +44,7 @@ namespace Convey.Metrics.AppMetrics
             var metricsBuilder = new MetricsBuilder().Configuration.Configure(cfg =>
             {
                 var tags = options.Tags;
-                if (tags == null)
+                if (tags is null)
                 {
                     return;
                 }

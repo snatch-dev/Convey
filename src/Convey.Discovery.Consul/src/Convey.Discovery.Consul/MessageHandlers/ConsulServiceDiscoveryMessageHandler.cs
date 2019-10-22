@@ -60,7 +60,7 @@ namespace Convey.Discovery.Consul.MessageHandlers
             string serviceName, Uri uri)
         {
             var service = await _servicesRegistry.GetAsync(serviceName);
-            if (service == null)
+            if (service is null)
             {
                 throw new ConsulServiceNotFoundException($"Consul service: '{serviceName}' was not found.",
                     serviceName);

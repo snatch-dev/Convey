@@ -16,12 +16,12 @@ namespace Convey.HTTP.RestEase.Serializers
 
         private IEnumerable<KeyValuePair<string, string>> Serialize<T>(string name, T value, RequestQueryParamSerializerInfo info)
         {
-            if (value == null)
+            if (value is null)
                 yield break;
 
             foreach (var prop in GetPropertiesDeepRecursive(value, name))
             {
-                if (prop.Value == null)
+                if (prop.Value is null)
                 {
                     yield return new KeyValuePair<string, string>(prop.Key, string.Empty);
                 }
@@ -40,7 +40,7 @@ namespace Convey.HTTP.RestEase.Serializers
         {
             var dict = new Dictionary<string, object>();
 
-            if (obj == null)
+            if (obj is null)
             {
                 dict.Add(name, null);
                 return dict;

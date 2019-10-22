@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Convey.Types;
 using Convey.WebApi.Helpers;
 using Convey.WebApi.Middlewares;
 using Convey.WebApi.Requests;
@@ -25,11 +26,12 @@ namespace Convey.WebApi
     {
         private static readonly byte[] InvalidJsonRequestBytes = Encoding.UTF8.GetBytes("An invalid JSON was sent.");
         private static readonly IJsonFormatterResolver Resolver = StandardResolver.AllowPrivateCamelCase;
-        private const string SectionName = "webapi";
-        private const string RegistryName = "webapi";
+        private const string SectionName = "webApi";
+        private const string RegistryName = "webApi";
         private const string EmptyJsonObject = "{}";
         private const string LocationHeader = "Location";
         private const string JsonContentType = "application/json";
+        private static bool _bindRequestsFromRoute;
 
         public static IApplicationBuilder UseEndpoints(this IApplicationBuilder app, Action<IEndpointsBuilder> build)
         {
@@ -52,6 +54,10 @@ namespace Convey.WebApi
 
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton(new WebApiEndpointDefinitions());
+            var options = builder.GetOptions<WebApiOptions>(sectionName);
+            builder.Services.AddSingleton(options);
+            _bindRequestsFromRoute = options.BindRequestsFromRoute;
+            
             builder.Services
                 .AddLogging()
                 .AddMvcCore()
@@ -116,7 +122,7 @@ namespace Convey.WebApi
             var modelType = model.GetType();
             var field = modelType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
                 .SingleOrDefault(x => x.Name.ToLowerInvariant().StartsWith($"<{propertyName}>"));
-            if (field == null)
+            if (field is null)
             {
                 return model;
             }
@@ -204,7 +210,7 @@ namespace Convey.WebApi
                 var payload = await JsonSerializer.DeserializeAsync<T>(httpContext.Request.Body, Resolver);
                 var results = new List<ValidationResult>();
                 var request = httpContext.Request;
-                if (HasRouteData(request))
+                if (_bindRequestsFromRoute && HasRouteData(request))
                 {
                     var values = request.HttpContext.GetRouteData().Values;
 
@@ -251,10 +257,10 @@ namespace Convey.WebApi
                 values = request.HttpContext.GetRouteData().Values;
             }
 
-            if (HasQueryString(request))
+            if (_bindRequestsFromRoute && HasQueryString(request))
             {
                 var queryString = HttpUtility.ParseQueryString(request.HttpContext.Request.QueryString.Value);
-                values = values ?? new RouteValueDictionary();
+                values ??= new RouteValueDictionary();
                 foreach (var key in queryString.AllKeys)
                 {
                     values.TryAdd(key, queryString[key]);
@@ -266,7 +272,7 @@ namespace Convey.WebApi
                 return JsonSerializer.Deserialize<T>(EmptyJsonObject, Resolver);
             }
 
-            var serialized = Encoding.UTF8.GetString(JsonSerializer.Serialize(values, Resolver))
+            var serialized = Encoding.UTF8.GetString(JsonSerializer.Serialize(values.ToDictionary(k => k.Key, k => k.Value), Resolver))
                 .Replace("\\\"", "\"")
                 .Replace("\"{", "{")
                 .Replace("}\"", "}")

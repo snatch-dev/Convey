@@ -36,10 +36,10 @@ namespace Convey.WebApi
             return this;
         }
 
-        public IEndpointsBuilder Get<T, U>(string path, Func<T, HttpContext, Task> context = null) where T : class
+        public IEndpointsBuilder Get<TRequest, TResult>(string path, Func<TRequest, HttpContext, Task> context = null) where TRequest : class
         {
             _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
-            AddEndpointDefinition<T, U>(HttpMethods.Get, path);
+            AddEndpointDefinition<TRequest, TResult>(HttpMethods.Get, path);
 
             return this;
         }
@@ -54,7 +54,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Post<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
         {
-            _routeBuilder.MapPost(path, ctx => BuildCommandContext(ctx, context));
+            _routeBuilder.MapPost(path, ctx => BuildRequestContext(ctx, context));
             AddEndpointDefinition<T>(HttpMethods.Post, path);
 
             return this;
@@ -70,7 +70,7 @@ namespace Convey.WebApi
 
         public IEndpointsBuilder Put<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
         {
-            _routeBuilder.MapPut(path, ctx => BuildCommandContext(ctx, context));
+            _routeBuilder.MapPut(path, ctx => BuildRequestContext(ctx, context));
             AddEndpointDefinition<T>(HttpMethods.Put, path);
 
             return this;
@@ -92,7 +92,7 @@ namespace Convey.WebApi
             return this;
         }
 
-        private static async Task BuildCommandContext<T>(HttpContext httpContext,
+        private static async Task BuildRequestContext<T>(HttpContext httpContext,
             Func<T, HttpContext, Task> context = null) where T : class
         {
             var request = await httpContext.ReadJsonAsync<T>();

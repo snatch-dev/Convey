@@ -9,7 +9,7 @@ namespace Convey.CQRS.Queries
     {
         public IEnumerable<T> Items { get; }
 
-        public bool IsEmpty => Items == null || !Items.Any();
+        public bool IsEmpty => Items is null || !Items.Any();
         public bool IsNotEmpty => !IsEmpty;
 
         protected PagedResult()

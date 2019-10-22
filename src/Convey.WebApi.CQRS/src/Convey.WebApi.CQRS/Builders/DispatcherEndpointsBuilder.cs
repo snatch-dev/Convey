@@ -27,18 +27,18 @@ namespace Convey.WebApi.CQRS.Builders
             Func<TQuery, HttpContext, Task> beforeDispatch = null,
             Func<TQuery, TResult, HttpContext, Task> afterDispatch = null) where TQuery : class, IQuery<TResult>
         {
-            _builder.Get<TQuery>(path, async (req, ctx) =>
+            _builder.Get<TQuery>(path, async (query, ctx) =>
             {
                 if (!(beforeDispatch is null))
                 {
-                    await beforeDispatch(req, ctx);
+                    await beforeDispatch(query, ctx);
                 }
 
                 var dispatcher = ctx.RequestServices.GetService<IQueryDispatcher>();
-                var result = await dispatcher.QueryAsync<TQuery, TResult>(req);
+                var result = await dispatcher.QueryAsync<TQuery, TResult>(query);
                 if (afterDispatch is null)
                 {
-                    if (result == null)
+                    if (result is null)
                     {
                         ctx.Response.StatusCode = 404;
                         return;
@@ -48,7 +48,7 @@ namespace Convey.WebApi.CQRS.Builders
                     return;
                 }
 
-                await afterDispatch(req, result, ctx);
+                await afterDispatch(query, result, ctx);
             });
 
             return this;
@@ -65,7 +65,7 @@ namespace Convey.WebApi.CQRS.Builders
             Func<T, HttpContext, Task> afterDispatch = null)
             where T : class, ICommand
         {
-            _builder.Post<T>(path, (req, ctx) => BuildCommandContext(req, ctx, beforeDispatch, afterDispatch));
+            _builder.Post<T>(path, (cmd, ctx) => BuildCommandContext(cmd, ctx, beforeDispatch, afterDispatch));
 
             return this;
         }
@@ -81,7 +81,7 @@ namespace Convey.WebApi.CQRS.Builders
             Func<T, HttpContext, Task> afterDispatch = null)
             where T : class, ICommand
         {
-            _builder.Put<T>(path, (req, ctx) => BuildCommandContext(req, ctx, beforeDispatch, afterDispatch));
+            _builder.Put<T>(path, (cmd, ctx) => BuildCommandContext(cmd, ctx, beforeDispatch, afterDispatch));
 
             return this;
         }
@@ -96,29 +96,29 @@ namespace Convey.WebApi.CQRS.Builders
         public IDispatcherEndpointsBuilder Delete<T>(string path, Func<T, HttpContext, Task> beforeDispatch = null,
             Func<T, HttpContext, Task> afterDispatch = null) where T : class, ICommand
         {
-            _builder.Delete<T>(path, (req, ctx) => BuildCommandContext(req, ctx, beforeDispatch, afterDispatch));
+            _builder.Delete<T>(path, (cmd, ctx) => BuildCommandContext(cmd, ctx, beforeDispatch, afterDispatch));
 
             return this;
         }
 
-        private static async Task BuildCommandContext<T>(T request, HttpContext context,
+        private static async Task BuildCommandContext<T>(T command, HttpContext context,
             Func<T, HttpContext, Task> beforeDispatch = null,
             Func<T, HttpContext, Task> afterDispatch = null) where T : class, ICommand
         {
             if (!(beforeDispatch is null))
             {
-                await beforeDispatch(request, context);
+                await beforeDispatch(command, context);
             }
 
             var dispatcher = context.RequestServices.GetService<ICommandDispatcher>();
-            await dispatcher.SendAsync(request);
+            await dispatcher.SendAsync(command);
             if (afterDispatch is null)
             {
                 context.Response.StatusCode = 200;
                 return;
             }
 
-            await afterDispatch(request, context);
+            await afterDispatch(command, context);
         }
     }
 }

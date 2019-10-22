@@ -82,7 +82,7 @@ namespace Convey.HTTP.RestEase
             {
                 var service = options.Services.SingleOrDefault(s => s.Name.Equals(serviceName,
                     StringComparison.InvariantCultureIgnoreCase));
-                if (service == null)
+                if (service is null)
                 {
                     throw new RestEaseServiceNotFoundException($"RestEase service: '{serviceName}' was not found.",
                         serviceName);

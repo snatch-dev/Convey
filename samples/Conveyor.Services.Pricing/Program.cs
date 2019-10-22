@@ -10,7 +10,6 @@ using Conveyor.Services.Pricing.DTO;
 using Conveyor.Services.Pricing.Queries;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Utf8Json;
@@ -27,7 +26,6 @@ namespace Conveyor.Services.Pricing
             => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
-                        .Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true)
                         .AddOpenTracing()
                         .AddConvey()
                         .AddConsul()

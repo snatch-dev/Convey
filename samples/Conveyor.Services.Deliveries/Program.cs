@@ -13,7 +13,6 @@ using Convey.WebApi;
 using Conveyor.Services.Deliveries.Events.External;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -28,7 +27,6 @@ namespace Conveyor.Services.Deliveries
             => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
-                        .Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true)
                         .AddOpenTracing()
                         .AddConvey()
                         .AddConsul()

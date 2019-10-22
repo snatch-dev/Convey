@@ -25,7 +25,6 @@ using Conveyor.Services.Orders.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -40,7 +39,6 @@ namespace Conveyor.Services.Orders
             => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
-                        .Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true)
                         .AddOpenTracing()
                         .AddConvey()
                         .AddServices()

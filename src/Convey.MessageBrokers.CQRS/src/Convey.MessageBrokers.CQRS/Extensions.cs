@@ -18,7 +18,7 @@ namespace Convey.MessageBrokers.CQRS
 
         public static IBusSubscriber SubscribeCommand<T>(this IBusSubscriber busSubscriber) where T : class, ICommand
             => busSubscriber.Subscribe<T>(
-                (sp, command, ctx) => sp.GetService<ICommandHandler<T>>().HandleAsync(command));
+                (sp, command, ctx) => sp.GetRequiredService<ICommandHandler<T>>().HandleAsync(command));
 
         public static IBusSubscriber SubscribeEvent<T>(this IBusSubscriber busSubscriber) where T : class, IEvent
             => busSubscriber.Subscribe<T>((sp, @event, ctx) => sp.GetService<IEventHandler<T>>().HandleAsync(@event));

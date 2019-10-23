@@ -17,8 +17,8 @@ namespace Convey.WebApi.CQRS
         {
             var definitions = app.ApplicationServices.GetService<WebApiEndpointDefinitions>();
             app.UseRouting();
-            app.UseEndpoints(router =>
-                builder(new DispatcherEndpointsBuilder(new EndpointsBuilder(router, definitions))));
+            app.UseEndpoints(router => builder(new DispatcherEndpointsBuilder(
+                new EndpointsBuilder(router, definitions))));
 
             return app;
         }

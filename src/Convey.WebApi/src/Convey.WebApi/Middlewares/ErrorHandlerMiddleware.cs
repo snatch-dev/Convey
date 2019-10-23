@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Convey.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Utf8Json;
 
 namespace Convey.WebApi.Middlewares
 {
@@ -34,23 +34,21 @@ namespace Convey.WebApi.Middlewares
 
         private static Task HandleErrorAsync(HttpContext context, Exception exception)
         {
-            var errorCode = "error";
+            var code = "error";
             var statusCode = HttpStatusCode.BadRequest;
-            var message = "There was an error.";
+            var message = exception.Message;
             switch (exception)
             {
-                case ConveyException e:
-                    errorCode = e.Code;
-                    message = e.Message;
+                case ConveyException ex:
+                    code = ex.Code;
+                    message = ex.Message;
                     break;
             }
 
-            var response = new {code = errorCode, message = exception.Message};
-            var payload = JsonConvert.SerializeObject(response);
+            var response = new {code, message};
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int) statusCode;
-
-            return context.Response.WriteAsync(payload);
+            return JsonSerializer.SerializeAsync(context.Response.Body, response, Extensions.Resolver);
         }
     }
 }

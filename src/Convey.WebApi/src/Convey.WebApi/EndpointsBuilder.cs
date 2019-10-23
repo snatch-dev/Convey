@@ -96,20 +96,24 @@ namespace Convey.WebApi
             Func<T, HttpContext, Task> context = null) where T : class
         {
             var request = await httpContext.ReadJsonAsync<T>();
-            if (request is null)
+            if (request is null || context is null)
             {
                 return;
             }
 
-            context?.Invoke(request, httpContext);
+            await context.Invoke(request, httpContext);
         }
 
-        private static Task BuildQueryContext<T>(HttpContext httpContext,
+        private static async Task BuildQueryContext<T>(HttpContext httpContext,
             Func<T, HttpContext, Task> context = null) where T : class
         {
             var request = httpContext.ReadQuery<T>();
+            if (request is null || context is null)
+            {
+                return;
+            }
 
-            return request is null ? Task.CompletedTask : context?.Invoke(request, httpContext);
+            await context.Invoke(request, httpContext);
         }
 
         private void AddEndpointDefinition(string method, string path)

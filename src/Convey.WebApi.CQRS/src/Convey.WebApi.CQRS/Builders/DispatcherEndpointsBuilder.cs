@@ -34,7 +34,7 @@ namespace Convey.WebApi.CQRS.Builders
                     await beforeDispatch(query, ctx);
                 }
 
-                var dispatcher = ctx.RequestServices.GetService<IQueryDispatcher>();
+                var dispatcher = ctx.RequestServices.GetRequiredService<IQueryDispatcher>();
                 var result = await dispatcher.QueryAsync<TQuery, TResult>(query);
                 if (afterDispatch is null)
                 {
@@ -110,7 +110,7 @@ namespace Convey.WebApi.CQRS.Builders
                 await beforeDispatch(command, context);
             }
 
-            var dispatcher = context.RequestServices.GetService<ICommandDispatcher>();
+            var dispatcher = context.RequestServices.GetRequiredService<ICommandDispatcher>();
             await dispatcher.SendAsync(command);
             if (afterDispatch is null)
             {

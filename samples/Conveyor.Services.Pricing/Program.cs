@@ -17,7 +17,7 @@ using Utf8Json.Resolvers;
 
 namespace Conveyor.Services.Pricing
 {
-    public class Program
+    public class Program 
     {
         public static Task Main(string[] args)
             => CreateHostBuilder(args).Build().RunAsync();

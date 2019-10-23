@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using Convey.Types;
 using Convey.WebApi.Helpers;
 using Convey.WebApi.Middlewares;
 using Convey.WebApi.Requests;
@@ -25,43 +24,43 @@ namespace Convey.WebApi
     public static class Extensions
     {
         private static readonly byte[] InvalidJsonRequestBytes = Encoding.UTF8.GetBytes("An invalid JSON was sent.");
-        private static readonly IJsonFormatterResolver Resolver = StandardResolver.AllowPrivateCamelCase;
         private const string SectionName = "webApi";
         private const string RegistryName = "webApi";
         private const string EmptyJsonObject = "{}";
         private const string LocationHeader = "Location";
         private const string JsonContentType = "application/json";
-        private static bool _bindRequestsFromRoute;
+        private static bool _bindRequestFromRoute;
+        internal static IJsonFormatterResolver Resolver;
 
         public static IApplicationBuilder UseEndpoints(this IApplicationBuilder app, Action<IEndpointsBuilder> build)
         {
+            var definitions = app.ApplicationServices.GetRequiredService<WebApiEndpointDefinitions>();
             app.UseRouting();
-            app.UseEndpoints(router =>
-            {
-                var definitions = app.ApplicationServices.GetService<WebApiEndpointDefinitions>();
-                build(new EndpointsBuilder(router, definitions));
-            });
+            app.UseEndpoints(router => build(new EndpointsBuilder(router, definitions)));
 
             return app;
         }
 
-        public static IConveyBuilder AddWebApi(this IConveyBuilder builder, string sectionName = SectionName)
+        public static IConveyBuilder AddWebApi(this IConveyBuilder builder, Action<IMvcCoreBuilder> configureMvc = null,
+            IJsonFormatterResolver jsonFormatterResolver = null, string sectionName = SectionName)
         {
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;
             }
 
+            Resolver = jsonFormatterResolver ?? StandardResolver.AllowPrivateCamelCase;
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton(new WebApiEndpointDefinitions());
             var options = builder.GetOptions<WebApiOptions>(sectionName);
             builder.Services.AddSingleton(options);
-            _bindRequestsFromRoute = options.BindRequestsFromRoute;
-            
-            builder.Services
+            _bindRequestFromRoute = options.BindRequestFromRoute;
+
+            var mvcCoreBuilder = builder.Services
                 .AddLogging()
-                .AddMvcCore()
-                .AddMvcOptions(o =>
+                .AddMvcCore();
+
+            mvcCoreBuilder.AddMvcOptions(o =>
                 {
                     o.OutputFormatters.Clear();
                     o.OutputFormatters.Add(new JsonOutputFormatter(Resolver));
@@ -71,6 +70,8 @@ namespace Convey.WebApi
                 .AddDataAnnotations()
                 .AddApiExplorer()
                 .AddAuthorization();
+
+            configureMvc?.Invoke(mvcCoreBuilder);
 
             builder.Services.Scan(s =>
                 s.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
@@ -135,12 +136,7 @@ namespace Convey.WebApi
         public static Task Ok(this HttpResponse response, object data = null)
         {
             response.StatusCode = 200;
-            if (!(data is null))
-            {
-                response.WriteJsonAsync(data);
-            }
-
-            return Task.CompletedTask;
+            return data is null ? Task.CompletedTask : response.WriteJsonAsync(data);
         }
 
         public static Task Created(this HttpResponse response, string location = null)
@@ -189,10 +185,10 @@ namespace Convey.WebApi
             return Task.CompletedTask;
         }
 
-        public static Task WriteJsonAsync<T>(this HttpResponse response, T obj)
+        public static Task WriteJsonAsync<T>(this HttpResponse response, T value)
         {
             response.ContentType = JsonContentType;
-            return JsonSerializer.SerializeAsync(response.Body, obj, Resolver);
+            return JsonSerializer.SerializeAsync(response.Body, value, Resolver);
         }
 
         public static async Task<T> ReadJsonAsync<T>(this HttpContext httpContext)
@@ -207,28 +203,29 @@ namespace Convey.WebApi
 
             try
             {
-                var payload = await JsonSerializer.DeserializeAsync<T>(httpContext.Request.Body, Resolver);
-                var results = new List<ValidationResult>();
                 var request = httpContext.Request;
-                if (_bindRequestsFromRoute && HasRouteData(request))
+                var payload = await JsonSerializer.DeserializeAsync<T>(request.Body, Resolver);
+                if (_bindRequestFromRoute && HasRouteData(request))
                 {
                     var values = request.HttpContext.GetRouteData().Values;
-
-                    foreach (var value in values)
+                    foreach (var (key, value) in values)
                     {
                         var field = payload.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                            .SingleOrDefault(f => f.Name.ToLowerInvariant().StartsWith($"<{value.Key}>",
+                            .SingleOrDefault(f => f.Name.ToLowerInvariant().StartsWith($"<{key}>",
                                 StringComparison.InvariantCultureIgnoreCase));
 
-                        if (!(field is null))
+                        if (field is null)
                         {
-                            var fieldValue = TypeDescriptor.GetConverter(field.FieldType)
-                                .ConvertFromInvariantString(value.Value.ToString());
-                            field.SetValue(payload, fieldValue);
+                            continue;
                         }
+                        
+                        var fieldValue = TypeDescriptor.GetConverter(field.FieldType)
+                            .ConvertFromInvariantString(value.ToString());
+                        field.SetValue(payload, fieldValue);
                     }
                 }
 
+                var results = new List<ValidationResult>();
                 if (Validator.TryValidateObject(payload, new ValidationContext(payload), results))
                 {
                     return payload;
@@ -272,7 +269,8 @@ namespace Convey.WebApi
                 return JsonSerializer.Deserialize<T>(EmptyJsonObject, Resolver);
             }
 
-            var serialized = Encoding.UTF8.GetString(JsonSerializer.Serialize(values.ToDictionary(k => k.Key, k => k.Value), Resolver))
+            var serialized = Encoding.UTF8.GetString(
+                    JsonSerializer.Serialize(values.ToDictionary(k => k.Key, k => k.Value), Resolver))
                 .Replace("\\\"", "\"")
                 .Replace("\"{", "{")
                 .Replace("}\"", "}")

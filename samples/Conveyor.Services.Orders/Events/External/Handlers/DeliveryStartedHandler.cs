@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Conveyor.Services.Orders.Events.External.Handlers
 {
-    [Message("deliveries")]
     public class DeliveryStartedHandler : IEventHandler<DeliveryStarted>
     {
         private readonly ILogger<DeliveryStartedHandler> _logger;

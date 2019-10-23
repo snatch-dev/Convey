@@ -20,12 +20,12 @@ namespace Convey.WebApi.Helpers
 
         public Task WriteAsync(OutputFormatterWriteContext context)
         {
-            context.HttpContext.Response.ContentType = "application/json";
             if (context.Object is null)
             {
                 return Task.CompletedTask;
             }
             
+            context.HttpContext.Response.ContentType = "application/json";
             return context.ObjectType == typeof(object)
                 ? JsonSerializer.NonGeneric.SerializeAsync(context.HttpContext.Response.Body, context.Object, _resolver)
                 : JsonSerializer.NonGeneric.SerializeAsync(context.ObjectType, context.HttpContext.Response.Body,

@@ -59,7 +59,8 @@ namespace Convey.Auth
                         ValidIssuer = options.Issuer,
                         ValidAudience = options.ValidAudience,
                         ValidateAudience = options.ValidateAudience,
-                        ValidateLifetime = options.ValidateLifetime
+                        ValidateLifetime = options.ValidateLifetime,
+                        ClockSkew = TimeSpan.Zero
                     };
                 });
 

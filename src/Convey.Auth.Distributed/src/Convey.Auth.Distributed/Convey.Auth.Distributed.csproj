@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey.Auth\src\Convey.Auth\Convey.Auth.csproj" />
-    <ProjectReference Include="..\..\..\Convey.Persistence.Redis\src\Convey.Persistence.Redis\Convey.Persistence.Redis.csproj" />
   </ItemGroup>
 
 </Project>

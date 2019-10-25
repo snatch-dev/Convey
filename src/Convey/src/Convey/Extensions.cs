@@ -14,11 +14,12 @@ namespace Convey
         {
             var builder = ConveyBuilder.Create(services);
             var options = builder.GetOptions<AppOptions>(appOptionsSectionName);
+            builder.Services.AddMemoryCache();
             services.AddSingleton(options);
             services.AddSingleton<IServiceId, ServiceId>();
             if (options.DisplayBanner && !string.IsNullOrWhiteSpace(options.Name))
             {
-                Console.WriteLine(Figgle.FiggleFonts.Doom.Render(options.Name));
+                Console.WriteLine(Figgle.FiggleFonts.Doom.Render($"{options.Name} {options.Version}"));
             }
 
             return builder;
@@ -57,7 +58,7 @@ namespace Convey
 
             return builder;
         }
-        
+
         public static string Underscore(this string value)
             => string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()));
     }

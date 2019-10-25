@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using App.Metrics;
 using App.Metrics.AspNetCore;
 using App.Metrics.AspNetCore.Endpoints;
@@ -8,6 +9,7 @@ using App.Metrics.Formatters.Prometheus;
 using Convey.Metrics.AppMetrics.Builders;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,12 +21,14 @@ namespace Convey.Metrics.AppMetrics
         private const string SectionName = "metrics";
         private const string RegistryName = "metrics.metrics";
 
+        [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
         public static IConveyBuilder AddMetrics(this IConveyBuilder builder, string sectionName = SectionName)
         {
             var options = builder.GetOptions<MetricsOptions>(sectionName);
             return builder.AddMetrics(options);
         }
 
+        [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
         public static IConveyBuilder AddMetrics(this IConveyBuilder builder,
             Func<IMetricsOptionsBuilder, IMetricsOptionsBuilder> buildOptions)
         {
@@ -32,6 +36,7 @@ namespace Convey.Metrics.AppMetrics
             return builder.AddMetrics(options);
         }
 
+        [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
         public static IConveyBuilder AddMetrics(this IConveyBuilder builder, MetricsOptions options)
         {
             builder.Services.AddSingleton(options);
@@ -41,6 +46,10 @@ namespace Convey.Metrics.AppMetrics
             }
 
             _initialized = true;
+            
+            //TODO: Remove once fixed https://github.com/AppMetrics/AppMetrics/issues/396
+            builder.Services.Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true);
+            
             var metricsBuilder = new MetricsBuilder().Configuration.Configure(cfg =>
             {
                 var tags = options.Tags;

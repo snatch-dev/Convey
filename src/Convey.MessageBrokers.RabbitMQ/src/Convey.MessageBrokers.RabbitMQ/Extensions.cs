@@ -31,7 +31,6 @@ namespace Convey.MessageBrokers.RabbitMQ
             {
                 return builder;
             }
-
            
             builder.Services.AddSingleton<IContextProvider, ContextProvider>();
             builder.Services.AddSingleton<ICorrelationContextAccessor>(new CorrelationContextAccessor());
@@ -56,9 +55,11 @@ namespace Convey.MessageBrokers.RabbitMQ
                 pluginsRegistry.Add<UniqueMessagesPlugin>();
                 switch (options.MessageProcessor.Type?.ToLowerInvariant())
                 {
+                    case "distributed":
+                        builder.Services.AddTransient<IMessageProcessor, DistributedMessageProcessor>();
+                        break;
                     default:
-                        builder.Services.AddMemoryCache();
-                        builder.Services.AddSingleton<IMessageProcessor, InMemoryMessageProcessor>();
+                        builder.Services.AddTransient<IMessageProcessor, InMemoryMessageProcessor>();
                         break;
                 }
             }

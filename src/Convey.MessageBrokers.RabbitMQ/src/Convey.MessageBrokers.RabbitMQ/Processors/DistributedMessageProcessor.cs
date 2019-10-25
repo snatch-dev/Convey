@@ -2,21 +2,21 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace Convey.MessageBrokers.RawRabbit.Processors
+namespace Convey.MessageBrokers.RabbitMQ.Processors
 {
-    internal sealed class RedisMessageProcessor : IMessageProcessor
+    internal sealed class DistributedMessageProcessor : IMessageProcessor
     {
         private readonly IDistributedCache _cache;
         private readonly RabbitMqOptions _options;
         private readonly string _service;
 
-        public RedisMessageProcessor(IDistributedCache cache, RabbitMqOptions options)
+        public DistributedMessageProcessor(IDistributedCache cache, RabbitMqOptions options)
         {
             _cache = cache;
             _options = options;
-            _service = string.IsNullOrWhiteSpace(options.Namespace)
+            _service = string.IsNullOrWhiteSpace(options.ConnectionName)
                 ? Guid.NewGuid().ToString("N")
-                : options.Namespace;
+                : options.ConnectionName;
         }
 
         public async Task<bool> TryProcessAsync(string id)

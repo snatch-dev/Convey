@@ -88,7 +88,6 @@ namespace Convey.MessageBrokers.RawRabbit
                         builder.Services.AddTransient<IMessageProcessor, RedisMessageProcessor>();
                         break;
                     default:
-                        builder.Services.AddMemoryCache();
                         builder.Services.AddTransient<IMessageProcessor, InMemoryMessageProcessor>();
                         break;
                 }

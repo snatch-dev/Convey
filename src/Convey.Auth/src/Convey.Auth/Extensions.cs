@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using Convey.Auth.Builders;
 using Convey.Auth.Handlers;
 using Convey.Auth.Services;
 using Microsoft.AspNetCore.Builder;
@@ -27,7 +26,6 @@ namespace Convey.Auth
                 return builder;
             }
 
-            builder.Services.AddMemoryCache();
             builder.Services.AddSingleton(options);
             builder.Services.AddSingleton<IJwtHandler, JwtHandler>();
             builder.Services.AddSingleton<IAccessTokenService, InMemoryAccessTokenService>();

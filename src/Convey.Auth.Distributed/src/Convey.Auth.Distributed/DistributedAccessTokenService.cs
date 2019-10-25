@@ -5,17 +5,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Primitives;
 
-namespace Convey.Auth.Services
+namespace Convey.Auth.Distributed
 {
-    internal sealed class AccessTokenService : IAccessTokenService
+    internal sealed class DistributedAccessTokenService : IAccessTokenService
     {
         private readonly IDistributedCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtOptions _jwtOptions;
 
-        public AccessTokenService(IDistributedCache cache,
-                IHttpContextAccessor httpContextAccessor,
-                JwtOptions jwtOptions)
+        public DistributedAccessTokenService(IDistributedCache cache,
+            IHttpContextAccessor httpContextAccessor,
+            JwtOptions jwtOptions)
         {
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
@@ -34,11 +34,11 @@ namespace Convey.Auth.Services
         public async Task DeactivateAsync(string userId, string token)
         {
             await _cache.SetStringAsync(GetKey(token),
-                    "deactivated", new DistributedCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow =
-                            TimeSpan.FromMinutes(_jwtOptions.ExpiryMinutes)
-                    });
+                string.Empty, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromMinutes(_jwtOptions.ExpiryMinutes)
+                });
         }
 
         private string GetCurrentAsync()
@@ -50,8 +50,8 @@ namespace Convey.Auth.Services
                 ? string.Empty
                 : authorizationHeader.Single().Split(' ').Last();
         }
-        
+
         private static string GetKey(string token)
-            => $"tokens:{token}";
+            => $"blacklisted-tokens:{token}";
     }
 }

@@ -14,13 +14,14 @@ namespace Convey.Persistence.Redis
             var options = builder.GetOptions<RedisOptions>(sectionName);
             return builder.AddRedis(options);
         }
-        
-        public static IConveyBuilder AddRedis(this IConveyBuilder builder, Func<IRedisOptionsBuilder, IRedisOptionsBuilder> buildOptions)
+
+        public static IConveyBuilder AddRedis(this IConveyBuilder builder,
+            Func<IRedisOptionsBuilder, IRedisOptionsBuilder> buildOptions)
         {
             var options = buildOptions(new RedisOptionsBuilder()).Build();
             return builder.AddRedis(options);
         }
-        
+
         public static IConveyBuilder AddRedis(this IConveyBuilder builder, RedisOptions options)
         {
             if (!builder.TryRegister(RegistryName))

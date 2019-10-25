@@ -13,13 +13,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
-    <ProjectReference Include="..\..\..\Convey.Persistence.Redis\src\Convey.Persistence.Redis\Convey.Persistence.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.0.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.6.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.6.0" />
   </ItemGroup>

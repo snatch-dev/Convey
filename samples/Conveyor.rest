@@ -16,7 +16,7 @@ GET {{pricing}}
 
 ###
 # @name create_order
-POST {{orders}}/orders
+POST {{orders}}/api/orders
 Content-Type: application/json
 
 {

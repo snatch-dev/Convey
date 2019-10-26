@@ -7,6 +7,7 @@ using Convey.Logging;
 using Convey.MessageBrokers.CQRS;
 using Convey.MessageBrokers.RabbitMQ;
 using Convey.Metrics.AppMetrics;
+using Convey.Persistence.Redis;
 using Convey.Tracing.Jaeger;
 using Convey.Tracing.Jaeger.RabbitMQ;
 using Convey.WebApi;
@@ -33,7 +34,7 @@ namespace Conveyor.Services.Deliveries
                         .AddFabio()
                         .AddJaeger()
                         .AddEventHandlers()
-                        .AddInMemoryEventDispatcher()
+                        .AddRedis()
                         .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
                         .AddMetrics()
                         .AddWebApi()

@@ -13,6 +13,7 @@ using Convey.MessageBrokers.Outbox;
 using Convey.MessageBrokers.RabbitMQ;
 using Convey.Metrics.AppMetrics;
 using Convey.Persistence.MongoDB;
+using Convey.Persistence.Redis;
 using Convey.Tracing.Jaeger;
 using Convey.Tracing.Jaeger.RabbitMQ;
 using Convey.WebApi;
@@ -54,6 +55,7 @@ namespace Conveyor.Services.Orders
                         .AddInMemoryCommandDispatcher()
                         .AddInMemoryEventDispatcher()
                         .AddInMemoryQueryDispatcher()
+                        .AddRedis()
                         .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
                         .AddMessageOutbox()
                         .AddMetrics()

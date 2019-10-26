@@ -36,11 +36,12 @@ namespace Conveyor.Services.Pricing
                         .Build())
                     .Configure(app => app
                         .UseErrorHandler()
-                        .UseConsul()
+                        .UseInitializers()
                         .UseJaeger()
                         .UseMetrics()
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Pricing Service"))
+                            .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
                             .Get<GetOrderPricing>("orders/{orderId}/pricing", (query, ctx) =>
                                 JsonSerializer.SerializeAsync(ctx.Response.Body, new PricingDto
                                 {

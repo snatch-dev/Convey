@@ -40,13 +40,13 @@ namespace Convey.Discovery.Consul.Builders
             return this;
         }
 
-        public IConsulOptionsBuilder WithPingInterval(int pingInterval)
+        public IConsulOptionsBuilder WithPingInterval(string pingInterval)
         {
             _options.PingInterval = pingInterval;
             return this;
         }
 
-        public IConsulOptionsBuilder WithRemoteAfterInterval(int remoteAfterInterval)
+        public IConsulOptionsBuilder WithRemoteAfterInterval(string remoteAfterInterval)
         {
             _options.RemoveAfterInterval = remoteAfterInterval;
             return this;

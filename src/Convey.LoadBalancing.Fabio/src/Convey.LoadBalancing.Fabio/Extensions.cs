@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Consul;
 using Convey.Discovery.Consul;
+using Convey.Discovery.Consul.Models;
 using Convey.HTTP;
 using Convey.LoadBalancing.Fabio.Builders;
 using Convey.LoadBalancing.Fabio.Http;
@@ -62,8 +63,17 @@ namespace Convey.LoadBalancing.Fabio
 
             using (var serviceProvider = builder.Services.BuildServiceProvider())
             {
-                var registration = serviceProvider.GetService<AgentServiceRegistration>();
-                registration.Tags = GetFabioTags(registration.Name, fabioOptions.Service);
+                var registration = serviceProvider.GetService<ServiceRegistration>();
+                var tags = GetFabioTags(registration.Name, fabioOptions.Service);
+                if (registration.Tags is null)
+                {
+                    registration.Tags = tags;
+                }
+                else
+                {
+                    registration.Tags.AddRange(tags);
+                }
+
                 builder.Services.UpdateConsulRegistration(registration);
             }
 
@@ -75,19 +85,19 @@ namespace Convey.LoadBalancing.Fabio
                 .AddHttpMessageHandler(c => new FabioMessageHandler(c.GetService<FabioOptions>(), serviceName));
 
         private static void UpdateConsulRegistration(this IServiceCollection services,
-            AgentServiceRegistration registration)
+            ServiceRegistration registration)
         {
-            var serviceDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(AgentServiceRegistration));
+            var serviceDescriptor = services.FirstOrDefault(sd => sd.ServiceType == typeof(ServiceRegistration));
             services.Remove(serviceDescriptor);
             services.AddSingleton(registration);
         }
 
-        private static string[] GetFabioTags(string consulService, string fabioService)
+        private static List<string> GetFabioTags(string consulService, string fabioService)
         {
             var service = (string.IsNullOrWhiteSpace(fabioService) ? consulService : fabioService)
                 .ToLowerInvariant();
 
-            return new[] {$"urlprefix-/{service} strip=/{service}"};
+            return new List<string> {$"urlprefix-/{service} strip=/{service}"};
         }
     }
 }

@@ -40,8 +40,10 @@ namespace Conveyor.Services.Deliveries
                         .Build())
                     .Configure(app => app
                         .UseErrorHandler()
+                        .UseInitializers()
                         .UseEndpoints(endpoints => endpoints
-                            .Get("", ctx => ctx.Response.WriteAsync("Deliveries Service")))
+                            .Get("", ctx => ctx.Response.WriteAsync("Deliveries Service"))
+                            .Get("ping", ctx => ctx.Response.WriteAsync("pong")))
                         .UseJaeger()
                         .UseMetrics()
                         .UseRabbitMq()

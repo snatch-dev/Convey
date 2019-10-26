@@ -8,8 +8,8 @@ namespace Convey.Discovery.Consul
         IConsulOptionsBuilder WithAddress(string address);
         IConsulOptionsBuilder WithEnabledPing(bool pingEnabled);
         IConsulOptionsBuilder WithPingEndpoint(string pingEndpoint);
-        IConsulOptionsBuilder WithPingInterval(int pingInterval);
-        IConsulOptionsBuilder WithRemoteAfterInterval(int remoteAfterInterval);
+        IConsulOptionsBuilder WithPingInterval(string pingInterval);
+        IConsulOptionsBuilder WithRemoteAfterInterval(string remoteAfterInterval);
         IConsulOptionsBuilder WithSkippingLocalhostDockerDnsReplace(bool skipLocalhostDockerDnsReplace);
         ConsulOptions Build();
     }

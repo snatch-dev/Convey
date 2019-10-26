@@ -61,14 +61,15 @@ namespace Conveyor.Services.Orders
                         .Build())
                     .Configure(app => app
                         .UseErrorHandler()
+                        .UseInitializers()
                         .UseRouting()
                         .UseEndpoints(r => r.MapControllers())
                         .UseDispatcherEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Orders Service"))
+                            .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
                             .Get<GetOrder, OrderDto>("orders/{orderId}")
                             .Post<CreateOrder>("orders",
                                 afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
-                        .UseConsul()
                         .UseJaeger()
                         .UseInitializers()
                         .UseMetrics()

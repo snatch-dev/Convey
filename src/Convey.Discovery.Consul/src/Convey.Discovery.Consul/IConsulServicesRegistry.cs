@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
-using Consul;
+using Convey.Discovery.Consul.Models;
 
 namespace Convey.Discovery.Consul
 {
     public interface IConsulServicesRegistry
     {
-        Task<AgentService> GetAsync(string name);
+        Task<ServiceAgent> GetAsync(string name);
     }
 }

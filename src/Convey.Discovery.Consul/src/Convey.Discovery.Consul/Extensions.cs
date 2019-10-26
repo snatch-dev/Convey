@@ -1,19 +1,17 @@
 using System;
-using System.Threading.Tasks;
-using Consul;
 using Convey.Discovery.Consul.Builders;
 using Convey.Discovery.Consul.Http;
 using Convey.Discovery.Consul.MessageHandlers;
-using Convey.Discovery.Consul.Registries;
+using Convey.Discovery.Consul.Models;
+using Convey.Discovery.Consul.Services;
 using Convey.HTTP;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Convey.Discovery.Consul
 {
     public static class Extensions
     {
+        private const string DefaultInterval = "5s";
         private const string SectionName = "consul";
         private const string RegistryName = "discovery.consul";
 
@@ -52,14 +50,6 @@ namespace Convey.Discovery.Consul
             }
 
             builder.Services.AddTransient<IConsulServicesRegistry, ConsulServicesRegistry>();
-            builder.Services.AddSingleton<IConsulClient>(c => new ConsulClient(cfg =>
-            {
-                if (!string.IsNullOrEmpty(options.Url))
-                {
-                    cfg.Address = new Uri(options.Url);
-                }
-            }));
-
             var registration = builder.CreateConsulAgentRegistration(options);
             if (registration is null)
             {
@@ -67,13 +57,6 @@ namespace Convey.Discovery.Consul
             }
 
             builder.Services.AddSingleton(registration);
-            builder.AddBuildAction(sp =>
-            {
-                var consulRegistration = sp.GetService<AgentServiceRegistration>();
-                var client = sp.GetService<IConsulClient>();
-
-                client.Agent.ServiceRegister(consulRegistration);
-            });
 
             return builder;
         }
@@ -84,46 +67,7 @@ namespace Convey.Discovery.Consul
                     c.GetService<IConsulServicesRegistry>(),
                     c.GetService<ConsulOptions>(), serviceName, true));
 
-        public static IApplicationBuilder UseConsul(this IApplicationBuilder app)
-        {
-            var options = app.ApplicationServices.GetService<ConsulOptions>();
-            if (options.PingEnabled)
-            {
-                var pingEndpoint = string.IsNullOrWhiteSpace(options.PingEndpoint) ? string.Empty :
-                    options.PingEndpoint.StartsWith("/") ? options.PingEndpoint : $"/{options.PingEndpoint}";
-                if (pingEndpoint.EndsWith("/"))
-                {
-                    pingEndpoint = pingEndpoint.Substring(0, pingEndpoint.Length - 1);
-                }
-
-                app.Map(pingEndpoint, ab => ab.Run(ctx =>
-                {
-                    ctx.Response.StatusCode = 200;
-                    return Task.CompletedTask;
-                }));
-            }
-
-            app.DeregisterConsulServiceOnShutdown();
-            return app;
-        }
-
-        private static void DeregisterConsulServiceOnShutdown(this IApplicationBuilder app)
-        {
-            var applicationLifetime = app.ApplicationServices.GetService<IHostApplicationLifetime>();
-            applicationLifetime.ApplicationStopped.Register(() =>
-            {
-                var registration = app.ApplicationServices.GetService<AgentServiceRegistration>();
-                if (registration is null)
-                {
-                    return;
-                }
-
-                var client = app.ApplicationServices.GetService<IConsulClient>();
-                client.Agent.ServiceDeregister(registration.ID);
-            });
-        }
-
-        private static AgentServiceRegistration CreateConsulAgentRegistration(this IConveyBuilder builder,
+        private static ServiceRegistration CreateConsulAgentRegistration(this IConveyBuilder builder,
             ConsulOptions options)
         {
             var enabled = options.Enabled;
@@ -144,42 +88,61 @@ namespace Convey.Discovery.Consul
                     nameof(options.PingEndpoint));
             }
 
-            var uniqueId = string.Empty;
+            builder.Services.AddHttpClient<IConsulService, ConsulService>(c => c.BaseAddress = new Uri(options.Url));
+            builder.Services.AddHostedService<ConsulHostedService>();
+
+            var serviceId = string.Empty;
             using (var serviceProvider = builder.Services.BuildServiceProvider())
             {
-                uniqueId = serviceProvider.GetRequiredService<IServiceId>().Id;
+                serviceId = serviceProvider.GetRequiredService<IServiceId>().Id;
             }
 
-            var pingInterval = options.PingInterval <= 0 ? 5 : options.PingInterval;
-            var removeAfterInterval = options.RemoveAfterInterval <= 0 ? 10 : options.RemoveAfterInterval;
-
-            var registration = new AgentServiceRegistration
+            var registration = new ServiceRegistration
             {
                 Name = options.Service,
-                ID = $"{options.Service}:{uniqueId}",
+                Id = $"{options.Service}:{serviceId}",
                 Address = options.Address,
-                Port = options.Port
+                Port = options.Port,
+                Tags = options.Tags,
+                Meta = options.Meta,
+                EnableTagOverride = options.EnableTagOverride
             };
 
             if (!options.PingEnabled)
             {
                 return registration;
             }
-
+            
+            var pingEndpoint = string.IsNullOrWhiteSpace(options.PingEndpoint) ? string.Empty :
+                options.PingEndpoint.StartsWith("/") ? options.PingEndpoint : $"/{options.PingEndpoint}";
+            if (pingEndpoint.EndsWith("/"))
+            {
+                pingEndpoint = pingEndpoint.Substring(0, pingEndpoint.Length - 1);
+            }
 
             var scheme = options.Address.StartsWith("http", StringComparison.InvariantCultureIgnoreCase)
                 ? string.Empty
                 : "http://";
-            var check = new AgentServiceCheck
+            var check = new ServiceCheck
             {
-                Interval = TimeSpan.FromSeconds(pingInterval),
-                DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(removeAfterInterval),
-                HTTP = $"{scheme}{options.Address}{(options.Port > 0 ? $":{options.Port}" : string.Empty)}/" +
-                       $"{options.PingEndpoint}"
+                Interval = ParseTime(options.PingInterval),
+                DeregisterCriticalServiceAfter = ParseTime(options.RemoveAfterInterval),
+                Http = $"{scheme}{options.Address}{(options.Port > 0 ? $":{options.Port}" : string.Empty)}" +
+                       $"{pingEndpoint}"
             };
             registration.Checks = new[] {check};
 
             return registration;
+        }
+
+        private static string ParseTime(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return DefaultInterval;
+            }
+
+            return int.TryParse(value, out var number) ? $"{number}s" : value;
         }
     }
 }

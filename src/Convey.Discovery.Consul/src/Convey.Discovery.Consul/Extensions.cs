@@ -105,7 +105,8 @@ namespace Convey.Discovery.Consul
                 Port = options.Port,
                 Tags = options.Tags,
                 Meta = options.Meta,
-                EnableTagOverride = options.EnableTagOverride
+                EnableTagOverride = options.EnableTagOverride,
+                Connect = options.Connect?.Enabled == true ? new Connect() : null
             };
 
             if (!options.PingEnabled)

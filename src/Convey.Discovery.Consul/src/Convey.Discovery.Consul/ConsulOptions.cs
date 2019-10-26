@@ -17,5 +17,11 @@ namespace Convey.Discovery.Consul
         public IDictionary<string, string> Meta { get; set; }
         public bool EnableTagOverride { get; set; }
         public bool SkipLocalhostDockerDnsReplace { get; set; }
+        public ConnectOptions Connect { get; set; }
+
+        public class ConnectOptions
+        {
+            public bool Enabled { get; set; }
+        }
     }
 }

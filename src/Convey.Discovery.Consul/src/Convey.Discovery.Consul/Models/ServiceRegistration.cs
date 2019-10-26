@@ -15,5 +15,6 @@ namespace Convey.Discovery.Consul.Models
         public bool EnableTagOverride { get; set; }
         public IEnumerable<ServiceCheck> Checks { get; set; }
         public Weights Weights { get; set; }
+        public Connect Connect { get; set; }
     }
 }

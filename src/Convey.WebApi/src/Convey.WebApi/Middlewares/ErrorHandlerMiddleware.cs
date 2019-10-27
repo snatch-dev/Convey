@@ -5,6 +5,7 @@ using Convey.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Utf8Json;
+using Utf8Json.Resolvers;
 
 namespace Convey.WebApi.Middlewares
 {
@@ -48,7 +49,7 @@ namespace Convey.WebApi.Middlewares
             var response = new {code, message};
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int) statusCode;
-            return JsonSerializer.SerializeAsync(context.Response.Body, response, Extensions.Resolver);
+            return JsonSerializer.SerializeAsync(context.Response.Body, response, Extensions.JsonFormatterResolver);
         }
     }
 }

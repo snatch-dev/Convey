@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Utf8Json;
 
-namespace Convey.WebApi.Helpers
+namespace Convey.WebApi.Formatters
 {
     internal class JsonInputFormatter : IInputFormatter
     {

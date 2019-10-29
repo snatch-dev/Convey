@@ -28,18 +28,16 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly bool _loggerEnabled;
         private readonly RabbitMqOptions _options;
 
-        public RabbitMqSubscriber(IApplicationBuilder app)
+        public RabbitMqSubscriber(IServiceProvider serviceProvider)
         {
-            _serviceProvider = app.ApplicationServices.GetRequiredService<IServiceProvider>();
-            _connection = app.ApplicationServices.GetRequiredService<IConnection>();
+            _serviceProvider = serviceProvider;
+            _connection = _serviceProvider.GetRequiredService<IConnection>();
             _channel = _connection.CreateModel();
-            _publisher = app.ApplicationServices.GetRequiredService<IBusPublisher>();
-            _rabbitMqSerializer = app.ApplicationServices.GetRequiredService<IRabbitMqSerializer>();
-            ;
-            _conventionsProvider = app.ApplicationServices.GetRequiredService<IConventionsProvider>();
-            ;
-            _contextProvider = app.ApplicationServices.GetRequiredService<IContextProvider>();
-            _logger = app.ApplicationServices.GetService<ILogger<RabbitMqSubscriber>>();
+            _publisher = _serviceProvider.GetRequiredService<IBusPublisher>();
+            _rabbitMqSerializer = _serviceProvider.GetRequiredService<IRabbitMqSerializer>();
+            _conventionsProvider = _serviceProvider.GetRequiredService<IConventionsProvider>();
+            _contextProvider = _serviceProvider.GetRequiredService<IContextProvider>();
+            _logger = _serviceProvider.GetService<ILogger<RabbitMqSubscriber>>();
             _exceptionToMessageMapper = _serviceProvider.GetService<IExceptionToMessageMapper>() ??
                                         new EmptyExceptionToMessageMapper();
             _pluginsExecutor = _serviceProvider.GetService<IRabbitMqPluginsExecutor>();
@@ -78,6 +76,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
             consumer.Received += async (model, args) =>
             {
+                using var scope = _serviceProvider.CreateScope();
                 try
                 {
                     var messageId = args.BasicProperties.MessageId;
@@ -91,7 +90,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
                     var body = args.Body;
                     var payload = Encoding.UTF8.GetString(body);
-                    var messagePropertiesAccessor = _serviceProvider.GetService<IMessagePropertiesAccessor>();
+                    var messagePropertiesAccessor = scope.ServiceProvider.GetService<IMessagePropertiesAccessor>();
                     messagePropertiesAccessor.MessageProperties = new MessageProperties
                     {
                         MessageId = messageId,
@@ -99,7 +98,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         Timestamp = timestamp,
                         Headers = args.BasicProperties.Headers
                     };
-                    var correlationContextAccessor = _serviceProvider.GetService<ICorrelationContextAccessor>();
+                    var correlationContextAccessor = scope.ServiceProvider.GetService<ICorrelationContextAccessor>();
                     var correlationContext = _contextProvider.Get(args.BasicProperties.Headers);
                     correlationContextAccessor.CorrelationContext = correlationContext;
                     var message = _rabbitMqSerializer.Deserialize<T>(payload);
@@ -116,6 +115,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     throw;
                 }
             };
+
             _channel.BasicConsume(conventions.Queue, false, consumer);
 
             return this;
@@ -130,7 +130,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 .Handle<Exception>()
                 .WaitAndRetryAsync(_retries, i => TimeSpan.FromSeconds(_retryInterval));
 
-            var exception = await retryPolicy.ExecuteAsync(async () =>
+            await retryPolicy.ExecuteAsync(async () =>
             {
                 try
                 {
@@ -146,6 +146,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     }
 
                     await handle(_serviceProvider, message, messageContext);
+                    _channel.BasicAck(args.DeliveryTag, false);
 
                     if (_loggerEnabled)
                     {
@@ -153,8 +154,6 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                              $"with correlation id: '{correlationId}'. {retryMessage}";
                         _logger.LogInformation(postLogMessage);
                     }
-
-                    return null;
                 }
                 catch (Exception ex)
                 {
@@ -163,9 +162,22 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     var rejectedEvent = _exceptionToMessageMapper.Map(ex, message);
                     if (rejectedEvent is null)
                     {
-                        throw new Exception($"Unable to handle a message: '{messageName}' [id: '{messageId}'] " +
-                                            $"with correlation id: '{correlationId}', " +
-                                            $"retry {currentRetry - 1}/{_retries}...", ex);
+                        var errorMessage = $"Unable to handle a message: '{messageName}' [id: '{messageId}'] " +
+                                           $"with correlation id: '{correlationId}', " +
+                                           $"retry {currentRetry - 1}/{_retries}...";
+                        
+                        if (currentRetry > 1)
+                        {
+                            _logger.LogError(errorMessage);
+                        }
+                        
+                        if (currentRetry - 1 < _retries)
+                        {
+                            throw new Exception(errorMessage, ex);
+                        }
+
+                        _channel.BasicAck(args.DeliveryTag, false);
+                        return;
                     }
 
                     var rejectedEventName = rejectedEvent.GetType().Name;
@@ -177,19 +189,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                            $"for the message: '{messageName}' [id: '{messageId}'] with correlation id: '{correlationId}'.");
                     }
 
-                    return new Exception($"Handling a message: '{messageName}' [id: '{messageId}'] " +
-                                         $"with correlation id: '{correlationId}' failed and rejected event: " +
-                                         $"'{rejectedEventName}' was published.", ex);
+                    _logger.LogError($"Handling a message: '{messageName}' [id: '{messageId}'] " +
+                                     $"with correlation id: '{correlationId}' failed and rejected event: " +
+                                     $"'{rejectedEventName}' was published.", ex);
+                    
+                    _channel.BasicAck(args.DeliveryTag, false);
                 }
             });
-
-            if (exception is null)
-            {
-                _channel.BasicAck(args.DeliveryTag, false);
-                return;
-            }
-
-            throw exception;
         }
 
         private class EmptyExceptionToMessageMapper : IExceptionToMessageMapper

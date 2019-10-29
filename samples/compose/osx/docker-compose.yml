@@ -7,7 +7,6 @@ services:
     restart: unless-stopped
     ports:
       - 8500:8500
-    network_mode: host
     networks:
       - conveyor
     # volumes:
@@ -19,7 +18,6 @@ services:
     restart: unless-stopped
     environment:
     - FABIO_REGISTRY_CONSUL_ADDR=consul:8500
-    network_mode: host
     networks:
       - conveyor
     ports:
@@ -32,7 +30,6 @@ services:
     restart: unless-stopped
     ports:
       - 3000:3000
-    network_mode: host
     networks:
       - conveyor
     # volumes:
@@ -50,7 +47,6 @@ services:
       - 9411:9411
       - 14268:14268
       - 16686:16686
-    network_mode: host
     networks:
       - conveyor
 
@@ -60,7 +56,6 @@ services:
     restart: unless-stopped
     ports:
       - 27017:27017
-    network_mode: host
     networks:
       - conveyor
     volumes:
@@ -72,7 +67,6 @@ services:
     restart: unless-stopped
     ports:
       - '9090:9090'
-    network_mode: host
     networks:
       - conveyor
     # volumes:
@@ -85,7 +79,6 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-    network_mode: host
     networks:
       - conveyor
     # volumes: 
@@ -97,7 +90,6 @@ services:
     restart: unless-stopped
     ports:
       - 6379:6379
-    network_mode: host
     networks:
       - conveyor
     volumes: 
@@ -111,7 +103,6 @@ services:
       - ACCEPT_EULA=Y
     ports:
       - 5341:80
-    network_mode: host
     networks:
       - conveyor
     # volumes: 
@@ -123,7 +114,6 @@ services:
     restart: unless-stopped
     ports:
       - 8200:8200
-    network_mode: host
     networks:
       - conveyor
     environment:

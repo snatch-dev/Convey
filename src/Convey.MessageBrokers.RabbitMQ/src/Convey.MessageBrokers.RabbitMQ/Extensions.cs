@@ -31,7 +31,7 @@ namespace Convey.MessageBrokers.RabbitMQ
             {
                 return builder;
             }
-           
+
             builder.Services.AddSingleton<IContextProvider, ContextProvider>();
             builder.Services.AddSingleton<ICorrelationContextAccessor>(new CorrelationContextAccessor());
             builder.Services.AddSingleton<IMessagePropertiesAccessor>(new MessagePropertiesAccessor());
@@ -44,12 +44,12 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();
             builder.Services.AddTransient<RabbitMqExchangeInitializer>();
             builder.AddInitializer<RabbitMqExchangeInitializer>();
-            
+
             var pluginsRegistry = new RabbitMqPluginsRegistry();
             builder.Services.AddSingleton<IRabbitMqPluginsRegistryAccessor>(pluginsRegistry);
             builder.Services.AddSingleton<IRabbitMqPluginsExecutor, RabbitMqPluginsExecutor>();
             plugins?.Invoke(pluginsRegistry);
-            
+
             if (options.MessageProcessor?.Enabled == true)
             {
                 pluginsRegistry.Add<UniqueMessagesPlugin>();
@@ -101,7 +101,8 @@ namespace Convey.MessageBrokers.RabbitMQ
                     if (options.Logger?.Enabled == true)
                     {
                         var logger = sp.GetService<ILogger<IConnection>>();
-                        logger.LogInformation($"Declaring an exchange: '{options.Exchange.Name}', type: '{options.Exchange.Type}'.");
+                        logger.LogInformation($"Declaring an exchange: '{options.Exchange.Name}'," +
+                                              $"type: '{options.Exchange.Type}'.");
                     }
 
                     channel.ExchangeDeclare(options.Exchange.Name, options.Exchange.Type, options.Exchange.Durable,
@@ -112,9 +113,9 @@ namespace Convey.MessageBrokers.RabbitMQ
                 return connection;
             });
 
-            ((IRabbitMqPluginsRegistryAccessor)pluginsRegistry).Get().ToList().ForEach(p => 
+            ((IRabbitMqPluginsRegistryAccessor) pluginsRegistry).Get().ToList().ForEach(p =>
                 builder.Services.AddTransient(p.PluginType));
-            
+
             return builder;
         }
 
@@ -125,8 +126,9 @@ namespace Convey.MessageBrokers.RabbitMQ
 
             return builder;
         }
-        
-        public static IBusSubscriber UseRabbitMq(this IApplicationBuilder app) => new RabbitMqSubscriber(app);
+
+        public static IBusSubscriber UseRabbitMq(this IApplicationBuilder app)
+            => new RabbitMqSubscriber(app.ApplicationServices);
 
         private class EmptyMessageProcessor : IMessageProcessor
         {

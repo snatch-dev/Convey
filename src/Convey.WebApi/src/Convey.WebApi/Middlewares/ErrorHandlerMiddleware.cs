@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Convey.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Open.Serialization.Json;
 using Utf8Json;
 using Utf8Json.Resolvers;
 
@@ -12,11 +13,14 @@ namespace Convey.WebApi.Middlewares
     internal sealed class ErrorHandlerMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger<ErrorHandlerMiddleware> _logger;
 
-        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
+        public ErrorHandlerMiddleware(RequestDelegate next, IJsonSerializer jsonSerializer,
+            ILogger<ErrorHandlerMiddleware> logger)
         {
             _next = next;
+            _jsonSerializer = jsonSerializer;
             _logger = logger;
         }
 
@@ -33,7 +37,7 @@ namespace Convey.WebApi.Middlewares
             }
         }
 
-        private static Task HandleErrorAsync(HttpContext context, Exception exception)
+        private async Task HandleErrorAsync(HttpContext context, Exception exception)
         {
             var code = "error";
             var statusCode = HttpStatusCode.BadRequest;
@@ -49,7 +53,7 @@ namespace Convey.WebApi.Middlewares
             var response = new {code, message};
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int) statusCode;
-            return JsonSerializer.SerializeAsync(context.Response.Body, response, Extensions.JsonFormatterResolver);
+            await _jsonSerializer.SerializeAsync(context.Response.Body, response);
         }
     }
 }

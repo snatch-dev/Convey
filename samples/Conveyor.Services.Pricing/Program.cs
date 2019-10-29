@@ -12,12 +12,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Utf8Json;
-using Utf8Json.Resolvers;
+using Open.Serialization.Json;
 
 namespace Conveyor.Services.Pricing
 {
-    public class Program 
+    public class Program
     {
         public static Task Main(string[] args)
             => CreateHostBuilder(args).Build().RunAsync();
@@ -42,11 +41,12 @@ namespace Conveyor.Services.Pricing
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Pricing Service"))
                             .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
-                            .Get<GetOrderPricing>("orders/{orderId}/pricing", (query, ctx) =>
-                                JsonSerializer.SerializeAsync(ctx.Response.Body, new PricingDto
-                                {
-                                    OrderId = query.OrderId, TotalAmount = 20.50m
-                                }, StandardResolver.CamelCase))))
+                            .Get<GetOrderPricing>("orders/{orderId}/pricing", async (query, ctx) =>
+                                await ctx.RequestServices.GetRequiredService<IJsonSerializer>()
+                                    .SerializeAsync(ctx.Response.Body, new PricingDto
+                                    {
+                                        OrderId = query.OrderId, TotalAmount = 20.50m
+                                    }))))
                     .UseLogging();
             });
     }

@@ -19,8 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using Utf8Json;
-using JsonSerializer = Utf8Json.JsonSerializer;
+using Open.Serialization.Json;
 
 namespace Convey.WebApi
 {
@@ -33,7 +32,6 @@ namespace Convey.WebApi
         private const string LocationHeader = "Location";
         private const string JsonContentType = "application/json";
         private static bool _bindRequestFromRoute;
-        internal static IJsonFormatterResolver JsonFormatterResolver;
 
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -51,20 +49,24 @@ namespace Convey.WebApi
         }
 
         public static IConveyBuilder AddWebApi(this IConveyBuilder builder, Action<IMvcCoreBuilder> configureMvc = null,
-            IJsonFormatterResolver jsonFormatterResolver = null, IEnumerable<IJsonFormatter> jsonFormatters = null,
-            string sectionName = SectionName)
+            IJsonSerializer jsonSerializer = null, string sectionName = SectionName)
         {
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;
             }
 
-            JsonFormatterResolver = jsonFormatterResolver ?? ConveyFormatterResolver.Instance;
-            if (!(jsonFormatters is null) && jsonFormatterResolver is ConveyFormatterResolver)
+            if (jsonSerializer is null)
             {
-                ConveyFormatterResolver.Formatters.AddRange(jsonFormatters);
+                var factory = new Open.Serialization.Json.Newtonsoft.JsonSerializerFactory(new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    Converters = {new StringEnumConverter(true)}
+                });
+                jsonSerializer = factory.GetSerializer();
             }
 
+            builder.Services.AddSingleton(jsonSerializer);
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton(new WebApiEndpointDefinitions());
             var options = builder.GetOptions<WebApiOptions>(sectionName);
@@ -78,9 +80,9 @@ namespace Convey.WebApi
             mvcCoreBuilder.AddMvcOptions(o =>
                 {
                     o.OutputFormatters.Clear();
-                    o.OutputFormatters.Add(new JsonOutputFormatter(JsonFormatterResolver));
+                    o.OutputFormatters.Add(new JsonOutputFormatter(jsonSerializer));
                     o.InputFormatters.Clear();
-                    o.InputFormatters.Add(new JsonInputFormatter(JsonFormatterResolver));
+                    o.InputFormatters.Add(new JsonInputFormatter(jsonSerializer));
                 })
                 .AddDataAnnotations()
                 .AddApiExplorer()
@@ -200,10 +202,11 @@ namespace Convey.WebApi
             return Task.CompletedTask;
         }
 
-        public static Task WriteJsonAsync<T>(this HttpResponse response, T value)
+        public static async Task WriteJsonAsync<T>(this HttpResponse response, T value)
         {
             response.ContentType = JsonContentType;
-            return JsonSerializer.SerializeAsync(response.Body, value, JsonFormatterResolver);
+            var serializer = response.HttpContext.RequestServices.GetRequiredService<IJsonSerializer>();
+            await serializer.SerializeAsync(response.Body, value);
         }
 
         public static async Task<T> ReadJsonAsync<T>(this HttpContext httpContext)
@@ -219,7 +222,7 @@ namespace Convey.WebApi
             try
             {
                 var request = httpContext.Request;
-                var payload = await JsonSerializer.DeserializeAsync<T>(request.Body, JsonFormatterResolver);
+                var payload = await httpContext.RequestServices.GetRequiredService<IJsonSerializer>().DeserializeAsync<T>(request.Body);
                 if (_bindRequestFromRoute && HasRouteData(request))
                 {
                     var values = request.HttpContext.GetRouteData().Values;
@@ -279,23 +282,20 @@ namespace Convey.WebApi
                 }
             }
 
+            var serializer = context.RequestServices.GetRequiredService<IJsonSerializer>();
             if (values is null)
             {
-                return JsonSerializer.Deserialize<T>(EmptyJsonObject, JsonFormatterResolver);
+                return serializer.Deserialize<T>(EmptyJsonObject);
             }
 
-            var serialized = Encoding.UTF8.GetString(JsonSerializer.Serialize(
-                    values.ToDictionary(k => k.Key, k => k.Value), JsonFormatterResolver))
+            var serialized = serializer.Serialize(values.ToDictionary(k => k.Key, k => k.Value))
                 .Replace("\\\"", "\"")
                 .Replace("\"{", "{")
                 .Replace("}\"", "}")
                 .Replace("\"[", "[")
                 .Replace("]\"", "]");
 
-            // Until the formatters do work as expected...
-            // return JsonSerializer.Deserialize<T>(serialized, JsonFormatterResolver);
-
-            return JsonConvert.DeserializeObject<T>(serialized, SerializerSettings);
+            return serializer.Deserialize<T>(serialized);
         }
 
         private static bool HasQueryString(this HttpRequest request)

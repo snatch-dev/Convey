@@ -31,7 +31,12 @@ namespace Convey.MessageBrokers.Outbox.Processors
             return Task.CompletedTask;
         }
 
-        private async void SendOutboxMessages(object state)
+        private void SendOutboxMessages(object state)
+        {
+            _ = SendOutboxMessagesAsync(state);
+        }
+
+        private async Task SendOutboxMessagesAsync(object state)
         {
             var messages = await _outbox.GetUnsentAsync();
             var publishTasks = messages.Select(om => _publisher.PublishAsync(om.Message, om.MessageId, 

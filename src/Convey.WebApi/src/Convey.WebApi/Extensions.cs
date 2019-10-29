@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -48,6 +49,7 @@ namespace Convey.WebApi
             return app;
         }
 
+        [Description("By default Newtonsoft JSON serializer is being used and it sets Kestrel's AllowSynchronousIO = true")]
         public static IConveyBuilder AddWebApi(this IConveyBuilder builder, Action<IMvcCoreBuilder> configureMvc = null,
             IJsonSerializer jsonSerializer = null, string sectionName = SectionName)
         {
@@ -66,6 +68,11 @@ namespace Convey.WebApi
                 jsonSerializer = factory.GetSerializer();
             }
 
+            if (jsonSerializer.GetType().Namespace?.Contains("Newtonsoft") == true)
+            {
+                builder.Services.Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true);
+            }
+            
             builder.Services.AddSingleton(jsonSerializer);
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton(new WebApiEndpointDefinitions());

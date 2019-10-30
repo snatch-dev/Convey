@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Open.Serialization.Json;
 using Utf8Json;
@@ -27,6 +28,12 @@ namespace Convey.WebApi.Formatters
             }
 
             context.HttpContext.Response.ContentType = "application/json";
+            if (context.Object is string json)
+            {
+                await context.HttpContext.Response.WriteAsync(json);
+                return;
+            }
+            
             await _serializer.SerializeAsync(context.HttpContext.Response.Body, context.Object);
         }
     }

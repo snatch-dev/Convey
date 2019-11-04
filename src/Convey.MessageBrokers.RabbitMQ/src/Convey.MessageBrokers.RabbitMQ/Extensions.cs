@@ -12,7 +12,6 @@ using Convey.MessageBrokers.RabbitMQ.Serializers;
 using Convey.MessageBrokers.RabbitMQ.Subscribers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Convey.MessageBrokers.RabbitMQ
@@ -90,27 +89,7 @@ namespace Convey.MessageBrokers.RabbitMQ
                         : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled)
                 };
 
-                var connection = connectionFactory.CreateConnection(options.ConnectionName);
-                if (options.Exchange is null || !options.Exchange.Declare)
-                {
-                    return connection;
-                }
-
-                using (var channel = connection.CreateModel())
-                {
-                    if (options.Logger?.Enabled == true)
-                    {
-                        var logger = sp.GetService<ILogger<IConnection>>();
-                        logger.LogInformation($"Declaring an exchange: '{options.Exchange.Name}'," +
-                                              $"type: '{options.Exchange.Type}'.");
-                    }
-
-                    channel.ExchangeDeclare(options.Exchange.Name, options.Exchange.Type, options.Exchange.Durable,
-                        options.Exchange.AutoDelete);
-                    channel.Close();
-                }
-
-                return connection;
+                return connectionFactory.CreateConnection(options.ConnectionName);
             });
 
             ((IRabbitMqPluginsRegistryAccessor) pluginsRegistry).Get().ToList().ForEach(p =>

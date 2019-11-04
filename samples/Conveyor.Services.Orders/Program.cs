@@ -73,7 +73,6 @@ namespace Conveyor.Services.Orders
                             .Post<CreateOrder>("orders",
                                 afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
                         .UseJaeger()
-                        .UseInitializers()
                         .UseMetrics()
                         .UseRabbitMq()
                         .SubscribeEvent<DeliveryStarted>())

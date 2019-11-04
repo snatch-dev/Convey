@@ -38,8 +38,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
         public string GetQueue(Type type)
         {
             var attribute = GeAttribute(type);
+            var exchange = string.IsNullOrWhiteSpace(attribute?.Exchange) ? _options.Exchange.Name : attribute.Exchange;
+            exchange = string.IsNullOrWhiteSpace(exchange) ? string.Empty : $"{exchange}.";
             var queue = string.IsNullOrWhiteSpace(attribute?.Queue)
-                ? $"{type.Assembly.GetName().Name}/{type.Name}"
+                ? $"{type.Assembly.GetName().Name}/{exchange}{type.Name}"
                 : attribute.Queue;
 
             return WithCasing(queue);

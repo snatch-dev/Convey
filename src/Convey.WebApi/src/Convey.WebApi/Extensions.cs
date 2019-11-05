@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -163,7 +164,7 @@ namespace Convey.WebApi
             return data is null ? Task.CompletedTask : response.WriteJsonAsync(data);
         }
 
-        public static Task Created(this HttpResponse response, string location = null)
+        public static Task Created(this HttpResponse response, string location = null, object data = null)
         {
             response.StatusCode = 201;
             if (string.IsNullOrWhiteSpace(location))
@@ -176,36 +177,70 @@ namespace Convey.WebApi
                 response.Headers.Add(LocationHeader, location);
             }
 
-            return Task.CompletedTask;
+            return data is null ? Task.CompletedTask : response.WriteJsonAsync(data);
         }
 
         public static Task Accepted(this HttpResponse response)
         {
-            response.StatusCode = 202;
+            response.StatusCode = (int) HttpStatusCode.Accepted;
             return Task.CompletedTask;
         }
 
         public static Task NoContent(this HttpResponse response)
         {
-            response.StatusCode = 204;
+            response.StatusCode = (int) HttpStatusCode.NoContent;
+            return Task.CompletedTask;
+        }
+        
+        public static Task MovedPermanently(this HttpResponse response, string url)
+        {
+            response.StatusCode = (int) HttpStatusCode.MovedPermanently;
+            if (!response.Headers.ContainsKey(LocationHeader))
+            {
+                response.Headers.Add(LocationHeader, url);
+            }
+            
+            return Task.CompletedTask;
+        }
+        
+        public static Task Redirect(this HttpResponse response, string url)
+        {
+            response.StatusCode = (int) HttpStatusCode.PermanentRedirect;
+            if (!response.Headers.ContainsKey(LocationHeader))
+            {
+                response.Headers.Add(LocationHeader, url);
+            }
+            
             return Task.CompletedTask;
         }
 
         public static Task BadRequest(this HttpResponse response)
         {
-            response.StatusCode = 400;
+            response.StatusCode = (int) HttpStatusCode.BadRequest;
+            return Task.CompletedTask;
+        }
+        
+        public static Task Unauthorized(this HttpResponse response)
+        {
+            response.StatusCode = (int) HttpStatusCode.Unauthorized;
+            return Task.CompletedTask;
+        }
+        
+        public static Task Forbidden(this HttpResponse response)
+        {
+            response.StatusCode = (int) HttpStatusCode.Forbidden;
             return Task.CompletedTask;
         }
 
         public static Task NotFound(this HttpResponse response)
         {
-            response.StatusCode = 404;
+            response.StatusCode = (int) HttpStatusCode.NotFound;
             return Task.CompletedTask;
         }
 
         public static Task InternalServerError(this HttpResponse response)
         {
-            response.StatusCode = 500;
+            response.StatusCode = (int) HttpStatusCode.InternalServerError;
             return Task.CompletedTask;
         }
 

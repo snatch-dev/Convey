@@ -2,6 +2,7 @@ using System;
 using Convey.Docs.Swagger.Builders;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Convey.Docs.Swagger
@@ -34,16 +35,16 @@ namespace Convey.Docs.Swagger
             builder.Services.AddSingleton(options);
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc(options.Name, new Info {Title = options.Title, Version = options.Version});
+                c.SwaggerDoc(options.Name, new OpenApiInfo{Title = options.Title, Version = options.Version});
                 if (options.IncludeSecurity)
                 {
-                    c.AddSecurityDefinition("Bearer", new ApiKeyScheme
+                    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                     {
                         Description =
                             "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                         Name = "Authorization",
-                        In = "header",
-                        Type = "apiKey"
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.ApiKey
                     });
                 }
             });

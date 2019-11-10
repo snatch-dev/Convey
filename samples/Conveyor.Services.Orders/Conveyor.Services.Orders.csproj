@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Convey.Configurations.Vault\src\Convey.Configurations.Vault\Convey.Configurations.Vault.csproj" />
     <ProjectReference Include="..\..\src\Convey.Discovery.Consul\src\Convey.Discovery.Consul\Convey.Discovery.Consul.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Docs.Swagger\src\Convey.Docs.Swagger\Convey.Docs.Swagger.csproj" />
     <ProjectReference Include="..\..\src\Convey.HTTP\src\Convey.HTTP\Convey.HTTP.csproj" />
     <ProjectReference Include="..\..\src\Convey.LoadBalancing.Fabio\src\Convey.LoadBalancing.Fabio\Convey.LoadBalancing.Fabio.csproj" />
     <ProjectReference Include="..\..\src\Convey.Logging\src\Convey.Logging\Convey.Logging.csproj" />

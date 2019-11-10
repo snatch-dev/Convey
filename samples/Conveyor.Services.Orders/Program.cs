@@ -5,6 +5,7 @@ using Convey.CQRS.Commands;
 using Convey.CQRS.Events;
 using Convey.CQRS.Queries;
 using Convey.Discovery.Consul;
+using Convey.Docs.Swagger;
 using Convey.HTTP;
 using Convey.LoadBalancing.Fabio;
 using Convey.Logging;
@@ -60,6 +61,7 @@ namespace Conveyor.Services.Orders
                         .AddMessageOutbox()
                         .AddMetrics()
                         .AddWebApi()
+                        .AddSwaggerDocs()
                         .Build())
                     .Configure(app => app
                         .UseErrorHandler()
@@ -74,6 +76,7 @@ namespace Conveyor.Services.Orders
                                 afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
                         .UseJaeger()
                         .UseMetrics()
+                        .UseSwaggerDocs()
                         .UseRabbitMq()
                         .SubscribeEvent<DeliveryStarted>())
                     .UseLogging();

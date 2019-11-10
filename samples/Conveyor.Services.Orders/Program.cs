@@ -19,6 +19,7 @@ using Convey.Tracing.Jaeger;
 using Convey.Tracing.Jaeger.RabbitMQ;
 using Convey.WebApi;
 using Convey.WebApi.CQRS;
+using Convey.WebApi.Swagger;
 using Conveyor.Services.Orders.Commands;
 using Conveyor.Services.Orders.Domain;
 using Conveyor.Services.Orders.DTO;
@@ -62,6 +63,7 @@ namespace Conveyor.Services.Orders
                         .AddMetrics()
                         .AddWebApi()
                         .AddSwaggerDocs()
+                        .AddWebApiSwaggerDocs()
                         .Build())
                     .Configure(app => app
                         .UseErrorHandler()

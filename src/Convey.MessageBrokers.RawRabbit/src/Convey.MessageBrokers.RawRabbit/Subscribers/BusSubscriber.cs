@@ -53,7 +53,7 @@ namespace Convey.MessageBrokers.RawRabbit.Subscribers
                     _logger.LogError(ex, ex.Message);
                     throw;
                 }
-            });
+            }).GetAwaiter().GetResult();
 
             return this;
         }

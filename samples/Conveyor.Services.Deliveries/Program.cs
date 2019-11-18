@@ -40,8 +40,8 @@ namespace Conveyor.Services.Deliveries
                         .AddWebApi()
                         .Build())
                     .Configure(app => app
+                        .UseConvey()
                         .UseErrorHandler()
-                        .UseInitializers()
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Deliveries Service"))
                             .Get("ping", ctx => ctx.Response.WriteAsync("pong")))

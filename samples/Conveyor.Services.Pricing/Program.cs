@@ -34,8 +34,8 @@ namespace Conveyor.Services.Pricing
                         .AddWebApi()
                         .Build())
                     .Configure(app => app
+                        .UseConvey()    
                         .UseErrorHandler()
-                        .UseInitializers()
                         .UseJaeger()
                         .UseMetrics()
                         .UseEndpoints(endpoints => endpoints

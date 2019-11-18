@@ -66,8 +66,8 @@ namespace Conveyor.Services.Orders
                         .AddWebApiSwaggerDocs()
                         .Build())
                     .Configure(app => app
+                        .UseConvey()    
                         .UseErrorHandler()
-                        .UseInitializers()
                         .UseRouting()
                         .UseEndpoints(r => r.MapControllers())
                         .UseDispatcherEndpoints(endpoints => endpoints

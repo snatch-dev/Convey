@@ -25,6 +25,9 @@ namespace Convey
             return builder;
         }
 
+        public static IApplicationBuilder UseConvey(this IApplicationBuilder app)
+            => app.UseInitializers();
+
         public static TModel GetOptions<TModel>(this IConfiguration configuration, string sectionName)
             where TModel : new()
         {

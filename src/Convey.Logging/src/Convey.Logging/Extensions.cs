@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Convey.Logging.Options;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
@@ -12,54 +13,70 @@ namespace Convey.Logging
 {
     public static class Extensions
     {
+        public static IHostBuilder UseLogging(this IHostBuilder hostBuilder, string applicationName = null,
+            string serviceId = null)
+            => hostBuilder.UseSerilog((context, loggerConfiguration) =>
+            {
+                var options = context.Configuration.GetOptions<LoggerOptions>("logger");
+
+                MapOptions(options, loggerConfiguration, applicationName, serviceId, context.HostingEnvironment.EnvironmentName);
+            });
+
         public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder, string applicationName = null,
             string serviceId = null)
             => webHostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
                 var options = context.Configuration.GetOptions<LoggerOptions>("logger");
-                if (!Enum.TryParse<LogEventLevel>(options.Level, true, out var level))
-                {
-                    level = LogEventLevel.Information;
-                }
 
-                if (!string.IsNullOrWhiteSpace(options.ApplicationName))
-                {
-                    applicationName = options.ApplicationName;
-                }
-
-                var applicationNameEnv = Environment.GetEnvironmentVariable("APPLICATION_NAME");
-                if (!string.IsNullOrWhiteSpace(applicationNameEnv))
-                {
-                    applicationName = applicationNameEnv;
-                }
-                
-                if (!string.IsNullOrWhiteSpace(options.ServiceId))
-                {
-                    serviceId = options.ServiceId;
-                }
-
-                var serviceIdEnv = Environment.GetEnvironmentVariable("SERVICE_ID");
-                if (!string.IsNullOrWhiteSpace(serviceIdEnv))
-                {
-                    serviceId = serviceIdEnv;
-                }
-                
-                loggerConfiguration.Enrich.FromLogContext()
-                    .MinimumLevel.Is(level)
-                    .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
-                    .Enrich.WithProperty("ApplicationName", applicationName)
-                    .Enrich.WithProperty("ServiceId", serviceId);
-
-                foreach (var (key, value) in options.Tags ?? new Dictionary<string, object>())
-                {
-                    loggerConfiguration.Enrich.WithProperty(key, value);
-                }
-
-                options.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
-                    .ByExcluding(Matching.WithProperty<string>("RequestPath", n => n.EndsWith(p))));
-
-                Configure(loggerConfiguration, level, options);
+                MapOptions(options, loggerConfiguration, applicationName, serviceId, context.HostingEnvironment.EnvironmentName);
             });
+
+        private static void MapOptions(LoggerOptions options, LoggerConfiguration loggerConfiguration, string applicationName, string serviceId, string environmentName)
+        {
+
+            if (!Enum.TryParse<LogEventLevel>(options.Level, true, out var level))
+            {
+                level = LogEventLevel.Information;
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.ApplicationName))
+            {
+                applicationName = options.ApplicationName;
+            }
+
+            var applicationNameEnv = Environment.GetEnvironmentVariable("APPLICATION_NAME");
+            if (!string.IsNullOrWhiteSpace(applicationNameEnv))
+            {
+                applicationName = applicationNameEnv;
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.ServiceId))
+            {
+                serviceId = options.ServiceId;
+            }
+
+            var serviceIdEnv = Environment.GetEnvironmentVariable("SERVICE_ID");
+            if (!string.IsNullOrWhiteSpace(serviceIdEnv))
+            {
+                serviceId = serviceIdEnv;
+            }
+
+            loggerConfiguration.Enrich.FromLogContext()
+                .MinimumLevel.Is(level)
+                .Enrich.WithProperty("Environment", environmentName)
+                .Enrich.WithProperty("ApplicationName", applicationName)
+                .Enrich.WithProperty("ServiceId", serviceId);
+
+            foreach (var (key, value) in options.Tags ?? new Dictionary<string, object>())
+            {
+                loggerConfiguration.Enrich.WithProperty(key, value);
+            }
+
+            options.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
+                .ByExcluding(Matching.WithProperty<string>("RequestPath", n => n.EndsWith(p))));
+
+            Configure(loggerConfiguration, level, options);
+        }
 
         private static void Configure(LoggerConfiguration loggerConfiguration, LogEventLevel level,
             LoggerOptions options)

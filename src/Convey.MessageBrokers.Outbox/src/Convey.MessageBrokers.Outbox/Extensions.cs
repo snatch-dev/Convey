@@ -8,8 +8,18 @@ namespace Convey.MessageBrokers.Outbox
 {
     public static class Extensions
     {
-        public static IConveyBuilder AddMessageOutbox(this IConveyBuilder builder)
+        private const string SectionName = "outbox";
+        private const string RegistryName = "messageBrokers.outbox";
+
+        public static IConveyBuilder AddMessageOutbox(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (!builder.TryRegister(RegistryName))
+            {
+                return builder;
+            }
+
+            var options = builder.GetOptions<OutboxOptions>(sectionName);
+            builder.Services.AddSingleton(options);
             builder.AddMongo();
             builder.AddMongoRepository<OutboxMessage, Guid>("outbox");
             builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();

@@ -5,7 +5,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 {
     internal interface IMessageOutboxAccessor
     {
-        Task<IEnumerable<OutboxMessage>> GetUnsentAsync();
+        Task<IReadOnlyCollection<OutboxMessage>> GetUnsentAsync();
         Task ProcessAsync(IEnumerable<OutboxMessage> outboxMessages);
     }
 }

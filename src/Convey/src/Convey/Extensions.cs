@@ -26,7 +26,20 @@ namespace Convey
         }
 
         public static IApplicationBuilder UseConvey(this IApplicationBuilder app)
-            => app.UseInitializers();
+        {
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                var initializer = scope.ServiceProvider.GetService<IStartupInitializer>();
+                if (initializer is null)
+                {
+                    throw new InvalidOperationException("Startup initializer was not found.");
+                }
+
+                Task.Run(() => initializer.InitializeAsync()).GetAwaiter().GetResult();
+            }
+
+            return app;
+        }
 
         public static TModel GetOptions<TModel>(this IConfiguration configuration, string sectionName)
             where TModel : new()
@@ -46,9 +59,10 @@ namespace Convey
             }
         }
 
-        public static IApplicationBuilder UseInitializers(this IApplicationBuilder builder)
+        [Obsolete("Call 'UseConvey()' instead, this method might be removed in the future.")]
+        public static IApplicationBuilder UseInitializers(this IApplicationBuilder app)
         {
-            using (var scope = builder.ApplicationServices.CreateScope())
+            using (var scope = app.ApplicationServices.CreateScope())
             {
                 var initializer = scope.ServiceProvider.GetService<IStartupInitializer>();
                 if (initializer is null)
@@ -59,7 +73,7 @@ namespace Convey
                 Task.Run(() => initializer.InitializeAsync()).GetAwaiter().GetResult();
             }
 
-            return builder;
+            return app;
         }
 
         public static string Underscore(this string value)

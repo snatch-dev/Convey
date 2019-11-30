@@ -25,7 +25,7 @@ namespace Convey.Persistence.MongoDB.Repositories
 		public async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate)
 			=> await Collection.Find(predicate).SingleOrDefaultAsync();
 
-		public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
+		public async Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
 			=> await Collection.Find(predicate).ToListAsync();
 
 		public async Task<PagedResult<TEntity>> BrowseAsync<TQuery>(Expression<Func<TEntity, bool>> predicate,

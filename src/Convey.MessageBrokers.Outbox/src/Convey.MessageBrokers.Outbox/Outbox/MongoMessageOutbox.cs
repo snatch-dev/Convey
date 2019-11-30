@@ -48,7 +48,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             var outboxMessage = new OutboxMessage
             {
                 Id = Guid.NewGuid(),
-                MessageId = messageId,
+                MessageId = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 CorrelationId = correlationId,
                 SpanContext = spanContext,
                 SerializedMessageContext =
@@ -66,7 +66,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             await _repository.AddAsync(outboxMessage);
         }
 
-        async Task<IReadOnlyCollection<OutboxMessage>> IMessageOutboxAccessor.GetUnsentAsync()
+        async Task<IReadOnlyList<OutboxMessage>> IMessageOutboxAccessor.GetUnsentAsync()
         {
             var outboxMessages = await _repository.FindAsync(om => om.ProcessedAt == null);
             return outboxMessages.Select(om =>

@@ -1,4 +1,5 @@
 using Convey.MessageBrokers.Inbox.Inbox;
+using Convey.Persistence.MongoDB;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Convey.MessageBrokers.Inbox
@@ -29,6 +30,7 @@ namespace Convey.MessageBrokers.Inbox
                     builder.RegisterInMemoryInbox();
                     break;
                 case "mongo":
+                    builder.AddMongo();
                     builder.Services.AddTransient<IMessageInbox, MongoMessageInbox>();
                     builder.Services.AddTransient<MongoInboxInitializer>();
                     builder.AddInitializer<MongoInboxInitializer>();

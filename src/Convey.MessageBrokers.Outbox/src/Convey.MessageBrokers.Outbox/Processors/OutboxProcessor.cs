@@ -70,14 +70,14 @@ namespace Convey.MessageBrokers.Outbox.Processors
         private async Task SendOutboxMessagesAsync()
         {
             var jobId = Guid.NewGuid().ToString("N");
-            _logger.LogDebug($"Started processing outbox messages... [job id: '{jobId}']");
+            _logger.LogTrace($"Started processing outbox messages... [job id: '{jobId}']");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var messages = await _outbox.GetUnsentAsync();
-            _logger.LogDebug($"Found {messages.Count} unsent messages in outbox [job id: '{jobId}'].");
+            _logger.LogTrace($"Found {messages.Count} unsent messages in outbox [job id: '{jobId}'].");
             if (!messages.Any())
             {
-                _logger.LogDebug($"No messages to be processed in outbox [job id: '{jobId}'].");                
+                _logger.LogTrace($"No messages to be processed in outbox [job id: '{jobId}'].");                
                 return;
             }
 
@@ -86,7 +86,7 @@ namespace Convey.MessageBrokers.Outbox.Processors
             await Task.WhenAll(publishTasks);
             await _outbox.ProcessAsync(messages);
             stopwatch.Stop();
-            _logger.LogDebug($"Processed {messages} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job id: '{jobId}'].");
+            _logger.LogTrace($"Processed {messages.Count} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job id: '{jobId}'].");
         }
     }
 }

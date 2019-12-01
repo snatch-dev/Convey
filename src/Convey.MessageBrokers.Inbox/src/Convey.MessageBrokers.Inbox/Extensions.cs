@@ -20,11 +20,12 @@ namespace Convey.MessageBrokers.Inbox
 
             switch (options.Type?.ToLowerInvariant() ?? string.Empty)
             {
-                case "inmemory":
+                case "memory":
                     builder.Services.AddTransient<IMessageInbox, InMemoryMessageInbox>();
                     break;
                 case "mongo":
                     builder.Services.AddTransient<IMessageInbox, MongoMessageInbox>();
+                    builder.Services.AddTransient<MongoInboxInitializer>();
                     builder.AddInitializer<MongoInboxInitializer>();
                     break;
                 case "redis":

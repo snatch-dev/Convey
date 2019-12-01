@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Convey.Auth
 {
     public class JwtOptions
@@ -6,7 +8,8 @@ namespace Convey.Auth
         public string Issuer { get; set; }
         public int ExpiryMinutes { get; set; }
         public bool ValidateLifetime { get; set; }
-        public bool ValidateAudience { get; set; }   
+        public bool ValidateAudience { get; set; }
         public string ValidAudience { get; set; }
+        public IEnumerable<string> AllowAnonymousEndpoints { get; set; }
     }
 }

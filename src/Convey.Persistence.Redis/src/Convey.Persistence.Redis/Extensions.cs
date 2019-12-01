@@ -1,6 +1,7 @@
 using System;
 using Convey.Persistence.Redis.Builders;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace Convey.Persistence.Redis
 {
@@ -28,12 +29,17 @@ namespace Convey.Persistence.Redis
             {
                 return builder;
             }
-            
-            builder.Services.AddStackExchangeRedisCache(o => 
+
+            builder.Services.AddStackExchangeRedisCache(o =>
             {
                 o.Configuration = options.ConnectionString;
                 o.InstanceName = options.Instance;
             });
+
+            var database = options.Database;
+            var connectionMultiplexer = ConnectionMultiplexer.Connect(options.ConnectionString);
+            builder.Services.AddSingleton(connectionMultiplexer);
+            builder.Services.AddTransient(ctx => ctx.GetRequiredService<ConnectionMultiplexer>().GetDatabase(database));
 
             return builder;
         }

@@ -1,15 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-
   <PropertyGroup>
-    <Description>Convey.MessageBrokers.Outbox</Description>
+    <Description>Convey.MessageBrokers.Inbox</Description>
     <Authors>DevMentors.io</Authors>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.MessageBrokers.Outbox</AssemblyName>
-    <Title>Convey.MessageBrokers.Outbox</Title>
-    <PackageId>Convey.MessageBrokers.Outbox</PackageId>
-    <PackageTags>Convey.MessageBrokers.Outbox</PackageTags>
+    <AssemblyName>Convey.MessageBrokers.Inbox</AssemblyName>
+    <Title>Convey.MessageBrokers.Inbox</Title>
+    <PackageId>Convey.MessageBrokers.Inbox</PackageId>
+    <PackageTags>Convey.MessageBrokers.Inbox</PackageTags>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -17,6 +16,7 @@
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     <ProjectReference Include="..\..\..\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
     <ProjectReference Include="..\..\..\Convey.Persistence.MongoDB\src\Convey.Persistence.MongoDB\Convey.Persistence.MongoDB.csproj" />
+    <ProjectReference Include="..\..\..\Convey.Persistence.Redis\src\Convey.Persistence.Redis\Convey.Persistence.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>

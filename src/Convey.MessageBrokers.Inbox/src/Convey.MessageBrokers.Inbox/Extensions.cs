@@ -17,11 +17,16 @@ namespace Convey.MessageBrokers.Inbox
 
             var options = builder.GetOptions<InboxOptions>(sectionName);
             builder.Services.AddSingleton(options);
+            if (!options.Enabled)
+            {
+                builder.RegisterInMemoryInbox();
+                return builder;
+            }
 
             switch (options.Type?.ToLowerInvariant() ?? string.Empty)
             {
                 case "memory":
-                    builder.Services.AddTransient<IMessageInbox, InMemoryMessageInbox>();
+                    builder.RegisterInMemoryInbox();
                     break;
                 case "mongo":
                     builder.Services.AddTransient<IMessageInbox, MongoMessageInbox>();
@@ -32,11 +37,14 @@ namespace Convey.MessageBrokers.Inbox
                     builder.Services.AddTransient<IMessageInbox, RedisMessageInbox>();
                     break;
                 default:
-                    builder.Services.AddTransient<IMessageInbox, InMemoryMessageInbox>();
+                    builder.RegisterInMemoryInbox();
                     break;
             }
 
             return builder;
         }
+
+        private static void RegisterInMemoryInbox(this IConveyBuilder builder)
+            => builder.Services.AddTransient<IMessageInbox, InMemoryMessageInbox>();
     }
 }

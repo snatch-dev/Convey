@@ -18,6 +18,11 @@ namespace Convey.MessageBrokers.Inbox.Inbox
 
         public async Task InitializeAsync()
         {
+            if (!_options.Enabled)
+            {
+                return;
+            }
+
             if (_options.MessageExpirySeconds <= 0)
             {
                 return;

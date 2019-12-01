@@ -1,20 +1,20 @@
 using System;
 using System.Threading.Tasks;
 using Convey.Persistence.Redis;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
 
 namespace Convey.MessageBrokers.Inbox.Inbox
 {
     internal sealed class RedisMessageInbox : IMessageInbox
     {
-        private readonly IDatabase _database;
+        private readonly IDistributedCache _cache;
         private readonly ILogger<RedisMessageInbox> _logger;
         private readonly bool _enabled;
         private readonly int _expiry;
         private readonly string _instance;
 
-        public RedisMessageInbox(IDatabase database, InboxOptions inboxOptions, RedisOptions redisOptions,
+        public RedisMessageInbox(IDistributedCache cache, InboxOptions inboxOptions, RedisOptions redisOptions,
             ILogger<RedisMessageInbox> logger)
         {
             if (string.IsNullOrWhiteSpace(redisOptions.Instance))
@@ -22,10 +22,10 @@ namespace Convey.MessageBrokers.Inbox.Inbox
                 throw new ArgumentException("Redis instance cannot be empty.", nameof(redisOptions.Instance));
             }
 
-            _database = database;
+            _cache = cache;
             _logger = logger;
             _enabled = inboxOptions.Enabled;
-            _expiry = inboxOptions.MessageExpirySeconds;
+            _expiry = inboxOptions.ExpirySeconds;
             _instance = redisOptions.Instance;
         }
 
@@ -50,7 +50,7 @@ namespace Convey.MessageBrokers.Inbox.Inbox
             _logger.LogTrace($"Received a unique message with id: '{messageId}' to be processed.");
 
             var key = GetKey(messageId);
-            var existingMessage = await _database.StringGetAsync(key);
+            var existingMessage = await _cache.GetStringAsync(key);
             if (!string.IsNullOrWhiteSpace(existingMessage))
             {
                 _logger.LogTrace($"A unique message with id: '{messageId}' was already processed.");
@@ -59,20 +59,22 @@ namespace Convey.MessageBrokers.Inbox.Inbox
             }
 
             _logger.LogTrace($"Processing a unique message with id: '{messageId}'...");
-            var transaction = _database.CreateTransaction();
             await handle();
             if (_expiry <= 0)
             {
-                await transaction.StringSetAsync(key, key);
+                await _cache.SetStringAsync(key, messageId);
             }
             else
             {
-                await transaction.StringSetAsync(key, key, TimeSpan.FromSeconds(_expiry));
+                await _cache.SetStringAsync(key, messageId, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_expiry)
+                });
             }
 
             _logger.LogTrace($"Processed a unique message with id: '{messageId}'.");
 
-            return await transaction.ExecuteAsync();
+            return true;
         }
 
         private string GetKey(string messageId) => $"{_instance}messages:{messageId}";

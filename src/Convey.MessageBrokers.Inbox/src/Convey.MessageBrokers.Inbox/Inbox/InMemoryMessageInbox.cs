@@ -17,7 +17,7 @@ namespace Convey.MessageBrokers.Inbox.Inbox
             _cache = cache;
             _logger = logger;
             _enabled = options.Enabled;
-            _expiry = options.MessageExpirySeconds;
+            _expiry = options.ExpirySeconds;
         }
 
         public async Task<bool> TryProcessAsync(string messageId, Func<Task> handle)

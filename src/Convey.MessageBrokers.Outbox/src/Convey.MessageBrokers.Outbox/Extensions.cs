@@ -20,10 +20,17 @@ namespace Convey.MessageBrokers.Outbox
 
             var options = builder.GetOptions<OutboxOptions>(sectionName);
             builder.Services.AddSingleton(options);
-            builder.AddMongo();
-            builder.AddMongoRepository<OutboxMessage, Guid>("outbox");
-            builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();
-            builder.Services.AddHostedService<OutboxProcessor>();
+
+            switch (options.Type?.ToLowerInvariant() ?? string.Empty)
+            {
+                default:
+                    builder.AddMongo();
+                    builder.AddMongoRepository<OutboxMessage, Guid>("outbox");
+                    builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();
+                    builder.Services.AddHostedService<OutboxProcessor>();
+                    break;
+            }
+
             return builder;
         }
     }

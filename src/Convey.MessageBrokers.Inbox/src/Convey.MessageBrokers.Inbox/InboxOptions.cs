@@ -4,6 +4,6 @@ namespace Convey.MessageBrokers.Inbox
     {
         public bool Enabled { get; set; }
         public string Type { get; set; }
-        public int MessageExpirySeconds { get; set; }
+        public int ExpirySeconds { get; set; }
     }
 }

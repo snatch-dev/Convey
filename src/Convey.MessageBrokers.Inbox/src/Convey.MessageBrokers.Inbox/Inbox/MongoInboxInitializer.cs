@@ -23,7 +23,7 @@ namespace Convey.MessageBrokers.Inbox.Inbox
                 return;
             }
 
-            if (_options.MessageExpirySeconds <= 0)
+            if (_options.ExpirySeconds <= 0)
             {
                 return;
             }
@@ -34,7 +34,7 @@ namespace Convey.MessageBrokers.Inbox.Inbox
                     new CreateIndexModel<MongoMessageInbox.InboxMessage>(builder.Ascending(i => i.CreatedAt),
                         new CreateIndexOptions
                         {
-                            ExpireAfter = TimeSpan.FromSeconds(_options.MessageExpirySeconds)
+                            ExpireAfter = TimeSpan.FromSeconds(_options.ExpirySeconds)
                         }));
         }
     }

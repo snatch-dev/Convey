@@ -13,27 +13,31 @@ namespace Convey.Logging
 {
     public static class Extensions
     {
+        private const string SectionName = "logger";
+
         public static IHostBuilder UseLogging(this IHostBuilder hostBuilder, string applicationName = null,
-            string serviceId = null)
+            string serviceId = null, string sectionName = SectionName)
             => hostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
-                var options = context.Configuration.GetOptions<LoggerOptions>("logger");
+                var options = context.Configuration.GetOptions<LoggerOptions>(sectionName);
 
-                MapOptions(options, loggerConfiguration, applicationName, serviceId, context.HostingEnvironment.EnvironmentName);
+                MapOptions(options, loggerConfiguration, applicationName, serviceId,
+                    context.HostingEnvironment.EnvironmentName);
             });
 
         public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder, string applicationName = null,
-            string serviceId = null)
+            string serviceId = null, string sectionName = SectionName)
             => webHostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
-                var options = context.Configuration.GetOptions<LoggerOptions>("logger");
+                var options = context.Configuration.GetOptions<LoggerOptions>(sectionName);
 
-                MapOptions(options, loggerConfiguration, applicationName, serviceId, context.HostingEnvironment.EnvironmentName);
+                MapOptions(options, loggerConfiguration, applicationName, serviceId,
+                    context.HostingEnvironment.EnvironmentName);
             });
 
-        private static void MapOptions(LoggerOptions options, LoggerConfiguration loggerConfiguration, string applicationName, string serviceId, string environmentName)
+        private static void MapOptions(LoggerOptions options, LoggerConfiguration loggerConfiguration,
+            string applicationName, string serviceId, string environmentName)
         {
-
             if (!Enum.TryParse<LogEventLevel>(options.Level, true, out var level))
             {
                 level = LogEventLevel.Information;

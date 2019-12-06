@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.6.2" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Convey.Configurations.Vault\src\Convey.Configurations.Vault\Convey.Configurations.Vault.csproj" />
     <ProjectReference Include="..\..\src\Convey.Discovery.Consul\src\Convey.Discovery.Consul\Convey.Discovery.Consul.csproj" />
     <ProjectReference Include="..\..\src\Convey.Docs.Swagger\src\Convey.Docs.Swagger\Convey.Docs.Swagger.csproj" />

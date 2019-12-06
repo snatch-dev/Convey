@@ -42,7 +42,6 @@ namespace Conveyor.Services.Orders
             => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureServices(services => services
-                        .AddOpenTracing()
                         .AddConvey()
                         .AddServices()
                         .AddHttpClient()

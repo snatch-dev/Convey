@@ -81,6 +81,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 {
                     var messageId = args.BasicProperties.MessageId;
                     var correlationId = args.BasicProperties.CorrelationId;
+                    var userId = args.BasicProperties.UserId;
                     var timestamp = args.BasicProperties.Timestamp.UnixTime;
                     if (_loggerEnabled)
                     {
@@ -95,6 +96,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     {
                         MessageId = messageId,
                         CorrelationId = correlationId,
+                        UserId = userId,
                         Timestamp = timestamp,
                         Headers = args.BasicProperties.Headers
                     };

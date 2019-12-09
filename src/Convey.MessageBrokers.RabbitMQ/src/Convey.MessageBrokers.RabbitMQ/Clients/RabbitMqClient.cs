@@ -32,7 +32,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         }
 
         public void Send(object message, IConventions conventions, string messageId = null, string correlationId = null,
-            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
+            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null,
+            string userId = null)
         {
             var json = _serializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(json);
@@ -45,6 +46,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                 : correlationId;
             properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             properties.Headers = new Dictionary<string, object>();
+            properties.UserId = userId;
+
             if (_contextEnabled)
             {
                 IncludeMessageContext(messageContext, properties);
@@ -65,9 +68,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
 
             if (_loggerEnabled)
             {
-                _logger.LogInformation($"Publishing a message with routing key: '{conventions.RoutingKey}' " +
-                                       $"to exchange: '{conventions.Exchange}' " +
-                                       $"[id: '{properties.MessageId}', correlation id: '{properties.CorrelationId}']");
+                _logger.LogTrace($"Publishing a message with routing key: '{conventions.RoutingKey}' " +
+                                 $"to exchange: '{conventions.Exchange}' " +
+                                 $"[id: '{properties.MessageId}', correlation id: '{properties.CorrelationId}']");
             }
 
             _channel.BasicPublish(conventions.Exchange, conventions.RoutingKey, properties, body);

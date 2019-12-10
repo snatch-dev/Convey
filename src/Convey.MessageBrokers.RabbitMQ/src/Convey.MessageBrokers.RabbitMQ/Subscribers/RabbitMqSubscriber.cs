@@ -27,6 +27,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly IModel _channel;
         private readonly bool _loggerEnabled;
         private readonly RabbitMqOptions _options;
+        private readonly RabbitMqOptions.QosOptions _qosOptions;
 
         public RabbitMqSubscriber(IServiceProvider serviceProvider)
         {
@@ -45,6 +46,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             _loggerEnabled = _options.Logger?.Enabled ?? false;
             _retries = _options.Retries >= 0 ? _options.Retries : 3;
             _retryInterval = _options.RetryInterval > 0 ? _options.RetryInterval : 2;
+            _qosOptions = _options?.Qos ?? new RabbitMqOptions.QosOptions();
+            if (_qosOptions.PrefetchCount < 1)
+            {
+                _qosOptions.PrefetchCount = 1;
+            }
         }
 
         public IBusSubscriber Subscribe<T>(Func<IServiceProvider, T, object, Task> handle)
@@ -71,7 +77,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             }
 
             _channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
-            _channel.BasicQos(0, 1, false);
+            _channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
             consumer.Received += async (model, args) =>

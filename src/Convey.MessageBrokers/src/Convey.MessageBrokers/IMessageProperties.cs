@@ -6,7 +6,6 @@ namespace Convey.MessageBrokers
     {
         string MessageId { get; }
         string CorrelationId { get; }
-        string UserId { get; }
         long Timestamp { get; }
         IDictionary<string, object> Headers { get; }
     }

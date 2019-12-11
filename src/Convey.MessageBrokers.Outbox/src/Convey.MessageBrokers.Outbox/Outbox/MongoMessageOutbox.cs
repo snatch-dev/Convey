@@ -36,8 +36,8 @@ namespace Convey.MessageBrokers.Outbox.Outbox
         }
 
         public async Task SendAsync<T>(T message, string messageId = null, string correlationId = null,
-            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null,
-            string userId = null) where T : class
+            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null) 
+            where T : class
         {
             if (!Enabled)
             {
@@ -50,7 +50,6 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 Id = Guid.NewGuid(),
                 MessageId = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 CorrelationId = correlationId,
-                UserId = userId,
                 SpanContext = spanContext,
                 SerializedMessageContext =
                     messageContext is null

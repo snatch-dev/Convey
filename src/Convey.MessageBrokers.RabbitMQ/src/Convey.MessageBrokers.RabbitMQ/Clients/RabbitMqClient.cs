@@ -32,8 +32,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         }
 
         public void Send(object message, IConventions conventions, string messageId = null, string correlationId = null,
-            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null,
-            string userId = null)
+            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
         {
             var json = _serializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(json);
@@ -46,7 +45,6 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                 : correlationId;
             properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             properties.Headers = new Dictionary<string, object>();
-            properties.UserId = userId;
 
             if (_contextEnabled)
             {

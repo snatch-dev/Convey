@@ -102,7 +102,6 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     {
                         MessageId = messageId,
                         CorrelationId = correlationId,
-                        UserId = userId,
                         Timestamp = timestamp,
                         Headers = args.BasicProperties.Headers
                     };

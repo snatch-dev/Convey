@@ -15,8 +15,7 @@ namespace Convey.MessageBrokers.RawRabbit.Publishers
         }
 
         public Task PublishAsync<T>(T message, string messageId = null, string correlationId = null,
-            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null,
-            string userId = null)
+            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
             where T : class
         {
             return _busClient.PublishAsync(message, ctx => ctx.UseMessageContext(messageContext));

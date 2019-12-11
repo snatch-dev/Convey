@@ -58,10 +58,15 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                 properties.Headers.Add(_spanContextHeader, spanContext);
             }
 
-            if (!(headers is null))
+            if (headers is {})
             {
                 foreach (var (key, value) in headers)
                 {
+                    if (string.IsNullOrWhiteSpace(key) || value is null)
+                    {
+                        continue;
+                    }
+                    
                     properties.Headers.TryAdd(key, value);
                 }
             }
@@ -78,7 +83,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
 
         private void IncludeMessageContext(object context, IBasicProperties properties)
         {
-            if (!(context is null))
+            if (context is {})
             {
                 properties.Headers.Add(_contextProvider.HeaderName, _serializer.Serialize(context));
                 return;

@@ -34,7 +34,6 @@ namespace Convey.Auth
 
             var tokenValidationParameters = new TokenValidationParameters
             {
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.IssuerSigningKey)),
                 RequireAudience = options.RequireAudience,
                 ValidIssuer = options.ValidIssuer,
                 ValidIssuers = options.ValidIssuers,
@@ -55,6 +54,12 @@ namespace Convey.Auth
             if (!string.IsNullOrWhiteSpace(options.AuthenticationType))
             {
                 tokenValidationParameters.AuthenticationType = options.AuthenticationType;
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.IssuerSigningKey))
+            {
+                tokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(options.IssuerSigningKey));
             }
 
             if (!string.IsNullOrWhiteSpace(options.NameClaimType))

@@ -20,80 +20,99 @@ namespace Convey.WebApi
             _definitions = definitions;
         }
 
-        public IEndpointsBuilder Get(string path, Func<HttpContext, Task> context = null)
+        public IEndpointsBuilder Get(string path, Func<HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null)
         {
-            _routeBuilder.MapGet(path, ctx => context?.Invoke(ctx));
+            var builder = _routeBuilder.MapGet(path, ctx => context?.Invoke(ctx));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition(HttpMethods.Get, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Get<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
+        public IEndpointsBuilder Get<T>(string path, Func<T, HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null) where T : class
         {
-            _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
+            var builder = _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition<T>(HttpMethods.Get, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Get<TRequest, TResult>(string path, Func<TRequest, HttpContext, Task> context = null) where TRequest : class
+        public IEndpointsBuilder Get<TRequest, TResult>(string path, Func<TRequest, HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null) where TRequest : class
         {
-            _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
+            var builder = _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition<TRequest, TResult>(HttpMethods.Get, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Post(string path, Func<HttpContext, Task> context = null)
+        public IEndpointsBuilder Post(string path, Func<HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null)
         {
-            _routeBuilder.MapPost(path, ctx => context?.Invoke(ctx));
+            var builder = _routeBuilder.MapPost(path, ctx => context?.Invoke(ctx));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition(HttpMethods.Post, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Post<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
+        public IEndpointsBuilder Post<T>(string path, Func<T, HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null) where T : class
         {
-            _routeBuilder.MapPost(path, ctx => BuildRequestContext(ctx, context));
+            var builder = _routeBuilder.MapPost(path, ctx => BuildRequestContext(ctx, context));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition<T>(HttpMethods.Post, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Put(string path, Func<HttpContext, Task> context = null)
+        public IEndpointsBuilder Put(string path, Func<HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null)
         {
-            _routeBuilder.MapPut(path, ctx => context?.Invoke(ctx));
+            var builder = _routeBuilder.MapPut(path, ctx => context?.Invoke(ctx));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition(HttpMethods.Put, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Put<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
+        public IEndpointsBuilder Put<T>(string path, Func<T, HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null) where T : class
         {
-            _routeBuilder.MapPut(path, ctx => BuildRequestContext(ctx, context));
+            var builder = _routeBuilder.MapPut(path, ctx => BuildRequestContext(ctx, context));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition<T>(HttpMethods.Put, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Delete(string path, Func<HttpContext, Task> context = null)
+        public IEndpointsBuilder Delete(string path, Func<HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null)
         {
-            _routeBuilder.MapDelete(path, ctx => context?.Invoke(ctx));
+            var builder = _routeBuilder.MapDelete(path, ctx => context?.Invoke(ctx));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition(HttpMethods.Delete, path);
 
             return this;
         }
 
-        public IEndpointsBuilder Delete<T>(string path, Func<T, HttpContext, Task> context = null) where T : class
+        public IEndpointsBuilder Delete<T>(string path, Func<T, HttpContext, Task> context = null,
+            Action<IEndpointConventionBuilder> endpoint = null) where T : class
         {
-            _routeBuilder.MapDelete(path, ctx => BuildQueryContext(ctx, context));
+            var builder = _routeBuilder.MapDelete(path, ctx => BuildQueryContext(ctx, context));
+            endpoint?.Invoke(builder);
             AddEndpointDefinition<T>(HttpMethods.Delete, path);
 
             return this;
         }
 
         private static async Task BuildRequestContext<T>(HttpContext httpContext,
-            Func<T, HttpContext, Task> context = null) where T : class
+            Func<T, HttpContext, Task> context = null, Action<IEndpointConventionBuilder> endpoint = null)
+            where T : class
         {
             var request = await httpContext.ReadJsonAsync<T>();
             if (request is null || context is null)
@@ -105,7 +124,8 @@ namespace Convey.WebApi
         }
 
         private static async Task BuildQueryContext<T>(HttpContext httpContext,
-            Func<T, HttpContext, Task> context = null) where T : class
+            Func<T, HttpContext, Task> context = null, Action<IEndpointConventionBuilder> endpoint = null)
+            where T : class
         {
             var request = httpContext.ReadQuery<T>();
             if (request is null || context is null)

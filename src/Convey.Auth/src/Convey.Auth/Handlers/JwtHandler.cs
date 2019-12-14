@@ -22,22 +22,15 @@ namespace Convey.Auth.Handlers
 
         private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
         private readonly JwtOptions _options;
-        private readonly SigningCredentials _signingCredentials;
         private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly SigningCredentials _signingCredentials;
 
-        public JwtHandler(JwtOptions options)
+        public JwtHandler(JwtOptions options, TokenValidationParameters tokenValidationParameters)
         {
             _options = options;
-            var issuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
+            _tokenValidationParameters = tokenValidationParameters;
+            var issuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.IssuerSigningKey));
             _signingCredentials = new SigningCredentials(issuerSigningKey, SecurityAlgorithms.HmacSha256);
-            _tokenValidationParameters = new TokenValidationParameters
-            {
-                IssuerSigningKey = issuerSigningKey,
-                ValidIssuer = _options.Issuer,
-                ValidAudience = _options.ValidAudience,
-                ValidateAudience = _options.ValidateAudience,
-                ValidateLifetime = _options.ValidateLifetime
-            };
         }
 
         public JsonWebToken CreateToken(string userId, string role = null, IDictionary<string, string> claims = null)
@@ -65,7 +58,7 @@ namespace Convey.Auth.Handlers
             jwtClaims.AddRange(customClaims);
             var expires = now.AddMinutes(_options.ExpiryMinutes);
             var jwt = new JwtSecurityToken(
-                issuer: _options.Issuer,
+                issuer: _options.ValidIssuer,
                 claims: jwtClaims,
                 notBefore: now,
                 expires: expires,

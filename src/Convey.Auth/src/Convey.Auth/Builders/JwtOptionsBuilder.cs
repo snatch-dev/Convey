@@ -4,15 +4,15 @@ namespace Convey.Auth.Builders
     {
         private readonly JwtOptions _options = new JwtOptions();
         
-        public IJwtOptionsBuilder WithSecretKey(string secretKey)
+        public IJwtOptionsBuilder WithIssuerSigningKey(string issuerSigningKey)
         {
-            _options.SecretKey = secretKey;
+            _options.IssuerSigningKey = issuerSigningKey;
             return this;
         }
 
         public IJwtOptionsBuilder WithIssuer(string issuer)
         {
-            _options.Issuer = issuer;
+            _options.ValidIssuer = issuer;
             return this;
         }
 

@@ -5,8 +5,6 @@ using Convey.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Open.Serialization.Json;
-using Utf8Json;
-using Utf8Json.Resolvers;
 
 namespace Convey.WebApi.Middlewares
 {

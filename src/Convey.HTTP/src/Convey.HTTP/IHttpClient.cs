@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -12,5 +13,8 @@ namespace Convey.HTTP
         Task<HttpResponseMessage> PutAsync(string uri, object data = null);
         Task<T> PutAsync<T>(string uri, object data = null);
         Task<HttpResponseMessage> DeleteAsync(string uri);
+        Task<HttpResponseMessage> SendAsync(HttpRequestMessage request);
+        Task<T> SendAsync<T>(HttpRequestMessage request);
+        void SetHeaders(IDictionary<string, string> headers);
     }
 }

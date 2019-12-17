@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Polly;
@@ -24,13 +24,11 @@ namespace Convey.HTTP
 
         private readonly HttpClient _client;
         private readonly HttpClientOptions _options;
-        private readonly ILogger<IHttpClient> _logger;
 
-        public ConveyHttpClient(HttpClient client, HttpClientOptions options, ILogger<IHttpClient> logger)
+        public ConveyHttpClient(HttpClient client, HttpClientOptions options)
         {
             _client = client;
             _options = options;
-            _logger = logger;
         }
 
         public virtual Task<HttpResponseMessage> GetAsync(string uri)
@@ -53,6 +51,45 @@ namespace Convey.HTTP
 
         public virtual Task<HttpResponseMessage> DeleteAsync(string uri)
             => SendAsync(uri, Method.Delete);
+
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+            => Policy.Handle<Exception>()
+                .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
+                .ExecuteAsync(() => _client.SendAsync(request));
+
+        public Task<T> SendAsync<T>(HttpRequestMessage request)
+            => Policy.Handle<Exception>()
+                .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
+                .ExecuteAsync(async () =>
+                {
+                    var response = await _client.SendAsync(request);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return default;
+                    }
+
+                    var stream = await response.Content.ReadAsStreamAsync();
+
+                    return DeserializeJsonFromStream<T>(stream);
+                });
+
+        public void SetHeaders(IDictionary<string, string> headers)
+        {
+            if (headers is null)
+            {
+                return;
+            }
+
+            foreach (var (key, value) in headers)
+            {
+                if (string.IsNullOrEmpty(key))
+                {
+                    continue;
+                }
+
+                _client.DefaultRequestHeaders.TryAddWithoutValidation(key, value);
+            }
+        }
 
         protected virtual async Task<T> SendAsync<T>(string uri, Method method, object data = null)
         {

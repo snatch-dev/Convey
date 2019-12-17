@@ -3,7 +3,6 @@ using Convey.Docs.Swagger.Builders;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Swagger;
 
 namespace Convey.Docs.Swagger
 {

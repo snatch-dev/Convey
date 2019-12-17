@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Convey.HTTP
@@ -16,5 +18,6 @@ namespace Convey.HTTP
         Task<HttpResponseMessage> SendAsync(HttpRequestMessage request);
         Task<T> SendAsync<T>(HttpRequestMessage request);
         void SetHeaders(IDictionary<string, string> headers);
+        void SetHeaders(Action<HttpRequestHeaders> headers);
     }
 }

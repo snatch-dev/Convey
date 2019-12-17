@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -90,6 +91,8 @@ namespace Convey.HTTP
                 _client.DefaultRequestHeaders.TryAddWithoutValidation(key, value);
             }
         }
+
+        public void SetHeaders(Action<HttpRequestHeaders> headers) => headers?.Invoke(_client.DefaultRequestHeaders);
 
         protected virtual async Task<T> SendAsync<T>(string uri, Method method, object data = null)
         {

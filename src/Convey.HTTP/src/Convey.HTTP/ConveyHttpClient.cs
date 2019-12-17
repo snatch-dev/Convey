@@ -112,7 +112,7 @@ namespace Convey.HTTP
                 .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
                 .ExecuteAsync(() =>
                 {
-                    var requestUri = uri.StartsWith("http://") ? uri : $"http://{uri}";
+                    var requestUri = uri.StartsWith("http") ? uri : $"http://{uri}";
                     
                     return GetResponseAsync(requestUri, method, data);
                 });

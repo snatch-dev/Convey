@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Docs.Swagger</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Docs.Swagger</AssemblyName>
     <Title>Convey.Docs.Swagger</Title>

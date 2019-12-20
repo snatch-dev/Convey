@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Configurations.Vault</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Configurations.Vault</AssemblyName>
     <Title>Convey.Configurations.Vault</Title>

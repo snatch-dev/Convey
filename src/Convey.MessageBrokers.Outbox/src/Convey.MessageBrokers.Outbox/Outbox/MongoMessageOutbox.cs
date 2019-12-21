@@ -23,16 +23,20 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
         private const string EmptyJsonObject = "{}";
         private readonly IMongoSessionFactory _sessionFactory;
-        private readonly IMongoRepository<OutboxMessage, Guid> _repository;
+        private readonly IMongoRepository<InboxMessage, string> _inboxRepository;
+        private readonly IMongoRepository<OutboxMessage, string> _outboxRepository;
         private readonly ILogger<MongoMessageOutbox> _logger;
 
         public bool Enabled { get; }
 
-        public MongoMessageOutbox(IMongoSessionFactory sessionFactory, IMongoRepository<OutboxMessage, Guid> repository,
+        public MongoMessageOutbox(IMongoSessionFactory sessionFactory,
+            IMongoRepository<InboxMessage, string> inboxRepository,
+            IMongoRepository<OutboxMessage, string> outboxRepository,
             OutboxOptions options, ILogger<MongoMessageOutbox> logger)
         {
             _sessionFactory = sessionFactory;
-            _repository = repository;
+            _inboxRepository = inboxRepository;
+            _outboxRepository = outboxRepository;
             _logger = logger;
             Enabled = options.Enabled;
         }
@@ -51,7 +55,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             }
 
             _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
-            if (await _repository.ExistsAsync(m => m.OriginatedMessageId == messageId))
+            if (await _inboxRepository.ExistsAsync(m => m.Id == messageId))
             {
                 _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
                 return;
@@ -64,6 +68,11 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             {
                 _logger.LogTrace($"Processing a message with id: '{messageId}'...");
                 await handler();
+                await _inboxRepository.AddAsync(new InboxMessage
+                {
+                    Id = messageId,
+                    ProcessedAt = DateTime.UtcNow
+                });
                 await session.CommitTransactionAsync();
                 _logger.LogTrace($"Processed a message with id: '{messageId}'.");
             }
@@ -77,8 +86,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
         public async Task SendAsync<T>(T message, string originatedMessageId = null, string messageId = null,
             string correlationId = null, string spanContext = null, object messageContext = null,
-            IDictionary<string, object> headers = null)
-            where T : class
+            IDictionary<string, object> headers = null) where T : class
         {
             if (!Enabled)
             {
@@ -88,9 +96,8 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
             var outboxMessage = new OutboxMessage
             {
-                Id = Guid.NewGuid(),
+                Id = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 OriginatedMessageId = originatedMessageId,
-                MessageId = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 CorrelationId = correlationId,
                 SpanContext = spanContext,
                 SerializedMessageContext =
@@ -105,12 +112,12 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 MessageType = message?.GetType().AssemblyQualifiedName,
                 SentAt = DateTime.UtcNow
             };
-            await _repository.AddAsync(outboxMessage);
+            await _outboxRepository.AddAsync(outboxMessage);
         }
 
         async Task<IReadOnlyList<OutboxMessage>> IMessageOutboxAccessor.GetUnsentAsync()
         {
-            var outboxMessages = await _repository.FindAsync(om => om.ProcessedAt == null);
+            var outboxMessages = await _outboxRepository.FindAsync(om => om.ProcessedAt == null);
             return outboxMessages.Select(om =>
             {
                 if (om.MessageContextType is {})
@@ -135,7 +142,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             var updateTasks = outboxMessages.Select(om =>
             {
                 om.ProcessedAt = DateTime.UtcNow;
-                return _repository.UpdateAsync(om);
+                return _outboxRepository.UpdateAsync(om);
             });
 
             await Task.WhenAll(updateTasks);

@@ -6,6 +6,7 @@ namespace Convey.MessageBrokers.Outbox
         public string Type { get; set; }
         public int Expiry { get; set; }
         public double IntervalMilliseconds { get; set; }
-        public string Collection { get; set; }
+        public string InboxCollection { get; set; }
+        public string OutboxCollection { get; set; }
     }
 }

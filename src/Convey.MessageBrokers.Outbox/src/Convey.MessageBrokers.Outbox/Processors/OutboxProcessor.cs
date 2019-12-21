@@ -81,7 +81,7 @@ namespace Convey.MessageBrokers.Outbox.Processors
                 return;
             }
 
-            var publishTasks = messages.Select(om => _publisher.PublishAsync(om.Message, om.MessageId,
+            var publishTasks = messages.Select(om => _publisher.PublishAsync(om.Message, om.Id,
                 om.CorrelationId, om.SpanContext, om.MessageContext, om.Headers));
             await Task.WhenAll(publishTasks);
             await _outbox.ProcessAsync(messages);

@@ -1,4 +1,3 @@
-using System;
 using Convey.MessageBrokers.Outbox.Outbox;
 using Convey.MessageBrokers.Outbox.Processors;
 using Convey.Persistence.MongoDB;
@@ -25,8 +24,13 @@ namespace Convey.MessageBrokers.Outbox
                 builder.RegisterInMemoryOutbox();
                 return builder;
             }
-            
-            var collection = string.IsNullOrWhiteSpace(options.Collection) ? "outbox" : options.Collection;
+
+            var inboxCollection = string.IsNullOrWhiteSpace(options.InboxCollection)
+                ? "inbox"
+                : options.InboxCollection;
+            var outboxCollection = string.IsNullOrWhiteSpace(options.OutboxCollection)
+                ? "outbox"
+                : options.OutboxCollection;
             switch (options.Type?.ToLowerInvariant())
             {
                 default:
@@ -34,7 +38,8 @@ namespace Convey.MessageBrokers.Outbox
                     break;
                 case "mongo":
                     builder.AddMongo();
-                    builder.AddMongoRepository<OutboxMessage, Guid>(collection);
+                    builder.AddMongoRepository<InboxMessage, string>(inboxCollection);
+                    builder.AddMongoRepository<OutboxMessage, string>(outboxCollection);
                     builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();
                     builder.Services.AddTransient<MongoOutboxInitializer>();
                     builder.AddInitializer<MongoOutboxInitializer>();

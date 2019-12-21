@@ -9,11 +9,11 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 {
     public class InMemoryMessageOutbox : IMessageOutbox, IMessageOutboxAccessor
     {
-        private readonly ConcurrentDictionary<string, bool> _processedMessagesId =
+        private readonly ConcurrentDictionary<string, bool> _inboxMessages =
             new ConcurrentDictionary<string, bool>();
 
-        private readonly ConcurrentDictionary<Guid, OutboxMessage> _messages =
-            new ConcurrentDictionary<Guid, OutboxMessage>();
+        private readonly ConcurrentDictionary<string, OutboxMessage> _outboxMessages =
+            new ConcurrentDictionary<string, OutboxMessage>();
 
         private readonly ILogger<InMemoryMessageOutbox> _logger;
         private readonly int _expiry;
@@ -41,7 +41,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             }
 
             _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
-            if (_processedMessagesId.ContainsKey(messageId))
+            if (_inboxMessages.ContainsKey(messageId))
             {
                 _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
                 return;
@@ -49,12 +49,12 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
             _logger.LogTrace($"Processing a message with id: '{messageId}'...");
             await handler();
-            if (!_processedMessagesId.TryAdd(messageId, true))
+            if (!_inboxMessages.TryAdd(messageId, true))
             {
                 _logger.LogError($"There was an error when processing a message with id: '{messageId}'.");
 
                 throw new InvalidOperationException($"Couldn't add a processed message with id: '{messageId}'" +
-                                                    $"to the internal dictionary.");
+                                                    "to the internal dictionary.");
             }
 
             _logger.LogTrace($"Processed a message with id: '{messageId}'.");
@@ -72,9 +72,8 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
             var outboxMessage = new OutboxMessage
             {
-                Id = Guid.NewGuid(),
+                Id = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 OriginatedMessageId = originatedMessageId,
-                MessageId = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 CorrelationId = correlationId,
                 SpanContext = spanContext,
                 MessageContextType = messageContext?.GetType().AssemblyQualifiedName,
@@ -84,13 +83,13 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 MessageType = message?.GetType().AssemblyQualifiedName,
                 SentAt = DateTime.UtcNow
             };
-            _messages.TryAdd(outboxMessage.Id, outboxMessage);
+            _outboxMessages.TryAdd(outboxMessage.Id, outboxMessage);
 
             return Task.CompletedTask;
         }
 
         Task<IReadOnlyList<OutboxMessage>> IMessageOutboxAccessor.GetUnsentAsync()
-            => Task.FromResult<IReadOnlyList<OutboxMessage>>(_messages.Values
+            => Task.FromResult<IReadOnlyList<OutboxMessage>>(_outboxMessages.Values
                 .Where(m => m.ProcessedAt is null)
                 .OrderBy(m => m.SentAt)
                 .ToList());
@@ -107,7 +106,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 return Task.CompletedTask;
             }
             
-            foreach (var (id, message) in _messages)
+            foreach (var (id, message) in _outboxMessages)
             {
                 if (!message.ProcessedAt.HasValue)
                 {
@@ -119,8 +118,8 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                     continue;
                 }
                 
-                _messages.TryRemove(id, out _);
-                _processedMessagesId.TryRemove(message.OriginatedMessageId, out _);
+                _outboxMessages.TryRemove(id, out _);
+                _inboxMessages.TryRemove(message.OriginatedMessageId, out _);
             }
             
             return Task.CompletedTask;

@@ -5,11 +5,10 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Convey.MessageBrokers.Outbox.Outbox
 {
-    internal sealed class OutboxMessage : IIdentifiable<Guid>
+    internal sealed class OutboxMessage : IIdentifiable<string>
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public string OriginatedMessageId { get; set; }
-        public string MessageId { get; set; }
         public string CorrelationId { get; set; }
         public string SpanContext { get; set; }
         public Dictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();

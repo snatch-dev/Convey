@@ -47,10 +47,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
             if (string.IsNullOrWhiteSpace(messageId))
             {
-                _logger.LogTrace("Message id is empty, processing as usual...");
-                await handler();
-                _logger.LogTrace("Message has been processed.");
-                return;
+                throw new ArgumentException("Message id to be processed cannot be empty.", nameof(messageId));
             }
 
             _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");

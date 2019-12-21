@@ -9,7 +9,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 {
     public class InMemoryMessageOutbox : IMessageOutbox, IMessageOutboxAccessor
     {
-        private readonly ConcurrentDictionary<string, bool> _processedMessages =
+        private readonly ConcurrentDictionary<string, bool> _processedMessagesId =
             new ConcurrentDictionary<string, bool>();
 
         private readonly ConcurrentDictionary<Guid, OutboxMessage> _messages =
@@ -37,23 +37,19 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
             if (string.IsNullOrWhiteSpace(messageId))
             {
-                _logger.LogTrace("Message id is empty, processing as usual...");
-                await handler();
-                _logger.LogTrace("Message has been processed.");
-                return;
+                throw new ArgumentException("Message id to be processed cannot be empty.", nameof(messageId));
             }
 
             _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
-            if (_processedMessages.ContainsKey(messageId))
+            if (_processedMessagesId.ContainsKey(messageId))
             {
                 _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
                 return;
             }
 
-
             _logger.LogTrace($"Processing a message with id: '{messageId}'...");
             await handler();
-            if (!_processedMessages.TryAdd(messageId, true))
+            if (!_processedMessagesId.TryAdd(messageId, true))
             {
                 _logger.LogError($"There was an error when processing a message with id: '{messageId}'.");
 
@@ -77,6 +73,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             var outboxMessage = new OutboxMessage
             {
                 Id = Guid.NewGuid(),
+                OriginatedMessageId = originatedMessageId,
                 MessageId = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 CorrelationId = correlationId,
                 SpanContext = spanContext,
@@ -123,7 +120,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 }
                 
                 _messages.TryRemove(id, out _);
-                _processedMessages.TryRemove(message.OriginatedMessageId, out _);
+                _processedMessagesId.TryRemove(message.OriginatedMessageId, out _);
             }
             
             return Task.CompletedTask;

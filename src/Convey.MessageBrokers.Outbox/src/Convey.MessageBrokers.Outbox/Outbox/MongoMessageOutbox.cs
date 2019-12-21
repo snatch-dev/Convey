@@ -37,12 +37,12 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             Enabled = options.Enabled;
         }
 
-        public async Task<bool> TryHandleAsync(string messageId, Func<Task> handler)
+        public async Task HandleAsync(string messageId, Func<Task> handler)
         {
             if (!Enabled)
             {
                 _logger.LogWarning("Outbox is disabled, incoming messages won't be processed.");
-                return false;
+                return;
             }
 
             if (string.IsNullOrWhiteSpace(messageId))
@@ -50,25 +50,32 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 _logger.LogTrace("Message id is empty, processing as usual...");
                 await handler();
                 _logger.LogTrace("Message has been processed.");
-                return true;
+                return;
             }
 
             _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
             if (await _repository.ExistsAsync(m => m.OriginatedMessageId == messageId))
             {
                 _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
-
-                return false;
+                return;
             }
 
-            _logger.LogTrace($"Processing a message with id: '{messageId}'...");
-            var session = await _sessionFactory.CreateAsync();
+            using var session = await _sessionFactory.CreateAsync();
             session.StartTransaction();
-            await handler();
-            await session.CommitTransactionAsync();
-            _logger.LogTrace($"Processed a message with id: '{messageId}'.");
 
-            return true;
+            try
+            {
+                _logger.LogTrace($"Processing a message with id: '{messageId}'...");
+                await handler();
+                await session.CommitTransactionAsync();
+                _logger.LogTrace($"Processed a message with id: '{messageId}'.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"There was an error when processing a message with id: '{messageId}'.");
+                await session.AbortTransactionAsync();
+                throw;
+            }
         }
 
         public async Task SendAsync<T>(T message, string originatedMessageId = null, string messageId = null,

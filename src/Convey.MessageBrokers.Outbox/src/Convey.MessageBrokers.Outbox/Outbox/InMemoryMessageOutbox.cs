@@ -27,12 +27,12 @@ namespace Convey.MessageBrokers.Outbox.Outbox
 
         public bool Enabled { get; }
 
-        public async Task<bool> TryHandleAsync(string messageId, Func<Task> handler)
+        public async Task HandleAsync(string messageId, Func<Task> handler)
         {
             if (!Enabled)
             {
                 _logger.LogWarning("Outbox is disabled, incoming messages won't be processed.");
-                return false;
+                return;
             }
 
             if (string.IsNullOrWhiteSpace(messageId))
@@ -40,23 +40,28 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 _logger.LogTrace("Message id is empty, processing as usual...");
                 await handler();
                 _logger.LogTrace("Message has been processed.");
-                return true;
+                return;
             }
 
             _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
             if (_processedMessages.ContainsKey(messageId))
             {
                 _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
-
-                return false;
+                return;
             }
+
 
             _logger.LogTrace($"Processing a message with id: '{messageId}'...");
             await handler();
-            _processedMessages.TryAdd(messageId, true);
-            _logger.LogTrace($"Processed a message with id: '{messageId}'.");
+            if (!_processedMessages.TryAdd(messageId, true))
+            {
+                _logger.LogError($"There was an error when processing a message with id: '{messageId}'.");
 
-            return true;
+                throw new InvalidOperationException($"Couldn't add a processed message with id: '{messageId}'" +
+                                                    $"to the internal dictionary.");
+            }
+
+            _logger.LogTrace($"Processed a message with id: '{messageId}'.");
         }
 
         public Task SendAsync<T>(T message, string originatedMessageId = null, string messageId = null,

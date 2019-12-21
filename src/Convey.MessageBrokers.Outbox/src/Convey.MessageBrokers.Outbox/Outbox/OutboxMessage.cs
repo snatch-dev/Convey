@@ -8,6 +8,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
     internal sealed class OutboxMessage : IIdentifiable<Guid>
     {
         public Guid Id { get; set; }
+        public string OriginatedMessageId { get; set; }
         public string MessageId { get; set; }
         public string CorrelationId { get; set; }
         public string SpanContext { get; set; }

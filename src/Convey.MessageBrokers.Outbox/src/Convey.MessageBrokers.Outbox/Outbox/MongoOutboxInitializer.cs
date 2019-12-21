@@ -1,0 +1,42 @@
+using System;
+using System.Threading.Tasks;
+using Convey.Types;
+using MongoDB.Driver;
+
+namespace Convey.MessageBrokers.Outbox.Outbox
+{
+    internal sealed class MongoOutboxInitializer : IInitializer
+    {
+        private readonly IMongoDatabase _database;
+        private readonly OutboxOptions _options;
+
+        public MongoOutboxInitializer(IMongoDatabase database, OutboxOptions options)
+        {
+            _database = database;
+            _options = options;
+        }
+
+        public async Task InitializeAsync()
+        {
+            if (!_options.Enabled)
+            {
+                return;
+            }
+
+            if (_options.Expiry <= 0)
+            {
+                return;
+            }
+
+            var collection = string.IsNullOrWhiteSpace(_options.Collection) ? "outbox" : _options.Collection;
+            var builder = Builders<OutboxMessage>.IndexKeys;
+            await _database.GetCollection<OutboxMessage>(collection)
+                .Indexes.CreateOneAsync(
+                    new CreateIndexModel<OutboxMessage>(builder.Ascending(i => i.ProcessedAt),
+                        new CreateIndexOptions
+                        {
+                            ExpireAfter = TimeSpan.FromSeconds(_options.Expiry)
+                        }));
+        }
+    }
+}

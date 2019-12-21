@@ -20,18 +20,33 @@ namespace Convey.MessageBrokers.Outbox
 
             var options = builder.GetOptions<OutboxOptions>(sectionName);
             builder.Services.AddSingleton(options);
-
-            switch (options.Type?.ToLowerInvariant() ?? string.Empty)
+            if (!options.Enabled)
+            {
+                builder.RegisterInMemoryOutbox();
+                return builder;
+            }
+            
+            var collection = string.IsNullOrWhiteSpace(options.Collection) ? "outbox" : options.Collection;
+            switch (options.Type?.ToLowerInvariant())
             {
                 default:
+                    builder.RegisterInMemoryOutbox();
+                    break;
+                case "mongo":
                     builder.AddMongo();
-                    builder.AddMongoRepository<OutboxMessage, Guid>("outbox");
+                    builder.AddMongoRepository<OutboxMessage, Guid>(collection);
                     builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();
-                    builder.Services.AddHostedService<OutboxProcessor>();
+                    builder.Services.AddTransient<MongoOutboxInitializer>();
+                    builder.AddInitializer<MongoOutboxInitializer>();
                     break;
             }
+            
+            builder.Services.AddHostedService<OutboxProcessor>();
 
             return builder;
         }
+        
+        private static void RegisterInMemoryOutbox(this IConveyBuilder builder)
+            => builder.Services.AddTransient<IMessageOutbox, InMemoryMessageOutbox>();
     }
 }

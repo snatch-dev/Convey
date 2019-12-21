@@ -21,33 +21,71 @@ namespace Convey.MessageBrokers.Outbox.Outbox
             }
         };
 
+        private const string EmptyJsonObject = "{}";
+        private readonly IMongoSessionFactory _sessionFactory;
         private readonly IMongoRepository<OutboxMessage, Guid> _repository;
         private readonly ILogger<MongoMessageOutbox> _logger;
-        private const string EmptyJsonObject = "{}";
-        
+
         public bool Enabled { get; }
 
-        public MongoMessageOutbox(IMongoRepository<OutboxMessage, Guid> repository, OutboxOptions options,
-            ILogger<MongoMessageOutbox> logger)
+        public MongoMessageOutbox(IMongoSessionFactory sessionFactory, IMongoRepository<OutboxMessage, Guid> repository,
+            OutboxOptions options, ILogger<MongoMessageOutbox> logger)
         {
+            _sessionFactory = sessionFactory;
             _repository = repository;
             _logger = logger;
             Enabled = options.Enabled;
         }
 
-        public async Task SendAsync<T>(T message, string messageId = null, string correlationId = null,
-            string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null) 
+        public async Task<bool> TryHandleAsync(string messageId, Func<Task> handler)
+        {
+            if (!Enabled)
+            {
+                _logger.LogWarning("Outbox is disabled, incoming messages won't be processed.");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(messageId))
+            {
+                _logger.LogTrace("Message id is empty, processing as usual...");
+                await handler();
+                _logger.LogTrace("Message has been processed.");
+                return true;
+            }
+
+            _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
+            if (await _repository.ExistsAsync(m => m.OriginatedMessageId == messageId))
+            {
+                _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
+
+                return false;
+            }
+
+            _logger.LogTrace($"Processing a message with id: '{messageId}'...");
+            var session = await _sessionFactory.CreateAsync();
+            session.StartTransaction();
+            await handler();
+            await session.CommitTransactionAsync();
+            _logger.LogTrace($"Processed a message with id: '{messageId}'.");
+
+            return true;
+        }
+
+        public async Task SendAsync<T>(T message, string originatedMessageId = null, string messageId = null,
+            string correlationId = null, string spanContext = null, object messageContext = null,
+            IDictionary<string, object> headers = null)
             where T : class
         {
             if (!Enabled)
             {
-                _logger.LogWarning("Outbox is disabled, messages will not be sent.");
+                _logger.LogWarning("Outbox is disabled, outgoing messages won't be saved into the storage.");
                 return;
             }
 
             var outboxMessage = new OutboxMessage
             {
                 Id = Guid.NewGuid(),
+                OriginatedMessageId = originatedMessageId,
                 MessageId = string.IsNullOrWhiteSpace(messageId) ? Guid.NewGuid().ToString("N") : messageId,
                 CorrelationId = correlationId,
                 SpanContext = spanContext,
@@ -85,7 +123,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 }
 
                 return om;
-            }).ToList();
+            }).OrderBy(m => m.SentAt).ToList();
         }
 
         async Task IMessageOutboxAccessor.ProcessAsync(IEnumerable<OutboxMessage> outboxMessages)

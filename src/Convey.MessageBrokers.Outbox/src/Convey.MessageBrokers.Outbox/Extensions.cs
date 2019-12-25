@@ -12,7 +12,7 @@ namespace Convey.MessageBrokers.Outbox
         private const string RegistryName = "messageBrokers.outbox";
 
         public static IConveyBuilder AddMessageOutbox(this IConveyBuilder builder,
-            Action<IMessageOutboxConfigurator> configure, string sectionName = SectionName)
+            Action<IMessageOutboxConfigurator> configure = null, string sectionName = SectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {

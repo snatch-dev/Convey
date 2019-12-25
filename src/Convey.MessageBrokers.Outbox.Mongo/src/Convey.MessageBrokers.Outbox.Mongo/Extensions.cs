@@ -8,8 +8,7 @@ namespace Convey.MessageBrokers.Outbox.Mongo
 {
     public static class Extensions
     {
-        public static IMessageOutboxConfigurator AddMongo(this IMessageOutboxConfigurator configurator,
-            string mongoSectionName = null)
+        public static IMessageOutboxConfigurator AddMongo(this IMessageOutboxConfigurator configurator)
         {
             var builder = configurator.Builder;
             var options = configurator.Options;
@@ -21,7 +20,6 @@ namespace Convey.MessageBrokers.Outbox.Mongo
                 ? "outbox"
                 : options.OutboxCollection;
 
-            builder.AddMongo(mongoSectionName);
             builder.AddMongoRepository<InboxMessage, string>(inboxCollection);
             builder.AddMongoRepository<OutboxMessage, string>(outboxCollection);
             builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();

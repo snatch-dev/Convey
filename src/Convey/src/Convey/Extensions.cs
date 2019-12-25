@@ -59,11 +59,9 @@ namespace Convey
         public static TModel GetOptions<TModel>(this IConveyBuilder builder, string settingsSectionName)
             where TModel : new()
         {
-            using (var serviceProvider = builder.Services.BuildServiceProvider())
-            {
-                var configuration = serviceProvider.GetService<IConfiguration>();
-                return configuration.GetOptions<TModel>(settingsSectionName);
-            }
+            using var serviceProvider = builder.Services.BuildServiceProvider();
+            var configuration = serviceProvider.GetService<IConfiguration>();
+            return configuration.GetOptions<TModel>(settingsSectionName);
         }
 
         [Obsolete("Call 'UseConvey()' instead, this method might be removed in the future.")]
@@ -84,6 +82,6 @@ namespace Convey
         }
 
         public static string Underscore(this string value)
-            => string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()));
+            => string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString()));
     }
 }

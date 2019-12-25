@@ -84,7 +84,7 @@ namespace Convey.Metrics.AppMetrics
                 tags.TryGetValue("app", out var app);
                 tags.TryGetValue("env", out var env);
                 tags.TryGetValue("server", out var server);
-                cfg.AddAppTag(string.IsNullOrWhiteSpace(app) ? appOptions.Name : app);
+                cfg.AddAppTag(string.IsNullOrWhiteSpace(app) ? appOptions.Service : app);
                 cfg.AddEnvTag(string.IsNullOrWhiteSpace(env) ? null : env);
                 cfg.AddServerTag(string.IsNullOrWhiteSpace(server) ? null : server);
                 if (!string.IsNullOrWhiteSpace(appOptions.Instance))

@@ -68,7 +68,7 @@ namespace Convey.Logging
             loggerConfiguration.Enrich.FromLogContext()
                 .MinimumLevel.Is(level)
                 .Enrich.WithProperty("Environment", environmentName)
-                .Enrich.WithProperty("Application", appOptions.Name)
+                .Enrich.WithProperty("Application", appOptions.Service)
                 .Enrich.WithProperty("Instance", appOptions.Instance)
                 .Enrich.WithProperty("Version", appOptions.Version);
 

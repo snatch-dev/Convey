@@ -22,9 +22,10 @@ namespace Convey.MessageBrokers.Outbox.Mongo
 
             builder.AddMongoRepository<InboxMessage, string>(inboxCollection);
             builder.AddMongoRepository<OutboxMessage, string>(outboxCollection);
-            builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();
-            builder.Services.AddTransient<MongoOutboxInitializer>();
             builder.AddInitializer<MongoOutboxInitializer>();
+            builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();
+            builder.Services.AddTransient<IMessageOutboxAccessor, MongoMessageOutbox>();
+            builder.Services.AddTransient<MongoOutboxInitializer>();
 
             BsonClassMap.RegisterClassMap<OutboxMessage>(m =>
             {

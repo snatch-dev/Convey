@@ -5,8 +5,6 @@ namespace Convey.Logging
 {
     public class LoggerOptions
     {
-        public string ApplicationName { get; set; }
-        public string ServiceId { get; set; }
         public string Level { get; set; }
         public ConsoleOptions Console { get; set; }
         public FileOptions File { get; set; }

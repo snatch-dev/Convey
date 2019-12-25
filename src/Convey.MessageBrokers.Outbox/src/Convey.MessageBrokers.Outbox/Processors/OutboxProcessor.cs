@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -10,14 +11,14 @@ namespace Convey.MessageBrokers.Outbox.Processors
 {
     internal sealed class OutboxProcessor : IHostedService
     {
-        private readonly IMessageOutboxAccessor _outbox;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IBusPublisher _publisher;
         private readonly OutboxOptions _options;
         private readonly ILogger<OutboxProcessor> _logger;
         private readonly TimeSpan _interval;
         private Timer _timer;
 
-        public OutboxProcessor(IMessageOutbox outbox, IBusPublisher publisher, OutboxOptions options,
+        public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, IBusPublisher publisher, OutboxOptions options,
             ILogger<OutboxProcessor> logger)
         {
             if (options.Enabled && options.IntervalMilliseconds <= 0)
@@ -25,14 +26,15 @@ namespace Convey.MessageBrokers.Outbox.Processors
                 throw new Exception($"Invalid outbox interval: {options.IntervalMilliseconds} ms.");
             }
 
-            _outbox = outbox as IMessageOutboxAccessor;
+            _serviceScopeFactory = serviceScopeFactory;
             _publisher = publisher;
             _options = options;
             _logger = logger;
             _interval = TimeSpan.FromMilliseconds(options.IntervalMilliseconds);
             if (options.Enabled)
             {
-                _logger.LogInformation($"Outbox is enabled, message processing every {options.IntervalMilliseconds} ms.");
+                _logger.LogInformation(
+                    $"Outbox is enabled, message processing every {options.IntervalMilliseconds} ms.");
                 return;
             }
 
@@ -72,18 +74,20 @@ namespace Convey.MessageBrokers.Outbox.Processors
             _logger.LogTrace($"Started processing outbox messages... [job id: '{jobId}']");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            var messages = await _outbox.GetUnsentAsync();
+            using var scope = _serviceScopeFactory.CreateScope();
+            var outbox = scope.ServiceProvider.GetRequiredService<IMessageOutboxAccessor>();
+            var messages = await outbox.GetUnsentAsync();
             _logger.LogTrace($"Found {messages.Count} unsent messages in outbox [job id: '{jobId}'].");
             if (!messages.Any())
             {
-                _logger.LogTrace($"No messages to be processed in outbox [job id: '{jobId}'].");                
+                _logger.LogTrace($"No messages to be processed in outbox [job id: '{jobId}'].");
                 return;
             }
 
             var publishTasks = messages.Select(om => _publisher.PublishAsync(om.Message, om.Id,
                 om.CorrelationId, om.SpanContext, om.MessageContext, om.Headers));
             await Task.WhenAll(publishTasks);
-            await _outbox.ProcessAsync(messages);
+            await outbox.ProcessAsync(messages);
             stopwatch.Stop();
             _logger.LogTrace($"Processed {messages.Count} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job id: '{jobId}'].");
         }

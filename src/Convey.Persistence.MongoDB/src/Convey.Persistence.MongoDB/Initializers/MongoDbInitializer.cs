@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -40,17 +39,12 @@ namespace Convey.Persistence.MongoDB.Initializers
             BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
             BsonSerializer.RegisterSerializer(typeof(decimal?),
                 new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
-            ConventionRegistry.Register("convey_conventions", new MongoDbConventions(), x => true);
-        }
-
-        private class MongoDbConventions : IConventionPack
-        {
-            public IEnumerable<IConvention> Conventions => new List<IConvention>
+            ConventionRegistry.Register("convey", new ConventionPack
             {
+                new CamelCaseElementNameConvention(),
                 new IgnoreExtraElementsConvention(true),
                 new EnumRepresentationConvention(BsonType.String),
-                new CamelCaseElementNameConvention()
-            };
+            }, _ => true);
         }
     }
 }

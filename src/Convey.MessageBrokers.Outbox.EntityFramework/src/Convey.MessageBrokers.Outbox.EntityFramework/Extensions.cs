@@ -13,6 +13,7 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework
 
             builder.Services.AddDbContext<T>();
             builder.Services.AddTransient<IMessageOutbox, EntityFrameworkMessageOutbox<T>>();
+            builder.Services.AddTransient<IMessageOutboxAccessor, EntityFrameworkMessageOutbox<T>>();
 
             return configurator;
         }

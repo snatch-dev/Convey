@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Convey.Logging.Options;
+using Convey.Types;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -13,83 +14,73 @@ namespace Convey.Logging
 {
     public static class Extensions
     {
-        private const string SectionName = "logger";
+        private const string LoggerSectionName = "logger";
+        private const string AppSectionName = "app";
 
-        public static IHostBuilder UseLogging(this IHostBuilder hostBuilder, string applicationName = null,
-            string serviceId = null, string sectionName = SectionName)
+        public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
+            string loggerSectionName = LoggerSectionName, string appSectionName = AppSectionName)
             => hostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
-                if (string.IsNullOrWhiteSpace(sectionName))
+                if (string.IsNullOrWhiteSpace(loggerSectionName))
                 {
-                    sectionName = SectionName;
+                    loggerSectionName = LoggerSectionName;
                 }
-                
-                var options = context.Configuration.GetOptions<LoggerOptions>(sectionName);
 
-                MapOptions(options, loggerConfiguration, applicationName, serviceId,
-                    context.HostingEnvironment.EnvironmentName);
+                if (string.IsNullOrWhiteSpace(appSectionName))
+                {
+                    appSectionName = AppSectionName;
+                }
+
+                var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
+                var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
+
+                MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
             });
 
-        public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder, string applicationName = null,
-            string serviceId = null, string sectionName = SectionName)
+        public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder,
+            string loggerSectionName = LoggerSectionName, string appSectionName = AppSectionName)
             => webHostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
-                if (string.IsNullOrWhiteSpace(sectionName))
+                if (string.IsNullOrWhiteSpace(loggerSectionName))
                 {
-                    sectionName = SectionName;
+                    loggerSectionName = LoggerSectionName;
                 }
-                
-                var options = context.Configuration.GetOptions<LoggerOptions>(sectionName);
 
-                MapOptions(options, loggerConfiguration, applicationName, serviceId,
-                    context.HostingEnvironment.EnvironmentName);
+                if (string.IsNullOrWhiteSpace(appSectionName))
+                {
+                    appSectionName = AppSectionName;
+                }
+
+                var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
+                var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
+
+                MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
             });
 
-        private static void MapOptions(LoggerOptions options, LoggerConfiguration loggerConfiguration,
-            string applicationName, string serviceId, string environmentName)
+        private static void MapOptions(LoggerOptions loggerOptions, AppOptions appOptions,
+            LoggerConfiguration loggerConfiguration, string environmentName)
         {
-            if (!Enum.TryParse<LogEventLevel>(options.Level, true, out var level))
+            if (!Enum.TryParse<LogEventLevel>(loggerOptions.Level, true, out var level))
             {
                 level = LogEventLevel.Information;
-            }
-
-            if (!string.IsNullOrWhiteSpace(options.ApplicationName))
-            {
-                applicationName = options.ApplicationName;
-            }
-
-            var applicationNameEnv = Environment.GetEnvironmentVariable("APPLICATION_NAME");
-            if (!string.IsNullOrWhiteSpace(applicationNameEnv))
-            {
-                applicationName = applicationNameEnv;
-            }
-
-            if (!string.IsNullOrWhiteSpace(options.ServiceId))
-            {
-                serviceId = options.ServiceId;
-            }
-
-            var serviceIdEnv = Environment.GetEnvironmentVariable("SERVICE_ID");
-            if (!string.IsNullOrWhiteSpace(serviceIdEnv))
-            {
-                serviceId = serviceIdEnv;
             }
 
             loggerConfiguration.Enrich.FromLogContext()
                 .MinimumLevel.Is(level)
                 .Enrich.WithProperty("Environment", environmentName)
-                .Enrich.WithProperty("ApplicationName", applicationName)
-                .Enrich.WithProperty("ServiceId", serviceId);
+                .Enrich.WithProperty("Application", appOptions.Name)
+                .Enrich.WithProperty("Instance", appOptions.Instance)
+                .Enrich.WithProperty("Version", appOptions.Version);
 
-            foreach (var (key, value) in options.Tags ?? new Dictionary<string, object>())
+            foreach (var (key, value) in loggerOptions.Tags ?? new Dictionary<string, object>())
             {
                 loggerConfiguration.Enrich.WithProperty(key, value);
             }
 
-            options.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
+            loggerOptions.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
                 .ByExcluding(Matching.WithProperty<string>("RequestPath", n => n.EndsWith(p))));
 
-            Configure(loggerConfiguration, level, options);
+            Configure(loggerConfiguration, level, loggerOptions);
         }
 
         private static void Configure(LoggerConfiguration loggerConfiguration, LogEventLevel level,

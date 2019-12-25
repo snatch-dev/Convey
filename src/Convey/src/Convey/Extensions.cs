@@ -11,14 +11,14 @@ namespace Convey
     public static class Extensions
     {
         private const string SectionName = "app";
-        
+
         public static IConveyBuilder AddConvey(this IServiceCollection services, string sectionName = SectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
                 sectionName = SectionName;
             }
-            
+
             var builder = ConveyBuilder.Create(services);
             var options = builder.GetOptions<AppOptions>(sectionName);
             builder.Services.AddMemoryCache();
@@ -36,12 +36,7 @@ namespace Convey
         {
             using (var scope = app.ApplicationServices.CreateScope())
             {
-                var initializer = scope.ServiceProvider.GetService<IStartupInitializer>();
-                if (initializer is null)
-                {
-                    throw new InvalidOperationException("Startup initializer was not found.");
-                }
-
+                var initializer = scope.ServiceProvider.GetRequiredService<IStartupInitializer>();
                 Task.Run(() => initializer.InitializeAsync()).GetAwaiter().GetResult();
             }
 
@@ -69,12 +64,7 @@ namespace Convey
         {
             using (var scope = app.ApplicationServices.CreateScope())
             {
-                var initializer = scope.ServiceProvider.GetService<IStartupInitializer>();
-                if (initializer is null)
-                {
-                    throw new InvalidOperationException("Startup initializer was not found.");
-                }
-
+                var initializer = scope.ServiceProvider.GetRequiredService<IStartupInitializer>();
                 Task.Run(() => initializer.InitializeAsync()).GetAwaiter().GetResult();
             }
 

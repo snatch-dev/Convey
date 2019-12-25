@@ -10,10 +10,17 @@ namespace Convey
 {
     public static class Extensions
     {
-        public static IConveyBuilder AddConvey(this IServiceCollection services, string appOptionsSectionName = "app")
+        private const string SectionName = "app";
+        
+        public static IConveyBuilder AddConvey(this IServiceCollection services, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var builder = ConveyBuilder.Create(services);
-            var options = builder.GetOptions<AppOptions>(appOptionsSectionName);
+            var options = builder.GetOptions<AppOptions>(sectionName);
             builder.Services.AddMemoryCache();
             services.AddSingleton(options);
             services.AddSingleton<IServiceId, ServiceId>();

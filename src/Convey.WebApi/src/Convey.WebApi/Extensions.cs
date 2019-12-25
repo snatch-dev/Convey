@@ -54,6 +54,11 @@ namespace Convey.WebApi
         public static IConveyBuilder AddWebApi(this IConveyBuilder builder, Action<IMvcCoreBuilder> configureMvc = null,
             IJsonSerializer jsonSerializer = null, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;

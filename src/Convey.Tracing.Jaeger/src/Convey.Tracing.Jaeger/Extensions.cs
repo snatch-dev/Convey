@@ -24,6 +24,11 @@ namespace Convey.Tracing.Jaeger
 
         public static IConveyBuilder AddJaeger(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<JaegerOptions>(sectionName);
             return builder.AddJaeger(options);
         }

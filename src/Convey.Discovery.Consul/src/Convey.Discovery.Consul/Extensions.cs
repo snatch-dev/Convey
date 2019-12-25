@@ -18,6 +18,11 @@ namespace Convey.Discovery.Consul
         public static IConveyBuilder AddConsul(this IConveyBuilder builder, string sectionName = SectionName,
             string httpClientSectionName = "httpClient")
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var consulOptions = builder.GetOptions<ConsulOptions>(sectionName);
             var httpClientOptions = builder.GetOptions<HttpClientOptions>(httpClientSectionName);
             return builder.AddConsul(consulOptions, httpClientOptions);

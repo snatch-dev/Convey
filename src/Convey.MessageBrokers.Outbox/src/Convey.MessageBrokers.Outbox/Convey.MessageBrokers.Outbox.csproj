@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-
   <PropertyGroup>
     <Description>Convey.MessageBrokers.Outbox</Description>
     <Authors>DevMentors.io</Authors>
@@ -16,7 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     <ProjectReference Include="..\..\..\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
-    <ProjectReference Include="..\..\..\Convey.Persistence.MongoDB\src\Convey.Persistence.MongoDB\Convey.Persistence.MongoDB.csproj" />
   </ItemGroup>
 
   <ItemGroup>

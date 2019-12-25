@@ -1,9 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Convey.MessageBrokers.Outbox.Messages;
 using Convey.Types;
 using MongoDB.Driver;
 
-namespace Convey.MessageBrokers.Outbox.Outbox
+namespace Convey.MessageBrokers.Outbox.Mongo.Internals
 {
     internal sealed class MongoOutboxInitializer : IInitializer
     {

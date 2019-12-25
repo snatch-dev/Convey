@@ -19,6 +19,11 @@ namespace Convey.LoadBalancing.Fabio
         public static IConveyBuilder AddFabio(this IConveyBuilder builder, string sectionName = SectionName,
             string consulSectionName = "consul", string httpClientSectionName = "httpClient")
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var fabioOptions = builder.GetOptions<FabioOptions>(sectionName);
             var consulOptions = builder.GetOptions<ConsulOptions>(consulSectionName);
             var httpClientOptions = builder.GetOptions<HttpClientOptions>(httpClientSectionName);

@@ -44,6 +44,11 @@ namespace Convey.MessageBrokers.RawRabbit
             string redisSectionName = "redis", Func<IRabbitMqPluginRegister, IRabbitMqPluginRegister> plugins = null)
             where TContext : class, new()
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<RabbitMqOptions>(sectionName);
             var redisOptions = builder.GetOptions<RedisOptions>(redisSectionName);
             return builder.AddRabbitMq<TContext>(options, plugins, b => b.AddRedis(redisOptions));

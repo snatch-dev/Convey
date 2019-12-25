@@ -24,6 +24,11 @@ namespace Convey.MessageBrokers.RabbitMQ
         public static IConveyBuilder AddRabbitMq(this IConveyBuilder builder, string sectionName = SectionName,
             Func<IRabbitMqPluginsRegistry, IRabbitMqPluginsRegistry> plugins = null)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<RabbitMqOptions>(sectionName);
             builder.Services.AddSingleton(options);
             if (!builder.TryRegister(RegistryName))

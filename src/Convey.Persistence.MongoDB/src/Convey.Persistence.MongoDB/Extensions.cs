@@ -18,6 +18,11 @@ namespace Convey.Persistence.MongoDB
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, string sectionName = SectionName,
             IMongoDbSeeder seeder = null)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var mongoOptions = builder.GetOptions<MongoDbOptions>(sectionName);
             return builder.AddMongo(mongoOptions, seeder);
         }

@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Convey.Types;
-using MongoDB.Bson.Serialization.Attributes;
 
-namespace Convey.MessageBrokers.Outbox.Outbox
+namespace Convey.MessageBrokers.Outbox.Messages
 {
-    internal sealed class OutboxMessage : IIdentifiable<string>
+    public sealed class OutboxMessage : IIdentifiable<string>
     {
         public string Id { get; set; }
         public string OriginatedMessageId { get; set; }
@@ -14,9 +13,7 @@ namespace Convey.MessageBrokers.Outbox.Outbox
         public Dictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
         public string MessageType { get; set; }
         public string MessageContextType { get; set; }
-        [BsonIgnore]
         public object Message { get; set; }
-        [BsonIgnore]
         public object MessageContext { get; set; }
         public string SerializedMessage { get; set; }
         public string SerializedMessageContext { get; set; }

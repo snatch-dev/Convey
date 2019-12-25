@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\src\Convey.LoadBalancing.Fabio\src\Convey.LoadBalancing.Fabio\Convey.LoadBalancing.Fabio.csproj" />
     <ProjectReference Include="..\..\src\Convey.Logging\src\Convey.Logging\Convey.Logging.csproj" />
     <ProjectReference Include="..\..\src\Convey.MessageBrokers.CQRS\src\Convey.MessageBrokers.CQRS\Convey.MessageBrokers.CQRS.csproj" />
+    <ProjectReference Include="..\..\src\Convey.MessageBrokers.Outbox.Mongo\src\Convey.MessageBrokers.Outbox.Mongo\Convey.MessageBrokers.Outbox.Mongo.csproj" />
     <ProjectReference Include="..\..\src\Convey.MessageBrokers.Outbox\src\Convey.MessageBrokers.Outbox\Convey.MessageBrokers.Outbox.csproj" />
     <ProjectReference Include="..\..\src\Convey.MessageBrokers.RabbitMQ\src\Convey.MessageBrokers.RabbitMQ\Convey.MessageBrokers.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\Convey.Metrics.AppMetrics\src\Convey.Metrics.AppMetrics\Convey.Metrics.AppMetrics.csproj" />

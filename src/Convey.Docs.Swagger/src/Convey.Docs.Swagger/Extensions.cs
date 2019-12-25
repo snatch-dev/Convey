@@ -13,6 +13,11 @@ namespace Convey.Docs.Swagger
 
         public static IConveyBuilder AddSwaggerDocs(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<SwaggerOptions>(sectionName);
             return builder.AddSwaggerDocs(options);
         }

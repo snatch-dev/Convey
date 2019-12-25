@@ -10,16 +10,24 @@ namespace Convey.Configurations.Vault
 {
     public static class Extensions
     {
-        public static IWebHostBuilder UseVault(this IWebHostBuilder builder, string key = null)
+        private const string SectionName = "vault";
+
+        public static IWebHostBuilder UseVault(this IWebHostBuilder builder, string key = null,
+            string sectionName = SectionName)
             => builder.ConfigureServices(services =>
                 {
+                    if (string.IsNullOrWhiteSpace(sectionName))
+                    {
+                        sectionName = SectionName;
+                    }
+
                     IConfiguration configuration;
                     using (var serviceProvider = services.BuildServiceProvider())
                     {
                         configuration = serviceProvider.GetService<IConfiguration>();
                     }
 
-                    var options = configuration.GetOptions<VaultOptions>("vault");
+                    var options = configuration.GetOptions<VaultOptions>(sectionName);
                     if (!options.Enabled)
                     {
                         return;
@@ -30,7 +38,7 @@ namespace Convey.Configurations.Vault
                 })
                 .ConfigureAppConfiguration((ctx, cfg) =>
                 {
-                    var options = cfg.Build().GetOptions<VaultOptions>("vault");
+                    var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
                     var enabled = options.Enabled;
                     var vaultEnabled = Environment.GetEnvironmentVariable("VAULT_ENABLED")?.ToLowerInvariant();
                     if (!string.IsNullOrWhiteSpace(vaultEnabled))

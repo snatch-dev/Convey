@@ -1,9 +1,9 @@
 using System;
 using Convey.Types;
 
-namespace Convey.MessageBrokers.Outbox.Outbox
+namespace Convey.MessageBrokers.Outbox.Messages
 {
-    internal sealed class InboxMessage : IIdentifiable<string>
+    public sealed class InboxMessage : IIdentifiable<string>
     {
         public string Id { get; set; }
         public DateTime ProcessedAt { get; set; }

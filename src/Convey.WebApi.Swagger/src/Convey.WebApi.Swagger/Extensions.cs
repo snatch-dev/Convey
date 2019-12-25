@@ -10,7 +10,14 @@ namespace Convey.WebApi.Swagger
         private const string SectionName = "swagger";
 
         public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, string sectionName = SectionName)
-            => builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(sectionName));
+        {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+
+            return builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(sectionName));
+        }
         
         public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, 
             Func<ISwaggerOptionsBuilder, ISwaggerOptionsBuilder> buildOptions)

@@ -1,6 +1,7 @@
+using System;
+using Convey.MessageBrokers.Outbox.Configurators;
 using Convey.MessageBrokers.Outbox.Outbox;
 using Convey.MessageBrokers.Outbox.Processors;
-using Convey.Persistence.MongoDB;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Convey.MessageBrokers.Outbox
@@ -10,8 +11,14 @@ namespace Convey.MessageBrokers.Outbox
         private const string SectionName = "outbox";
         private const string RegistryName = "messageBrokers.outbox";
 
-        public static IConveyBuilder AddMessageOutbox(this IConveyBuilder builder, string sectionName = SectionName)
+        public static IConveyBuilder AddMessageOutbox(this IConveyBuilder builder,
+            Action<IMessageOutboxConfigurator> configure, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;
@@ -19,39 +26,33 @@ namespace Convey.MessageBrokers.Outbox
 
             var options = builder.GetOptions<OutboxOptions>(sectionName);
             builder.Services.AddSingleton(options);
+            var configurator = new MessageOutboxConfigurator(builder, options);
+
+            if (configure is null)
+            {
+                configurator.AddInMemory();
+            }
+            else
+            {
+                configure(configurator);
+            }
+
             if (!options.Enabled)
             {
-                builder.RegisterInMemoryOutbox();
                 return builder;
             }
 
-            var inboxCollection = string.IsNullOrWhiteSpace(options.InboxCollection)
-                ? "inbox"
-                : options.InboxCollection;
-            var outboxCollection = string.IsNullOrWhiteSpace(options.OutboxCollection)
-                ? "outbox"
-                : options.OutboxCollection;
-            switch (options.Type?.ToLowerInvariant())
-            {
-                default:
-                    builder.RegisterInMemoryOutbox();
-                    break;
-                case "mongo":
-                    builder.AddMongo();
-                    builder.AddMongoRepository<InboxMessage, string>(inboxCollection);
-                    builder.AddMongoRepository<OutboxMessage, string>(outboxCollection);
-                    builder.Services.AddTransient<IMessageOutbox, MongoMessageOutbox>();
-                    builder.Services.AddTransient<MongoOutboxInitializer>();
-                    builder.AddInitializer<MongoOutboxInitializer>();
-                    break;
-            }
-            
             builder.Services.AddHostedService<OutboxProcessor>();
 
             return builder;
         }
-        
-        private static void RegisterInMemoryOutbox(this IConveyBuilder builder)
-            => builder.Services.AddTransient<IMessageOutbox, InMemoryMessageOutbox>();
+
+        public static IMessageOutboxConfigurator AddInMemory(this IMessageOutboxConfigurator configurator,
+            string mongoSectionName = null)
+        {
+            configurator.Builder.Services.AddTransient<IMessageOutbox, InMemoryMessageOutbox>();
+
+            return configurator;
+        }
     }
 }

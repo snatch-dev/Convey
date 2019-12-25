@@ -19,6 +19,11 @@ namespace Convey.Logging
             string serviceId = null, string sectionName = SectionName)
             => hostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
+                if (string.IsNullOrWhiteSpace(sectionName))
+                {
+                    sectionName = SectionName;
+                }
+                
                 var options = context.Configuration.GetOptions<LoggerOptions>(sectionName);
 
                 MapOptions(options, loggerConfiguration, applicationName, serviceId,
@@ -29,6 +34,11 @@ namespace Convey.Logging
             string serviceId = null, string sectionName = SectionName)
             => webHostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
+                if (string.IsNullOrWhiteSpace(sectionName))
+                {
+                    sectionName = SectionName;
+                }
+                
                 var options = context.Configuration.GetOptions<LoggerOptions>(sectionName);
 
                 MapOptions(options, loggerConfiguration, applicationName, serviceId,

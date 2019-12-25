@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Convey.MessageBrokers.Outbox.Mongo</Description>
+    <Authors>DevMentors.io</Authors>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>Latest</LangVersion>
+    <AssemblyName>Convey.MessageBrokers.Outbox.Mongo</AssemblyName>
+    <Title>Convey.MessageBrokers.Outbox.Mongo</Title>
+    <PackageId>Convey.MessageBrokers.Outbox.Mongo</PackageId>
+    <PackageTags>Convey.MessageBrokers.Outbox.Mongo</PackageTags>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Convey.MessageBrokers.Outbox\src\Convey.MessageBrokers.Outbox\Convey.MessageBrokers.Outbox.csproj" />
+    <ProjectReference Include="..\..\..\Convey.Persistence.MongoDB\src\Convey.Persistence.MongoDB\Convey.Persistence.MongoDB.csproj" />
+  </ItemGroup>
+
+</Project>

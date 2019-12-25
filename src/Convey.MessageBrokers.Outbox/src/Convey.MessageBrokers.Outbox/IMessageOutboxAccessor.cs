@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Convey.MessageBrokers.Outbox.Messages;
 
-namespace Convey.MessageBrokers.Outbox.Outbox
+namespace Convey.MessageBrokers.Outbox
 {
-    internal interface IMessageOutboxAccessor
+    public interface IMessageOutboxAccessor
     {
         Task<IReadOnlyList<OutboxMessage>> GetUnsentAsync();
         Task ProcessAsync(IEnumerable<OutboxMessage> outboxMessages);

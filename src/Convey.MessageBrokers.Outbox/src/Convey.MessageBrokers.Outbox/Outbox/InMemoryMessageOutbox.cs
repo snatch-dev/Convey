@@ -3,11 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Convey.MessageBrokers.Outbox.Messages;
 using Microsoft.Extensions.Logging;
 
 namespace Convey.MessageBrokers.Outbox.Outbox
 {
-    public class InMemoryMessageOutbox : IMessageOutbox, IMessageOutboxAccessor
+    internal sealed class InMemoryMessageOutbox : IMessageOutbox, IMessageOutboxAccessor
     {
         private readonly ConcurrentDictionary<string, bool> _inboxMessages =
             new ConcurrentDictionary<string, bool>();

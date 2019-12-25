@@ -16,6 +16,11 @@ namespace Convey.HTTP
 
         public static IConveyBuilder AddHttpClient(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;

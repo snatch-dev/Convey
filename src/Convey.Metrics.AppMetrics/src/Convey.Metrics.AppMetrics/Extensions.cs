@@ -24,6 +24,11 @@ namespace Convey.Metrics.AppMetrics
         [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
         public static IConveyBuilder AddMetrics(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<MetricsOptions>(sectionName);
             return builder.AddMetrics(options);
         }

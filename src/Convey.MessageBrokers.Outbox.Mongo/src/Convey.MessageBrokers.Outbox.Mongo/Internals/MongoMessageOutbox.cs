@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Convey.MessageBrokers.Outbox.Messages;
 using Convey.Persistence.MongoDB;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
-namespace Convey.MessageBrokers.Outbox.Outbox
+namespace Convey.MessageBrokers.Outbox.Mongo.Internals
 {
     internal sealed class MongoMessageOutbox : IMessageOutbox, IMessageOutboxAccessor
     {

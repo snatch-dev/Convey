@@ -16,6 +16,11 @@ namespace Convey.Auth
 
         public static IConveyBuilder AddJwt(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<JwtOptions>(sectionName);
             return builder.AddJwt(options);
         }

@@ -26,6 +26,7 @@ namespace Conveyor.Services.Pricing
             {
                 webBuilder.ConfigureServices(services => services
                         .AddConvey()
+                        .AddErrorHandler<ExceptionToResponseMapper>()
                         .AddConsul()
                         .AddFabio()
                         .AddJaeger()

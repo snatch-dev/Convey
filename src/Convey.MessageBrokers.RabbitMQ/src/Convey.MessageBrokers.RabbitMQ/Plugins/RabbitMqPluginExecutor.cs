@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Convey.Types;
 using RabbitMQ.Client.Events;
 
 namespace Convey.MessageBrokers.RabbitMQ.Plugins
@@ -34,7 +33,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Plugins
 
                 if (plugin is null)
                 {
-                    throw new ConveyException($"RabbitMq plugin of type {chain.PluginType.Name} was not registered");
+                    throw new InvalidOperationException($"RabbitMq plugin of type {chain.PluginType.Name} was not registered");
                 }
                 
                 chain.Plugin = plugin as IRabbitMqPlugin;;

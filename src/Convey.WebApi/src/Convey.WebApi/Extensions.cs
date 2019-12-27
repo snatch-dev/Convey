@@ -9,8 +9,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Convey.WebApi.Exceptions;
 using Convey.WebApi.Formatters;
-using Convey.WebApi.Middlewares;
 using Convey.WebApi.Requests;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -114,8 +114,21 @@ namespace Convey.WebApi
             return builder;
         }
 
+        public static IConveyBuilder AddErrorHandler<T>(this IConveyBuilder builder)
+            where T : class, IExceptionToResponseMapper
+        {
+            builder.Services.AddTransient<ErrorHandlerMiddleware>();
+            builder.Services.AddSingleton<IExceptionToResponseMapper, T>();
+
+            return builder;
+        }
+
         public static IApplicationBuilder UseErrorHandler(this IApplicationBuilder builder)
-            => builder.UseMiddleware<ErrorHandlerMiddleware>();
+        {
+            builder.ApplicationServices.GetRequiredService<IExceptionToResponseMapper>();
+            
+            return builder.UseMiddleware<ErrorHandlerMiddleware>();
+        }
 
         public static IApplicationBuilder UseAllForwardedHeaders(this IApplicationBuilder builder)
             => builder.UseForwardedHeaders(new ForwardedHeadersOptions

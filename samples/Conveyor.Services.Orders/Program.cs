@@ -43,6 +43,7 @@ namespace Conveyor.Services.Orders
             {
                 webBuilder.ConfigureServices(services => services
                         .AddConvey()
+                        .AddErrorHandler<ExceptionToResponseMapper>()
                         .AddServices()
                         .AddHttpClient()
                         .AddConsul()

@@ -28,6 +28,7 @@ namespace Conveyor.Services.Deliveries
             {
                 webBuilder.ConfigureServices(services => services
                         .AddConvey()
+                        .AddErrorHandler<ExceptionToResponseMapper>()
                         .AddConsul()
                         .AddFabio()
                         .AddJaeger()

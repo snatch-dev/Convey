@@ -18,9 +18,10 @@ namespace Convey.WebApi.CQRS.Builders
         }
 
         public IDispatcherEndpointsBuilder Get(string path, Func<HttpContext, Task> context = null,
-            Action<IEndpointConventionBuilder> endpoint = null)
+            Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+            params string[] policies)
         {
-            _builder.Get(path, context, endpoint);
+            _builder.Get(path, context, endpoint, auth, roles, policies);
 
             return this;
         }
@@ -28,7 +29,8 @@ namespace Convey.WebApi.CQRS.Builders
         public IDispatcherEndpointsBuilder Get<TQuery, TResult>(string path,
             Func<TQuery, HttpContext, Task> beforeDispatch = null,
             Func<TQuery, TResult, HttpContext, Task> afterDispatch = null,
-            Action<IEndpointConventionBuilder> endpoint = null) where TQuery : class, IQuery<TResult>
+            Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+            params string[] policies) where TQuery : class, IQuery<TResult>
         {
             _builder.Get<TQuery>(path, async (query, ctx) =>
             {
@@ -52,60 +54,70 @@ namespace Convey.WebApi.CQRS.Builders
                 }
 
                 await afterDispatch(query, result, ctx);
-            }, endpoint);
+            }, endpoint, auth, roles, policies);
 
             return this;
         }
 
         public IDispatcherEndpointsBuilder Post(string path, Func<HttpContext, Task> context = null,
-            Action<IEndpointConventionBuilder> endpoint = null)
+            Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+            params string[] policies)
         {
-            _builder.Post(path, context, endpoint);
+            _builder.Post(path, context, endpoint, auth, roles, policies);
 
             return this;
         }
 
         public IDispatcherEndpointsBuilder Post<T>(string path, Func<T, HttpContext, Task> beforeDispatch = null,
-            Func<T, HttpContext, Task> afterDispatch = null, Action<IEndpointConventionBuilder> endpoint = null)
+            Func<T, HttpContext, Task> afterDispatch = null, Action<IEndpointConventionBuilder> endpoint = null,
+            bool auth = false, string roles = null,
+            params string[] policies)
             where T : class, ICommand
         {
             _builder.Post<T>(path, (cmd, ctx) => BuildCommandContext(cmd, ctx, beforeDispatch, afterDispatch),
-                endpoint);
+                endpoint, auth, roles, policies);
 
             return this;
         }
 
         public IDispatcherEndpointsBuilder Put(string path, Func<HttpContext, Task> context = null,
-            Action<IEndpointConventionBuilder> endpoint = null)
+            Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+            params string[] policies)
         {
-            _builder.Put(path, context, endpoint);
+            _builder.Put(path, context, endpoint, auth, roles, policies);
 
             return this;
         }
 
         public IDispatcherEndpointsBuilder Put<T>(string path, Func<T, HttpContext, Task> beforeDispatch = null,
-            Func<T, HttpContext, Task> afterDispatch = null, Action<IEndpointConventionBuilder> endpoint = null)
+            Func<T, HttpContext, Task> afterDispatch = null, Action<IEndpointConventionBuilder> endpoint = null,
+            bool auth = false, string roles = null,
+            params string[] policies)
             where T : class, ICommand
         {
-            _builder.Put<T>(path, (cmd, ctx) => BuildCommandContext(cmd, ctx, beforeDispatch, afterDispatch), endpoint);
+            _builder.Put<T>(path, (cmd, ctx) => BuildCommandContext(cmd, ctx, beforeDispatch, afterDispatch), endpoint,
+                auth, roles, policies);
 
             return this;
         }
 
         public IDispatcherEndpointsBuilder Delete(string path, Func<HttpContext, Task> context = null,
-            Action<IEndpointConventionBuilder> endpoint = null)
+            Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+            params string[] policies)
         {
-            _builder.Delete(path, context, endpoint);
+            _builder.Delete(path, context, endpoint, auth, roles, policies);
 
             return this;
         }
 
         public IDispatcherEndpointsBuilder Delete<T>(string path, Func<T, HttpContext, Task> beforeDispatch = null,
-            Func<T, HttpContext, Task> afterDispatch = null, Action<IEndpointConventionBuilder> endpoint = null)
+            Func<T, HttpContext, Task> afterDispatch = null, Action<IEndpointConventionBuilder> endpoint = null,
+            bool auth = false, string roles = null,
+            params string[] policies)
             where T : class, ICommand
         {
             _builder.Delete<T>(path, (cmd, ctx) => BuildCommandContext(cmd, ctx, beforeDispatch, afterDispatch),
-                endpoint);
+                endpoint, auth, roles, policies);
 
             return this;
         }

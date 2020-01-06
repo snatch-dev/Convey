@@ -58,7 +58,7 @@ namespace Convey.Metrics.AppMetrics
             return builder.AddMetrics(metricsOptions, appOptions);
         }
 
-        [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
+        [Description("For the time being it sets Kestrel's and IIS ServerOptions AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
         public static IConveyBuilder AddMetrics(this IConveyBuilder builder, MetricsOptions metricsOptions,
             AppOptions appOptions)
         {
@@ -72,7 +72,8 @@ namespace Convey.Metrics.AppMetrics
 
             //TODO: Remove once fixed https://github.com/AppMetrics/AppMetrics/issues/396
             builder.Services.Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true);
-
+            builder.Services.Configure<IISServerOptions>(o => o.AllowSynchronousIO = true);
+            
             var metricsBuilder = new MetricsBuilder().Configuration.Configure(cfg =>
             {
                 var tags = metricsOptions.Tags;

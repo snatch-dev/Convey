@@ -50,7 +50,7 @@ namespace Convey.WebApi
             return app;
         }
 
-        [Description("By default Newtonsoft JSON serializer is being used and it sets Kestrel's AllowSynchronousIO = true")]
+        [Description("By default Newtonsoft JSON serializer is being used and it sets Kestrel's and IIS ServerOptions AllowSynchronousIO = true")]
         public static IConveyBuilder AddWebApi(this IConveyBuilder builder, Action<IMvcCoreBuilder> configureMvc = null,
             IJsonSerializer jsonSerializer = null, string sectionName = SectionName)
         {
@@ -77,6 +77,7 @@ namespace Convey.WebApi
             if (jsonSerializer.GetType().Namespace?.Contains("Newtonsoft") == true)
             {
                 builder.Services.Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true);
+                builder.Services.Configure<IISServerOptions>(o => o.AllowSynchronousIO = true);
             }
             
             builder.Services.AddSingleton(jsonSerializer);

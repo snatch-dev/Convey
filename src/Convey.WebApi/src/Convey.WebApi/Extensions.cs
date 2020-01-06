@@ -41,10 +41,16 @@ namespace Convey.WebApi
             Converters = {new StringEnumConverter(true)}
         };
 
-        public static IApplicationBuilder UseEndpoints(this IApplicationBuilder app, Action<IEndpointsBuilder> build)
+        public static IApplicationBuilder UseEndpoints(this IApplicationBuilder app, Action<IEndpointsBuilder> build,
+            bool useAuthorization = true)
         {
             var definitions = app.ApplicationServices.GetRequiredService<WebApiEndpointDefinitions>();
             app.UseRouting();
+            if (useAuthorization)
+            {
+                app.UseAuthorization();
+            }
+
             app.UseEndpoints(router => build(new EndpointsBuilder(router, definitions)));
 
             return app;

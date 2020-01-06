@@ -64,13 +64,17 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             {
                 info = $"[queue: '{conventions.Queue}', routing key: '{conventions.RoutingKey}', " +
                        $"exchange: '{conventions.Exchange}']";
+            }
 
-                if (declare)
+            if (declare)
+            {
+                if (_loggerEnabled)
                 {
                     _logger.LogInformation($"Declaring a queue: '{conventions.Queue}' with routing key: " +
                                            $"'{conventions.RoutingKey}' for exchange: '{conventions.Exchange}'.");
-                    _channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
                 }
+
+                _channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
             }
 
             _channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);

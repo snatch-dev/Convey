@@ -36,7 +36,7 @@ namespace Convey.WebApi.Formatters
 
             var request = context.HttpContext.Request;
             var json = string.Empty;
-            if (!(request.Body is null && request.Body.Length > 0))
+            if (request.Body is {})
             {
                 using var streamReader = new StreamReader(request.Body);
                 json = await streamReader.ReadToEndAsync();

@@ -14,7 +14,8 @@ namespace Convey.HTTP
         private const string SectionName = "httpClient";
         private const string RegistryName = "http.client";
 
-        public static IConveyBuilder AddHttpClient(this IConveyBuilder builder, string sectionName = SectionName)
+        public static IConveyBuilder AddHttpClient(this IConveyBuilder builder, string clientName = "convey",
+            string sectionName = SectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
@@ -25,13 +26,19 @@ namespace Convey.HTTP
             {
                 return builder;
             }
+            
+            if (string.IsNullOrWhiteSpace(clientName))
+            {
+                throw new ArgumentException("HTTP client name cannot be empty.", nameof(clientName));
+            }
 
             var options = builder.GetOptions<HttpClientOptions>(sectionName);
             builder.Services.AddSingleton(options);
-            builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>("convey");
+            builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>(clientName);
 
             return builder;
         }
+
 
         [Description("This is a hack related to HttpClient issue: https://github.com/aspnet/AspNetCore/issues/13346")]
         internal static void RemoveHttpClient(this IConveyBuilder builder)

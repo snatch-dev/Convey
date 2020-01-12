@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Convey.MessageBrokers.Outbox.Messages;
 using Convey.Persistence.MongoDB;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -135,18 +136,17 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
                 }
 
                 return om;
-            }).OrderBy(m => m.SentAt).ToList();
+            }).ToList();
         }
 
-        async Task IMessageOutboxAccessor.ProcessAsync(IEnumerable<OutboxMessage> outboxMessages)
-        {
-            var updateTasks = outboxMessages.Select(om =>
-            {
-                om.ProcessedAt = DateTime.UtcNow;
-                return _outboxRepository.UpdateAsync(om);
-            });
+        Task IMessageOutboxAccessor.ProcessAsync(OutboxMessage message)
+            => _outboxRepository.Collection.UpdateOneAsync(
+                Builders<OutboxMessage>.Filter.Eq(m => m.Id, message.Id),
+                Builders<OutboxMessage>.Update.Set(m => m.ProcessedAt, DateTime.UtcNow));
 
-            await Task.WhenAll(updateTasks);
-        }
+        Task IMessageOutboxAccessor.ProcessAsync(IEnumerable<OutboxMessage> outboxMessages)
+            => _outboxRepository.Collection.UpdateManyAsync(
+                Builders<OutboxMessage>.Filter.In(m => m.Id, outboxMessages.Select(m => m.Id)),
+                Builders<OutboxMessage>.Update.Set(m => m.ProcessedAt, DateTime.UtcNow));
     }
 }

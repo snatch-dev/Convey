@@ -134,19 +134,31 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
                 }
 
                 return om;
-            }).OrderBy(m => m.SentAt).ToList();
+            }).ToList();
         }
 
-        async Task IMessageOutboxAccessor.ProcessAsync(IEnumerable<OutboxMessage> outboxMessages)
+        Task IMessageOutboxAccessor.ProcessAsync(OutboxMessage message)
         {
-            var outboxMessagesSet = _dbContext.Set<OutboxMessage>();
+            UpdateMessage(_dbContext.Set<OutboxMessage>(), message);
+
+            return _dbContext.SaveChangesAsync();
+        }
+
+        Task IMessageOutboxAccessor.ProcessAsync(IEnumerable<OutboxMessage> outboxMessages)
+        {
+            var set = _dbContext.Set<OutboxMessage>();
             foreach (var message in outboxMessages)
             {
-                message.ProcessedAt = DateTime.UtcNow;
-                outboxMessagesSet.Update(message);
+                UpdateMessage(set, message);
             }
 
-            await _dbContext.SaveChangesAsync();
+            return _dbContext.SaveChangesAsync();
+        }
+
+        private static void UpdateMessage(DbSet<OutboxMessage> set, OutboxMessage message)
+        {
+            message.ProcessedAt = DateTime.UtcNow;
+            set.Update(message);
         }
     }
 }

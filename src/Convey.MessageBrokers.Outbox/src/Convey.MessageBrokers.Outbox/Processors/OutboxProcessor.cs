@@ -16,6 +16,7 @@ namespace Convey.MessageBrokers.Outbox.Processors
         private readonly OutboxOptions _options;
         private readonly ILogger<OutboxProcessor> _logger;
         private readonly TimeSpan _interval;
+        private readonly OutboxType _type;
         private Timer _timer;
 
         public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, IBusPublisher publisher, OutboxOptions options,
@@ -25,16 +26,27 @@ namespace Convey.MessageBrokers.Outbox.Processors
             {
                 throw new Exception($"Invalid outbox interval: {options.IntervalMilliseconds} ms.");
             }
+            
+            if (!string.IsNullOrWhiteSpace(options.Type))
+            {
+                if (!Enum.TryParse<OutboxType>(options.Type, true, out var outboxType))
+                {
+                    throw new ArgumentException($"Invalid outbox type: '{_type}', " +
+                                                $"valid types: '{OutboxType.Sequential}', '{OutboxType.Parallel}'.");
+                }
+
+                _type = outboxType;
+            }
 
             _serviceScopeFactory = serviceScopeFactory;
             _publisher = publisher;
             _options = options;
             _logger = logger;
+            _type = OutboxType.Sequential;
             _interval = TimeSpan.FromMilliseconds(options.IntervalMilliseconds);
             if (options.Enabled)
             {
-                _logger.LogInformation(
-                    $"Outbox is enabled, message processing every {options.IntervalMilliseconds} ms.");
+                _logger.LogInformation($"Outbox is enabled, type: '{_type}', message processing every {options.IntervalMilliseconds} ms.");
                 return;
             }
 
@@ -84,12 +96,29 @@ namespace Convey.MessageBrokers.Outbox.Processors
                 return;
             }
 
-            var publishTasks = messages.Select(om => _publisher.PublishAsync(om.Message, om.Id,
-                om.CorrelationId, om.SpanContext, om.MessageContext, om.Headers));
-            await Task.WhenAll(publishTasks);
-            await outbox.ProcessAsync(messages);
+            foreach (var message in messages.OrderBy(m => m.SentAt))
+            {
+                await _publisher.PublishAsync(message.Message, message.Id, message.CorrelationId,
+                    message.SpanContext, message.MessageContext, message.Headers);
+                if (_type == OutboxType.Sequential)
+                {
+                    await outbox.ProcessAsync(message);
+                }
+            }
+
+            if (_type == OutboxType.Parallel)
+            {
+                await outbox.ProcessAsync(messages);
+            }
+            
             stopwatch.Stop();
             _logger.LogTrace($"Processed {messages.Count} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job id: '{jobId}'].");
+        }
+
+        private enum OutboxType
+        {
+            Sequential,
+            Parallel
         }
     }
 }

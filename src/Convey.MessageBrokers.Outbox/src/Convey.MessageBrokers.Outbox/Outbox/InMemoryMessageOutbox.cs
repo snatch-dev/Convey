@@ -92,19 +92,32 @@ namespace Convey.MessageBrokers.Outbox.Outbox
         Task<IReadOnlyList<OutboxMessage>> IMessageOutboxAccessor.GetUnsentAsync()
             => Task.FromResult<IReadOnlyList<OutboxMessage>>(_outboxMessages.Values
                 .Where(m => m.ProcessedAt is null)
-                .OrderBy(m => m.SentAt)
                 .ToList());
 
         Task IMessageOutboxAccessor.ProcessAsync(IEnumerable<OutboxMessage> outboxMessages)
         {
-            foreach (var im in outboxMessages)
+            foreach (var message in outboxMessages)
             {
-                im.ProcessedAt = DateTime.UtcNow;
+                message.ProcessedAt = DateTime.UtcNow;
             }
+            RemoveExpiredMessages();
             
+            return Task.CompletedTask;
+        }
+        
+        Task IMessageOutboxAccessor.ProcessAsync(OutboxMessage message)
+        {
+            message.ProcessedAt = DateTime.UtcNow;
+            RemoveExpiredMessages();
+            
+            return Task.CompletedTask;
+        }
+
+        private void RemoveExpiredMessages()
+        {
             if (_expiry <= 0)
             {
-                return Task.CompletedTask;
+                return;
             }
             
             foreach (var (id, message) in _outboxMessages)
@@ -122,8 +135,6 @@ namespace Convey.MessageBrokers.Outbox.Outbox
                 _outboxMessages.TryRemove(id, out _);
                 _inboxMessages.TryRemove(message.OriginatedMessageId, out _);
             }
-            
-            return Task.CompletedTask;
         }
     }
 }

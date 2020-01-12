@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -25,6 +26,11 @@ namespace Convey.WebApi.Helpers
             if (propertyType == typeof(string))
             {
                 SetDefaultValue(propertyInfo, instance, string.Empty);
+                return;
+            }
+            
+            if (propertyType.Name == "IDictionary`2")
+            {
                 return;
             }
 

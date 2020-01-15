@@ -94,7 +94,7 @@ namespace Convey.HTTP
                     return uri;
                 }
                 
-                var requestUri = uri.PathAndQuery;
+                var requestUri = uri.OriginalString;
                 var hasMatch = false;
                 foreach (var part in maskedRequestUrlParts)
                 {

@@ -84,6 +84,9 @@ namespace Convey.Logging
             loggerOptions.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
                 .ByExcluding(Matching.WithProperty<string>("RequestPath", n => n.EndsWith(p))));
 
+            loggerOptions.ExcludeProperties?.ToList().ForEach(p => loggerConfiguration.Filter
+                .ByExcluding(Matching.WithProperty(p)));
+
             Configure(loggerConfiguration, level, loggerOptions);
         }
 

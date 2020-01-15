@@ -11,6 +11,7 @@ namespace Convey.Logging
         public ElkOptions Elk { get; set; }
         public SeqOptions Seq { get; set; }
         public IEnumerable<string> ExcludePaths { get; set; }
+        public IEnumerable<string> ExcludeProperties { get; set; }
         public IDictionary<string, object> Tags { get; set; }
     }
 }

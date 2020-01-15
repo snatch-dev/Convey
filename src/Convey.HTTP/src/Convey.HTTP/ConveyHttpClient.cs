@@ -11,7 +11,7 @@ using Polly;
 
 namespace Convey.HTTP
 {
-    public class ConveyHttpClient : IHttpClient
+    internal class ConveyHttpClient : IHttpClient
     {
         private const string ApplicationJsonContentType = "application/json";
 

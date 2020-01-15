@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
 
 [assembly:InternalsVisibleTo("Convey.Discovery.Consul")]
 [assembly:InternalsVisibleTo("Convey.LoadBalancing.Fabio")]
@@ -15,7 +17,7 @@ namespace Convey.HTTP
         private const string RegistryName = "http.client";
 
         public static IConveyBuilder AddHttpClient(this IConveyBuilder builder, string clientName = "convey",
-            string sectionName = SectionName)
+           IEnumerable<string> maskedRequestUrlParts = null, string sectionName = SectionName)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
@@ -33,12 +35,20 @@ namespace Convey.HTTP
             }
 
             var options = builder.GetOptions<HttpClientOptions>(sectionName);
+            if (maskedRequestUrlParts is {} && options.RequestMasking is {})
+            {
+                options.RequestMasking.UrlParts = maskedRequestUrlParts;
+            }
+            
             builder.Services.AddSingleton(options);
             builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>(clientName);
+            if (options.RequestMasking?.Enabled == true)
+            {
+                builder.Services.Replace(ServiceDescriptor.Singleton<IHttpMessageHandlerBuilderFilter, ConveyHttpLoggingFilter>());
+            }
 
             return builder;
         }
-
 
         [Description("This is a hack related to HttpClient issue: https://github.com/aspnet/AspNetCore/issues/13346")]
         internal static void RemoveHttpClient(this IConveyBuilder builder)

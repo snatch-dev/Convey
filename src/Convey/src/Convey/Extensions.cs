@@ -24,10 +24,13 @@ namespace Convey
             builder.Services.AddMemoryCache();
             services.AddSingleton(options);
             services.AddSingleton<IServiceId, ServiceId>();
-            if (options.DisplayBanner && !string.IsNullOrWhiteSpace(options.Name))
+            if (!options.DisplayBanner || string.IsNullOrWhiteSpace(options.Name))
             {
-                Console.WriteLine(Figgle.FiggleFonts.Doom.Render($"{options.Name} {options.Version}"));
+                return builder;
             }
+            
+            var version = options.DisplayVersion ? $" {options.Version}" : string.Empty;
+            Console.WriteLine(Figgle.FiggleFonts.Doom.Render($"{options.Name}{version}"));
 
             return builder;
         }

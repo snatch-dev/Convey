@@ -18,7 +18,8 @@ namespace Convey.Logging
         private const string AppSectionName = "app";
 
         public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
-            string loggerSectionName = LoggerSectionName, string appSectionName = AppSectionName)
+            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            string appSectionName = AppSectionName)
             => hostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
                 if (string.IsNullOrWhiteSpace(loggerSectionName))
@@ -35,10 +36,12 @@ namespace Convey.Logging
                 var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
 
                 MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
+                configure?.Invoke(loggerConfiguration);
             });
 
         public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder,
-            string loggerSectionName = LoggerSectionName, string appSectionName = AppSectionName)
+            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            string appSectionName = AppSectionName)
             => webHostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
                 if (string.IsNullOrWhiteSpace(loggerSectionName))
@@ -55,6 +58,7 @@ namespace Convey.Logging
                 var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
 
                 MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
+                configure?.Invoke(loggerConfiguration);
             });
 
         private static void MapOptions(LoggerOptions loggerOptions, AppOptions appOptions,

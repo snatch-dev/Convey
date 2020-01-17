@@ -98,6 +98,11 @@ namespace Convey.HTTP
                 var hasMatch = false;
                 foreach (var part in maskedRequestUrlParts)
                 {
+                    if (string.IsNullOrWhiteSpace(part))
+                    {
+                        continue;
+                    }
+                    
                     if (!requestUri.Contains(part))
                     {
                         continue;

@@ -10,6 +10,7 @@ namespace Convey.Logging
         public FileOptions File { get; set; }
         public ElkOptions Elk { get; set; }
         public SeqOptions Seq { get; set; }
+        public ApplicationInsightsOptions AppInsights { get; set; }
         public IEnumerable<string> ExcludePaths { get; set; }
         public IEnumerable<string> ExcludeProperties { get; set; }
         public IDictionary<string, object> Tags { get; set; }

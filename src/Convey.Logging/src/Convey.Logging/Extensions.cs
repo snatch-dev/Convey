@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Convey.Logging.Options;
 using Convey.Types;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -97,6 +98,8 @@ namespace Convey.Logging
             var fileOptions = options.File ?? new FileOptions();
             var elkOptions = options.Elk ?? new ElkOptions();
             var seqOptions = options.Seq ?? new SeqOptions();
+            var appInsightsOptions = options.AppInsights ?? new ApplicationInsightsOptions();
+
             if (consoleOptions.Enabled)
             {
                 loggerConfiguration.WriteTo.Console();
@@ -128,6 +131,12 @@ namespace Convey.Logging
                             ? connectionConfiguration.BasicAuthentication(elkOptions.Username, elkOptions.Password)
                             : connectionConfiguration
                 });
+            }
+
+            if (appInsightsOptions.Enabled)
+            {
+                loggerConfiguration.WriteTo.ApplicationInsights(TelemetryConfiguration.Active,
+                    appInsightsOptions.GetTelemetryConverter(), level);
             }
 
             if (seqOptions.Enabled)

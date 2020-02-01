@@ -20,6 +20,11 @@ namespace Convey.HTTP.RestEase
             string httpClientSectionName = "httpClient")
             where T : class
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var restEaseOptions = builder.GetOptions<RestEaseOptions>(sectionName);
             return builder.AddServiceClient<T>(serviceName, restEaseOptions,
                 b => b.AddFabio(fabioSectionName, consulSectionName, httpClientSectionName));

@@ -26,6 +26,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public MessageProcessorOptions MessageProcessor { get; set; }
         public SslOptions Ssl { get; set; }
         public QueueOptions Queue { get; set; }
+        public QosOptions Qos { get; set; }
         public string SpanContextHeader { get; set; }
 
         public class LoggerOptions
@@ -69,6 +70,13 @@ namespace Convey.MessageBrokers.RabbitMQ
             public bool Enabled { get; set; }
             public string ServerName { get; set; }
             public string CertificatePath { get; set; }
+        }
+
+        public class QosOptions
+        {
+            public uint PrefetchSize { get; set; }
+            public ushort PrefetchCount { get; set; }
+            public bool Global { get; set; }
         }
     }
 }

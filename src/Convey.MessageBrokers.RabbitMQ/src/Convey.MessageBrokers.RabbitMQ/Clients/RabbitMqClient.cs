@@ -45,6 +45,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                 : correlationId;
             properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             properties.Headers = new Dictionary<string, object>();
+
             if (_contextEnabled)
             {
                 IncludeMessageContext(messageContext, properties);
@@ -55,19 +56,24 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                 properties.Headers.Add(_spanContextHeader, spanContext);
             }
 
-            if (!(headers is null))
+            if (headers is {})
             {
                 foreach (var (key, value) in headers)
                 {
+                    if (string.IsNullOrWhiteSpace(key) || value is null)
+                    {
+                        continue;
+                    }
+                    
                     properties.Headers.TryAdd(key, value);
                 }
             }
 
             if (_loggerEnabled)
             {
-                _logger.LogInformation($"Publishing a message with routing key: '{conventions.RoutingKey}' " +
-                                       $"to exchange: '{conventions.Exchange}' " +
-                                       $"[id: '{properties.MessageId}', correlation id: '{properties.CorrelationId}']");
+                _logger.LogTrace($"Publishing a message with routing key: '{conventions.RoutingKey}' " +
+                                 $"to exchange: '{conventions.Exchange}' " +
+                                 $"[id: '{properties.MessageId}', correlation id: '{properties.CorrelationId}']");
             }
 
             _channel.BasicPublish(conventions.Exchange, conventions.RoutingKey, properties, body);
@@ -75,7 +81,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
 
         private void IncludeMessageContext(object context, IBasicProperties properties)
         {
-            if (!(context is null))
+            if (context is {})
             {
                 properties.Headers.Add(_contextProvider.HeaderName, _serializer.Serialize(context));
                 return;

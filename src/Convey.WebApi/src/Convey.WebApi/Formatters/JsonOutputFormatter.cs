@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Open.Serialization.Json;
-using Utf8Json;
 
 namespace Convey.WebApi.Formatters
 {

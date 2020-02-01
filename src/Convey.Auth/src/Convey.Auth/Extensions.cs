@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Convey.Auth.Handlers;
 using Convey.Auth.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -15,6 +16,11 @@ namespace Convey.Auth
 
         public static IConveyBuilder AddJwt(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<JwtOptions>(sectionName);
             return builder.AddJwt(options);
         }
@@ -30,18 +36,69 @@ namespace Convey.Auth
             builder.Services.AddSingleton<IJwtHandler, JwtHandler>();
             builder.Services.AddSingleton<IAccessTokenService, InMemoryAccessTokenService>();
             builder.Services.AddTransient<AccessTokenValidatorMiddleware>();
-            builder.Services.AddAuthentication()
-                .AddJwtBearer(cfg =>
+
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                RequireAudience = options.RequireAudience,
+                ValidIssuer = options.ValidIssuer,
+                ValidIssuers = options.ValidIssuers,
+                ValidateActor = options.ValidateActor,
+                ValidAudience = options.ValidAudience,
+                ValidAudiences = options.ValidAudiences,
+                ValidateAudience = options.ValidateAudience,
+                ValidateIssuer = options.ValidateIssuer,
+                ValidateLifetime = options.ValidateLifetime,
+                ValidateTokenReplay = options.ValidateTokenReplay,
+                ValidateIssuerSigningKey = options.ValidateIssuerSigningKey,
+                SaveSigninToken = options.SaveSigninToken,
+                RequireExpirationTime = options.RequireExpirationTime,
+                RequireSignedTokens = options.RequireSignedTokens,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            if (!string.IsNullOrWhiteSpace(options.AuthenticationType))
+            {
+                tokenValidationParameters.AuthenticationType = options.AuthenticationType;
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.IssuerSigningKey))
+            {
+                tokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(options.IssuerSigningKey));
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.NameClaimType))
+            {
+                tokenValidationParameters.NameClaimType = options.NameClaimType;
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.RoleClaimType))
+            {
+                tokenValidationParameters.RoleClaimType = options.RoleClaimType;
+            }
+
+            builder.Services.AddSingleton(tokenValidationParameters);
+
+            builder.Services
+                .AddAuthentication(o =>
                 {
-                    cfg.TokenValidationParameters = new TokenValidationParameters
+                    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(o =>
+                {
+                    o.Authority = options.Authority;
+                    o.Audience = options.Audience;
+                    o.MetadataAddress = options.MetadataAddress;
+                    o.SaveToken = options.SaveToken;
+                    o.RefreshOnIssuerKeyNotFound = options.RefreshOnIssuerKeyNotFound;
+                    o.RequireHttpsMetadata = options.RequireHttpsMetadata;
+                    o.IncludeErrorDetails = options.IncludeErrorDetails;
+                    o.TokenValidationParameters = tokenValidationParameters;
+                    if (!string.IsNullOrWhiteSpace(options.Challenge))
                     {
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SecretKey)),
-                        ValidIssuer = options.Issuer,
-                        ValidAudience = options.ValidAudience,
-                        ValidateAudience = options.ValidateAudience,
-                        ValidateLifetime = options.ValidateLifetime,
-                        ClockSkew = TimeSpan.Zero
-                    };
+                        o.Challenge = options.Challenge;
+                    }
                 });
 
             return builder;

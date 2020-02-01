@@ -11,6 +11,11 @@ namespace Convey.Persistence.Redis
 
         public static IConveyBuilder AddRedis(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<RedisOptions>(sectionName);
             return builder.AddRedis(options);
         }
@@ -28,8 +33,8 @@ namespace Convey.Persistence.Redis
             {
                 return builder;
             }
-            
-            builder.Services.AddStackExchangeRedisCache(o => 
+
+            builder.Services.AddStackExchangeRedisCache(o =>
             {
                 o.Configuration = options.ConnectionString;
                 o.InstanceName = options.Instance;

@@ -22,7 +22,7 @@ namespace Convey.Logging.CQRS
         private static IConveyBuilder AddHandlerLogging(this IConveyBuilder builder, Type handlerType,
             Type decoratorType, Assembly assembly = null)
         {
-            assembly = assembly ?? Assembly.GetCallingAssembly();
+            assembly ??= Assembly.GetCallingAssembly();
             
             var handlers = assembly
                 .GetTypes()

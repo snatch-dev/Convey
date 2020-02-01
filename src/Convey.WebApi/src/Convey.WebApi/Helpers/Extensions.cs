@@ -27,6 +27,11 @@ namespace Convey.WebApi.Helpers
                 SetDefaultValue(propertyInfo, instance, string.Empty);
                 return;
             }
+            
+            if (propertyType.Name == "IDictionary`2")
+            {
+                return;
+            }
 
             if (typeof(IEnumerable).IsAssignableFrom(propertyType))
             {

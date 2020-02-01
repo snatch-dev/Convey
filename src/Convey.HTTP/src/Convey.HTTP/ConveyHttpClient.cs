@@ -1,16 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Polly;
 
 namespace Convey.HTTP
 {
-    public class ConveyHttpClient : IHttpClient
+    internal class ConveyHttpClient : IHttpClient
     {
         private const string ApplicationJsonContentType = "application/json";
 
@@ -24,13 +25,11 @@ namespace Convey.HTTP
 
         private readonly HttpClient _client;
         private readonly HttpClientOptions _options;
-        private readonly ILogger<IHttpClient> _logger;
 
-        public ConveyHttpClient(HttpClient client, HttpClientOptions options, ILogger<IHttpClient> logger)
+        public ConveyHttpClient(HttpClient client, HttpClientOptions options)
         {
             _client = client;
             _options = options;
-            _logger = logger;
         }
 
         public virtual Task<HttpResponseMessage> GetAsync(string uri)
@@ -39,11 +38,17 @@ namespace Convey.HTTP
         public virtual Task<T> GetAsync<T>(string uri)
             => SendAsync<T>(uri, Method.Get);
 
+        public Task<HttpResult<T>> GetResultAsync<T>(string uri)
+            => SendResultAsync<T>(uri, Method.Get);
+
         public virtual Task<HttpResponseMessage> PostAsync(string uri, object data = null)
             => SendAsync(uri, Method.Post, data);
 
         public virtual Task<T> PostAsync<T>(string uri, object data = null)
             => SendAsync<T>(uri, Method.Post, data);
+
+        public Task<HttpResult<T>> PostResultAsync<T>(string uri, object data = null)
+            => SendResultAsync<T>(uri, Method.Post, data);
 
         public virtual Task<HttpResponseMessage> PutAsync(string uri, object data = null)
             => SendAsync(uri, Method.Put, data);
@@ -51,9 +56,76 @@ namespace Convey.HTTP
         public virtual Task<T> PutAsync<T>(string uri, object data = null)
             => SendAsync<T>(uri, Method.Put, data);
 
+        public Task<HttpResult<T>> PutResultAsync<T>(string uri, object data = null)
+            => SendResultAsync<T>(uri, Method.Put, data);
+
         public virtual Task<HttpResponseMessage> DeleteAsync(string uri)
             => SendAsync(uri, Method.Delete);
 
+        public Task<T> DeleteAsync<T>(string uri)
+            => SendAsync<T>(uri, Method.Delete);
+
+        public Task<HttpResult<T>> DeleteResultAsync<T>(string uri)
+            => SendResultAsync<T>(uri, Method.Delete);
+
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+            => Policy.Handle<Exception>()
+                .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
+                .ExecuteAsync(() => _client.SendAsync(request));
+
+        public Task<T> SendAsync<T>(HttpRequestMessage request)
+            => Policy.Handle<Exception>()
+                .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
+                .ExecuteAsync(async () =>
+                {
+                    var response = await _client.SendAsync(request);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return default;
+                    }
+
+                    var stream = await response.Content.ReadAsStreamAsync();
+
+                    return DeserializeJsonFromStream<T>(stream);
+                });
+
+        public Task<HttpResult<T>> SendResultAsync<T>(HttpRequestMessage request)
+            => Policy.Handle<Exception>()
+                .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
+                .ExecuteAsync(async () =>
+                {
+                    var response = await _client.SendAsync(request);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return new HttpResult<T>(default, response);
+                    }
+
+                    var stream = await response.Content.ReadAsStreamAsync();
+                    var result = DeserializeJsonFromStream<T>(stream);
+
+                    return new HttpResult<T>(result, response);
+                });
+        
+        public void SetHeaders(IDictionary<string, string> headers)
+        {
+            if (headers is null)
+            {
+                return;
+            }
+
+            foreach (var (key, value) in headers)
+            {
+                if (string.IsNullOrEmpty(key))
+                {
+                    continue;
+                }
+
+                _client.DefaultRequestHeaders.TryAddWithoutValidation(key, value);
+            }
+        }
+
+        public void SetHeaders(Action<HttpRequestHeaders> headers) => headers?.Invoke(_client.DefaultRequestHeaders);
+        
         protected virtual async Task<T> SendAsync<T>(string uri, Method method, object data = null)
         {
             var response = await SendAsync(uri, method, data);
@@ -66,13 +138,27 @@ namespace Convey.HTTP
 
             return DeserializeJsonFromStream<T>(stream);
         }
+        
+        protected virtual async Task<HttpResult<T>> SendResultAsync<T>(string uri, Method method, object data = null)
+        {
+            var response = await SendAsync(uri, method, data);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new HttpResult<T>(default, response);
+            }
+
+            var stream = await response.Content.ReadAsStreamAsync();
+            var result = DeserializeJsonFromStream<T>(stream);
+            
+            return new HttpResult<T>(result, response);
+        }
 
         protected virtual Task<HttpResponseMessage> SendAsync(string uri, Method method, object data = null)
             => Policy.Handle<Exception>()
                 .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
                 .ExecuteAsync(() =>
                 {
-                    var requestUri = uri.StartsWith("http://") ? uri : $"http://{uri}";
+                    var requestUri = uri.StartsWith("http") ? uri : $"http://{uri}";
                     
                     return GetResponseAsync(requestUri, method, data);
                 });

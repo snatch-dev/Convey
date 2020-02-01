@@ -3,7 +3,6 @@ using Convey.Docs.Swagger.Builders;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Swagger;
 
 namespace Convey.Docs.Swagger
 {
@@ -14,6 +13,11 @@ namespace Convey.Docs.Swagger
 
         public static IConveyBuilder AddSwaggerDocs(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<SwaggerOptions>(sectionName);
             return builder.AddSwaggerDocs(options);
         }

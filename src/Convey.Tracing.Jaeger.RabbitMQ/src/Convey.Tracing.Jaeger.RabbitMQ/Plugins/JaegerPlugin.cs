@@ -27,22 +27,20 @@ namespace Convey.Tracing.Jaeger.RabbitMQ.Plugins
                 spanContext = Encoding.UTF8.GetString(spanContextBytes);
             }
 
-            using (var scope = BuildScope(messageName, spanContext))
+            using var scope = BuildScope(messageName, spanContext);
+            var span = scope.Span;
+            span.Log($"Started processing: {messageName} [id: {messageId}]");
+            try
             {
-                var span = scope.Span;
-                span.Log($"Started processing: {messageName} [id: {messageId}]");
-                try
-                {
-                    await Next(message, correlationContext, args);
-                }
-                catch (Exception ex)
-                {
-                    span.SetTag(Tags.Error, true);
-                    span.Log(ex.Message);
-                }
-
-                span.Log($"Finished processing: {messageName} [id: {messageId}]");
+                await Next(message, correlationContext, args);
             }
+            catch (Exception ex)
+            {
+                span.SetTag(Tags.Error, true);
+                span.Log(ex.Message);
+            }
+
+            span.Log($"Finished processing: {messageName} [id: {messageId}]");
         }
         
         private IScope BuildScope(string messageName, string serializedSpanContext)

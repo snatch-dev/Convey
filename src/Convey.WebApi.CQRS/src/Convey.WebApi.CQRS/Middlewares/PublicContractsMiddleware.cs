@@ -27,7 +27,7 @@ namespace Convey.WebApi.CQRS.Middlewares
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Converters = new List<JsonConverter>
             {
-                new StringEnumConverter(true)
+                new StringEnumConverter(new CamelCaseNamingStrategy())
             },
             Formatting = Formatting.Indented
         };
@@ -47,7 +47,7 @@ namespace Convey.WebApi.CQRS.Middlewares
                 return;
             }
 
-            Load(attributeType);
+            Load(attributeType); 
         }
 
         public Task InvokeAsync(HttpContext context)

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Convey.Logging.Options;
+using Convey.Types;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Filters;
@@ -12,54 +14,81 @@ namespace Convey.Logging
 {
     public static class Extensions
     {
-        public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder, string applicationName = null,
-            string serviceId = null)
+        private const string LoggerSectionName = "logger";
+        private const string AppSectionName = "app";
+
+        public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
+            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            string appSectionName = AppSectionName)
+            => hostBuilder.UseSerilog((context, loggerConfiguration) =>
+            {
+                if (string.IsNullOrWhiteSpace(loggerSectionName))
+                {
+                    loggerSectionName = LoggerSectionName;
+                }
+
+                if (string.IsNullOrWhiteSpace(appSectionName))
+                {
+                    appSectionName = AppSectionName;
+                }
+
+                var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
+                var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
+
+                MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
+                configure?.Invoke(loggerConfiguration);
+            });
+
+        public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder,
+            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            string appSectionName = AppSectionName)
             => webHostBuilder.UseSerilog((context, loggerConfiguration) =>
             {
-                var options = context.Configuration.GetOptions<LoggerOptions>("logger");
-                if (!Enum.TryParse<LogEventLevel>(options.Level, true, out var level))
+                if (string.IsNullOrWhiteSpace(loggerSectionName))
                 {
-                    level = LogEventLevel.Information;
+                    loggerSectionName = LoggerSectionName;
                 }
 
-                if (!string.IsNullOrWhiteSpace(options.ApplicationName))
+                if (string.IsNullOrWhiteSpace(appSectionName))
                 {
-                    applicationName = options.ApplicationName;
+                    appSectionName = AppSectionName;
                 }
 
-                var applicationNameEnv = Environment.GetEnvironmentVariable("APPLICATION_NAME");
-                if (!string.IsNullOrWhiteSpace(applicationNameEnv))
-                {
-                    applicationName = applicationNameEnv;
-                }
-                
-                if (!string.IsNullOrWhiteSpace(options.ServiceId))
-                {
-                    serviceId = options.ServiceId;
-                }
+                var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
+                var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
 
-                var serviceIdEnv = Environment.GetEnvironmentVariable("SERVICE_ID");
-                if (!string.IsNullOrWhiteSpace(serviceIdEnv))
-                {
-                    serviceId = serviceIdEnv;
-                }
-                
-                loggerConfiguration.Enrich.FromLogContext()
-                    .MinimumLevel.Is(level)
-                    .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
-                    .Enrich.WithProperty("ApplicationName", applicationName)
-                    .Enrich.WithProperty("ServiceId", serviceId);
-
-                foreach (var (key, value) in options.Tags ?? new Dictionary<string, object>())
-                {
-                    loggerConfiguration.Enrich.WithProperty(key, value);
-                }
-
-                options.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
-                    .ByExcluding(Matching.WithProperty<string>("RequestPath", n => n.EndsWith(p))));
-
-                Configure(loggerConfiguration, level, options);
+                MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
+                configure?.Invoke(loggerConfiguration);
             });
+
+        private static void MapOptions(LoggerOptions loggerOptions, AppOptions appOptions,
+            LoggerConfiguration loggerConfiguration, string environmentName)
+        {
+            if (!Enum.TryParse<LogEventLevel>(loggerOptions.Level, true, out var level))
+            {
+                level = LogEventLevel.Information;
+            }
+
+            loggerConfiguration.Enrich.FromLogContext()
+                .MinimumLevel.Is(level)
+                .Enrich.WithProperty("Environment", environmentName)
+                .Enrich.WithProperty("Application", appOptions.Service)
+                .Enrich.WithProperty("Instance", appOptions.Instance)
+                .Enrich.WithProperty("Version", appOptions.Version);
+
+            foreach (var (key, value) in loggerOptions.Tags ?? new Dictionary<string, object>())
+            {
+                loggerConfiguration.Enrich.WithProperty(key, value);
+            }
+
+            loggerOptions.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
+                .ByExcluding(Matching.WithProperty<string>("RequestPath", n => n.EndsWith(p))));
+
+            loggerOptions.ExcludeProperties?.ToList().ForEach(p => loggerConfiguration.Filter
+                .ByExcluding(Matching.WithProperty(p)));
+
+            Configure(loggerConfiguration, level, loggerOptions);
+        }
 
         private static void Configure(LoggerConfiguration loggerConfiguration, LogEventLevel level,
             LoggerOptions options)

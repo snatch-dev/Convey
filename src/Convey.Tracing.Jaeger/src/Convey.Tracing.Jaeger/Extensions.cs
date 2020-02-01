@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Convey.Tracing.Jaeger.Builders;
 using Convey.Tracing.Jaeger.Middlewares;
 using Convey.Tracing.Jaeger.Tracers;
@@ -10,18 +11,24 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTracing;
+using OpenTracing.Contrib.NetCore.Configuration;
 using OpenTracing.Util;
 
 namespace Convey.Tracing.Jaeger
 {
     public static class Extensions
     {
-        private static bool _initialized;
+        private static int _initialized;
         private const string SectionName = "jaeger";
         private const string RegistryName = "tracing.jaeger";
 
         public static IConveyBuilder AddJaeger(this IConveyBuilder builder, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var options = builder.GetOptions<JaegerOptions>(sectionName);
             return builder.AddJaeger(options);
         }
@@ -35,6 +42,11 @@ namespace Convey.Tracing.Jaeger
 
         public static IConveyBuilder AddJaeger(this IConveyBuilder builder, JaegerOptions options)
         {
+            if (Interlocked.Exchange(ref _initialized, 1) == 1)
+            {
+                return builder;
+            }
+            
             builder.Services.AddSingleton(options);
             if (!options.Enabled)
             {
@@ -43,12 +55,23 @@ namespace Convey.Tracing.Jaeger
                 return builder;
             }
 
-            if (!builder.TryRegister(RegistryName) || _initialized)
+            if (!builder.TryRegister(RegistryName))
             {
                 return builder;
             }
 
-            _initialized = true;
+            if (options.ExcludePaths is {})
+            {
+                builder.Services.Configure<AspNetCoreDiagnosticOptions>(o =>
+                {
+                    foreach (var path in options.ExcludePaths)
+                    {
+                        o.Hosting.IgnorePatterns.Add(x => x.Request.Path == path);
+                    }
+                });
+            }
+
+            builder.Services.AddOpenTracing();
             builder.Services.AddSingleton<ITracer>(sp =>
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();

@@ -2,7 +2,6 @@
 using System.Text;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -13,9 +12,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 {
     internal sealed class RabbitMqSubscriber : IBusSubscriber
     {
+        private static readonly EmptyExceptionToMessageMapper ExceptionMapper = new EmptyExceptionToMessageMapper();
         private readonly IServiceProvider _serviceProvider;
         private readonly IBusPublisher _publisher;
-        private readonly IConnection _connection;
         private readonly IRabbitMqSerializer _rabbitMqSerializer;
         private readonly IConventionsProvider _conventionsProvider;
         private readonly IContextProvider _contextProvider;
@@ -27,24 +26,28 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly IModel _channel;
         private readonly bool _loggerEnabled;
         private readonly RabbitMqOptions _options;
+        private readonly RabbitMqOptions.QosOptions _qosOptions;
 
         public RabbitMqSubscriber(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _connection = _serviceProvider.GetRequiredService<IConnection>();
-            _channel = _connection.CreateModel();
+            _channel = _serviceProvider.GetRequiredService<IConnection>().CreateModel();
             _publisher = _serviceProvider.GetRequiredService<IBusPublisher>();
             _rabbitMqSerializer = _serviceProvider.GetRequiredService<IRabbitMqSerializer>();
             _conventionsProvider = _serviceProvider.GetRequiredService<IConventionsProvider>();
             _contextProvider = _serviceProvider.GetRequiredService<IContextProvider>();
             _logger = _serviceProvider.GetService<ILogger<RabbitMqSubscriber>>();
-            _exceptionToMessageMapper = _serviceProvider.GetService<IExceptionToMessageMapper>() ??
-                                        new EmptyExceptionToMessageMapper();
+            _exceptionToMessageMapper = _serviceProvider.GetService<IExceptionToMessageMapper>() ?? ExceptionMapper;
             _pluginsExecutor = _serviceProvider.GetService<IRabbitMqPluginsExecutor>();
             _options = _serviceProvider.GetService<RabbitMqOptions>();
             _loggerEnabled = _options.Logger?.Enabled ?? false;
             _retries = _options.Retries >= 0 ? _options.Retries : 3;
             _retryInterval = _options.RetryInterval > 0 ? _options.RetryInterval : 2;
+            _qosOptions = _options?.Qos ?? new RabbitMqOptions.QosOptions();
+            if (_qosOptions.PrefetchCount < 1)
+            {
+                _qosOptions.PrefetchCount = 1;
+            }
         }
 
         public IBusSubscriber Subscribe<T>(Func<IServiceProvider, T, object, Task> handle)
@@ -61,19 +64,23 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             {
                 info = $"[queue: '{conventions.Queue}', routing key: '{conventions.RoutingKey}', " +
                        $"exchange: '{conventions.Exchange}']";
+            }
 
-                if (declare)
+            if (declare)
+            {
+                if (_loggerEnabled)
                 {
                     _logger.LogInformation($"Declaring a queue: '{conventions.Queue}' with routing key: " +
                                            $"'{conventions.RoutingKey}' for exchange: '{conventions.Exchange}'.");
-                    _channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
                 }
+
+                _channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
             }
 
             _channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
-            _channel.BasicQos(0, 1, false);
+            _channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
+            
             var consumer = new AsyncEventingBasicConsumer(_channel);
-
             consumer.Received += async (model, args) =>
             {
                 using var scope = _serviceProvider.CreateScope();
@@ -88,20 +95,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                                $"correlation id: '{correlationId}', timestamp: {timestamp} {info}.");
                     }
 
-                    var body = args.Body;
-                    var payload = Encoding.UTF8.GetString(body);
-                    var messagePropertiesAccessor = scope.ServiceProvider.GetService<IMessagePropertiesAccessor>();
-                    messagePropertiesAccessor.MessageProperties = new MessageProperties
-                    {
-                        MessageId = messageId,
-                        CorrelationId = correlationId,
-                        Timestamp = timestamp,
-                        Headers = args.BasicProperties.Headers
-                    };
-                    var correlationContextAccessor = scope.ServiceProvider.GetService<ICorrelationContextAccessor>();
-                    var correlationContext = _contextProvider.Get(args.BasicProperties.Headers);
-                    correlationContextAccessor.CorrelationContext = correlationContext;
+                    var payload = Encoding.UTF8.GetString(args.Body);
                     var message = _rabbitMqSerializer.Deserialize<T>(payload);
+                    var correlationContext = BuildCorrelationContext(scope, args);
 
                     Task Next(object m, object ctx, BasicDeliverEventArgs a)
                         => TryHandleAsync((T) m, messageId, correlationId, ctx, a, handle);
@@ -119,6 +115,23 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             _channel.BasicConsume(conventions.Queue, false, consumer);
 
             return this;
+        }
+
+        private object BuildCorrelationContext(IServiceScope scope, BasicDeliverEventArgs args)
+        {
+            var messagePropertiesAccessor = scope.ServiceProvider.GetService<IMessagePropertiesAccessor>();
+            messagePropertiesAccessor.MessageProperties = new MessageProperties
+            {
+                MessageId = args.BasicProperties.MessageId,
+                CorrelationId = args.BasicProperties.CorrelationId,
+                Timestamp = args.BasicProperties.Timestamp.UnixTime,
+                Headers = args.BasicProperties.Headers
+            };
+            var correlationContextAccessor = scope.ServiceProvider.GetService<ICorrelationContextAccessor>();
+            var correlationContext = _contextProvider.Get(args.BasicProperties.Headers);
+            correlationContextAccessor.CorrelationContext = correlationContext;
+
+            return correlationContext;
         }
 
         private async Task TryHandleAsync<TMessage>(TMessage message, string messageId, string correlationId,

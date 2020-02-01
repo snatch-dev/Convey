@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.MessageBrokers;
+using Convey.MessageBrokers.Outbox;
 using Convey.Persistence.MongoDB;
 using Conveyor.Services.Orders.Domain;
 using Conveyor.Services.Orders.Events;
@@ -15,15 +16,18 @@ namespace Conveyor.Services.Orders.Commands.Handlers
     {
         private readonly IMongoRepository<Order, Guid> _repository;
         private readonly IBusPublisher _publisher;
+        private readonly IMessageOutbox _outbox;
         private readonly IPricingServiceClient _pricingServiceClient;
         private readonly ILogger<CreateOrderHandler> _logger;
         private readonly ITracer _tracer;
 
         public CreateOrderHandler(IMongoRepository<Order, Guid> repository, IBusPublisher publisher,
-            IPricingServiceClient pricingServiceClient, ITracer tracer, ILogger<CreateOrderHandler> logger)
+            IMessageOutbox outbox, IPricingServiceClient pricingServiceClient, ITracer tracer,
+            ILogger<CreateOrderHandler> logger)
         {
             _repository = repository;
             _publisher = publisher;
+            _outbox = outbox;
             _pricingServiceClient = pricingServiceClient;
             _tracer = tracer;
             _logger = logger;
@@ -43,13 +47,20 @@ namespace Conveyor.Services.Orders.Commands.Handlers
             {
                 throw new InvalidOperationException($"Pricing was not found for order: {command.OrderId}");
             }
-            
+
             _logger.LogInformation($"Order with id: {command.OrderId} will cost: {pricingDto.TotalAmount}$.");
             var order = new Order(command.OrderId, command.CustomerId, pricingDto.TotalAmount);
             await _repository.AddAsync(order);
             _logger.LogInformation($"Created an order with id: {command.OrderId}, customer: {command.CustomerId}.");
             var spanContext = _tracer.ActiveSpan.Context.ToString();
-            await _publisher.PublishAsync(new OrderCreated(order.Id), spanContext: spanContext);
+            var @event = new OrderCreated(order.Id);
+            if (_outbox.Enabled)
+            {
+                await _outbox.SendAsync(@event, spanContext: spanContext);
+                return;
+            }
+
+            await _publisher.PublishAsync(@event, spanContext: spanContext);
         }
     }
 }

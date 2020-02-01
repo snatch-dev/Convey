@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Tracing.Jaeger</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Tracing.Jaeger</AssemblyName>
     <Title>Convey.Tracing.Jaeger</Title>
@@ -17,6 +17,7 @@
   
   <ItemGroup>
     <PackageReference Include="Jaeger" Version="0.3.6" />
+    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.6.2" />
   </ItemGroup>
 
   <ItemGroup>

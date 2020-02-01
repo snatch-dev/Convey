@@ -13,10 +13,15 @@ namespace Convey.WebApi.CQRS
     public static class Extensions
     {
         public static IApplicationBuilder UseDispatcherEndpoints(this IApplicationBuilder app,
-            Action<IDispatcherEndpointsBuilder> builder)
+            Action<IDispatcherEndpointsBuilder> builder, bool useAuthorization = true)
         {
             var definitions = app.ApplicationServices.GetService<WebApiEndpointDefinitions>();
             app.UseRouting();
+            if (useAuthorization)
+            {
+                app.UseAuthorization();
+            }
+            
             app.UseEndpoints(router => builder(new DispatcherEndpointsBuilder(
                 new EndpointsBuilder(router, definitions))));
 

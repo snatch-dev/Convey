@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Convey.Types;
 using RawRabbit.DependencyInjection;
 using RawRabbit.Instantiation;
 
@@ -21,7 +20,7 @@ namespace Convey.MessageBrokers.RawRabbit.Registers
         {
             if (buildClient is null)
             {
-                throw new ConveyException("Build action for RabbitMQ plugin cannot be null");
+                throw new InvalidOperationException("Build action for RabbitMQ plugin cannot be null");
             }
             
             _plugins.Add((buildClient, registerDependencies));

@@ -9,8 +9,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Convey.WebApi.Exceptions;
 using Convey.WebApi.Formatters;
-using Convey.WebApi.Middlewares;
 using Convey.WebApi.Requests;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -41,19 +41,30 @@ namespace Convey.WebApi
             Converters = {new StringEnumConverter(true)}
         };
 
-        public static IApplicationBuilder UseEndpoints(this IApplicationBuilder app, Action<IEndpointsBuilder> build)
+        public static IApplicationBuilder UseEndpoints(this IApplicationBuilder app, Action<IEndpointsBuilder> build,
+            bool useAuthorization = true)
         {
             var definitions = app.ApplicationServices.GetRequiredService<WebApiEndpointDefinitions>();
             app.UseRouting();
+            if (useAuthorization)
+            {
+                app.UseAuthorization();
+            }
+
             app.UseEndpoints(router => build(new EndpointsBuilder(router, definitions)));
 
             return app;
         }
 
-        [Description("By default Newtonsoft JSON serializer is being used and it sets Kestrel's AllowSynchronousIO = true")]
+        [Description("By default Newtonsoft JSON serializer is being used and it sets Kestrel's and IIS ServerOptions AllowSynchronousIO = true")]
         public static IConveyBuilder AddWebApi(this IConveyBuilder builder, Action<IMvcCoreBuilder> configureMvc = null,
             IJsonSerializer jsonSerializer = null, string sectionName = SectionName)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;
@@ -72,6 +83,7 @@ namespace Convey.WebApi
             if (jsonSerializer.GetType().Namespace?.Contains("Newtonsoft") == true)
             {
                 builder.Services.Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true);
+                builder.Services.Configure<IISServerOptions>(o => o.AllowSynchronousIO = true);
             }
             
             builder.Services.AddSingleton(jsonSerializer);
@@ -109,8 +121,21 @@ namespace Convey.WebApi
             return builder;
         }
 
+        public static IConveyBuilder AddErrorHandler<T>(this IConveyBuilder builder)
+            where T : class, IExceptionToResponseMapper
+        {
+            builder.Services.AddTransient<ErrorHandlerMiddleware>();
+            builder.Services.AddSingleton<IExceptionToResponseMapper, T>();
+
+            return builder;
+        }
+
         public static IApplicationBuilder UseErrorHandler(this IApplicationBuilder builder)
-            => builder.UseMiddleware<ErrorHandlerMiddleware>();
+        {
+            builder.ApplicationServices.GetRequiredService<IExceptionToResponseMapper>();
+            
+            return builder.UseMiddleware<ErrorHandlerMiddleware>();
+        }
 
         public static IApplicationBuilder UseAllForwardedHeaders(this IApplicationBuilder builder)
             => builder.UseForwardedHeaders(new ForwardedHeadersOptions

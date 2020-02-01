@@ -21,14 +21,22 @@ namespace Convey.MessageBrokers.RabbitMQ.Plugins
         {
             var chains = _registry.Get();
 
-            if (!chains.Any())
+            if (chains is null || !chains.Any())
             {
                 await successor(message, correlationContext, args);
+                return;
             }
 
             foreach (var chain in chains)
             {
-                chain.Plugin = _serviceProvider.GetService(chain.PluginType) as IRabbitMqPlugin;
+                var plugin = _serviceProvider.GetService(chain.PluginType);
+
+                if (plugin is null)
+                {
+                    throw new InvalidOperationException($"RabbitMq plugin of type {chain.PluginType.Name} was not registered");
+                }
+                
+                chain.Plugin = plugin as IRabbitMqPlugin;;
             }
 
             var current = chains.Last;

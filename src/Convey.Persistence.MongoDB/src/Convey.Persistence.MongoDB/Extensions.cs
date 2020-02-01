@@ -18,6 +18,11 @@ namespace Convey.Persistence.MongoDB
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, string sectionName = SectionName,
             IMongoDbSeeder seeder = null)
         {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+            
             var mongoOptions = builder.GetOptions<MongoDbOptions>(sectionName);
             return builder.AddMongo(mongoOptions, seeder);
         }
@@ -38,20 +43,17 @@ namespace Convey.Persistence.MongoDB
             }
 
             builder.Services.AddSingleton(mongoOptions);
-
             builder.Services.AddSingleton<IMongoClient>(sp =>
             {
                 var options = sp.GetService<MongoDbOptions>();
                 return new MongoClient(options.ConnectionString);
             });
-
             builder.Services.AddTransient(sp =>
             {
                 var options = sp.GetService<MongoDbOptions>();
                 var client = sp.GetService<IMongoClient>();
                 return client.GetDatabase(options.Database);
             });
-
             builder.Services.AddTransient<IMongoDbInitializer, MongoDbInitializer>();
             builder.Services.AddTransient<IMongoSessionFactory, MongoSessionFactory>();
 
@@ -63,7 +65,7 @@ namespace Convey.Persistence.MongoDB
             {
                 builder.Services.AddSingleton(seeder);
             }
-            
+
             builder.AddInitializer<IMongoDbInitializer>();
 
             return builder;

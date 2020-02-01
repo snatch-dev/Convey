@@ -3,9 +3,9 @@ echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
 cd src/Convey.MessageBrokers.Outbox/src/Convey.MessageBrokers.Outbox
-dotnet pack -c release /p:PackageVersion=0.3.$TRAVIS_BUILD_NUMBER --no-restore -o .
+dotnet pack -c release /p:PackageVersion=0.4.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
-echo Uploading Convey.Discovery.Consul package to Nuget using branch $TRAVIS_BRANCH
+echo Uploading Convey.MessageBrokers.Outbox package to Nuget using branch $TRAVIS_BRANCH
 
 case "$TRAVIS_BRANCH" in
   "master")

@@ -7,6 +7,7 @@ using App.Metrics.AspNetCore.Health.Endpoints;
 using App.Metrics.AspNetCore.Tracking;
 using App.Metrics.Formatters.Prometheus;
 using Convey.Metrics.AppMetrics.Builders;
+using Convey.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -18,41 +19,64 @@ namespace Convey.Metrics.AppMetrics
     public static class Extensions
     {
         private static bool _initialized;
-        private const string SectionName = "metrics";
+        private const string MetricsSectionName = "metrics";
+        private const string AppSectionName = "app";
         private const string RegistryName = "metrics.metrics";
 
         [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
-        public static IConveyBuilder AddMetrics(this IConveyBuilder builder, string sectionName = SectionName)
+        public static IConveyBuilder AddMetrics(this IConveyBuilder builder,
+            string metricsSectionName = MetricsSectionName, string appSectionName = AppSectionName)
         {
-            var options = builder.GetOptions<MetricsOptions>(sectionName);
-            return builder.AddMetrics(options);
+            if (string.IsNullOrWhiteSpace(metricsSectionName))
+            {
+                metricsSectionName = MetricsSectionName;
+            }
+
+            if (string.IsNullOrWhiteSpace(appSectionName))
+            {
+                appSectionName = AppSectionName;
+            }
+
+            var metricsOptions = builder.GetOptions<MetricsOptions>(metricsSectionName);
+            var appOptions = builder.GetOptions<AppOptions>(appSectionName);
+
+            return builder.AddMetrics(metricsOptions, appOptions);
         }
 
         [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
         public static IConveyBuilder AddMetrics(this IConveyBuilder builder,
-            Func<IMetricsOptionsBuilder, IMetricsOptionsBuilder> buildOptions)
+            Func<IMetricsOptionsBuilder, IMetricsOptionsBuilder> buildOptions, string appSectionName = AppSectionName)
         {
-            var options = buildOptions(new MetricsOptionsBuilder()).Build();
-            return builder.AddMetrics(options);
+            if (string.IsNullOrWhiteSpace(appSectionName))
+            {
+                appSectionName = AppSectionName;
+            }
+
+            var metricsOptions = buildOptions(new MetricsOptionsBuilder()).Build();
+            var appOptions = builder.GetOptions<AppOptions>(appSectionName);
+
+            return builder.AddMetrics(metricsOptions, appOptions);
         }
 
-        [Description("For the time being it sets Kestrel's AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
-        public static IConveyBuilder AddMetrics(this IConveyBuilder builder, MetricsOptions options)
+        [Description("For the time being it sets Kestrel's and IIS ServerOptions AllowSynchronousIO = true, see https://github.com/AppMetrics/AppMetrics/issues/396")]
+        public static IConveyBuilder AddMetrics(this IConveyBuilder builder, MetricsOptions metricsOptions,
+            AppOptions appOptions)
         {
-            builder.Services.AddSingleton(options);
-            if (!builder.TryRegister(RegistryName) || !options.Enabled || _initialized)
+            builder.Services.AddSingleton(metricsOptions);
+            if (!builder.TryRegister(RegistryName) || !metricsOptions.Enabled || _initialized)
             {
                 return builder;
             }
 
             _initialized = true;
-            
+
             //TODO: Remove once fixed https://github.com/AppMetrics/AppMetrics/issues/396
             builder.Services.Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true);
+            builder.Services.Configure<IISServerOptions>(o => o.AllowSynchronousIO = true);
             
             var metricsBuilder = new MetricsBuilder().Configuration.Configure(cfg =>
             {
-                var tags = options.Tags;
+                var tags = metricsOptions.Tags;
                 if (tags is null)
                 {
                     return;
@@ -61,31 +85,46 @@ namespace Convey.Metrics.AppMetrics
                 tags.TryGetValue("app", out var app);
                 tags.TryGetValue("env", out var env);
                 tags.TryGetValue("server", out var server);
-                cfg.AddAppTag(string.IsNullOrWhiteSpace(app) ? null : app);
+                cfg.AddAppTag(string.IsNullOrWhiteSpace(app) ? appOptions.Service : app);
                 cfg.AddEnvTag(string.IsNullOrWhiteSpace(env) ? null : env);
                 cfg.AddServerTag(string.IsNullOrWhiteSpace(server) ? null : server);
+                if (!string.IsNullOrWhiteSpace(appOptions.Instance))
+                {
+                    cfg.GlobalTags.Add("instance", appOptions.Instance);
+                }
+
+                if (!string.IsNullOrWhiteSpace(appOptions.Version))
+                {
+                    cfg.GlobalTags.Add("version", appOptions.Version);
+                }
+
                 foreach (var tag in tags)
                 {
+                    if (cfg.GlobalTags.ContainsKey(tag.Key))
+                    {
+                        cfg.GlobalTags.Remove(tag.Key);
+                    }
+
                     if (!cfg.GlobalTags.ContainsKey(tag.Key))
                     {
-                        cfg.GlobalTags.Add(tag.Key, tag.Value);
+                        cfg.GlobalTags.TryAdd(tag.Key, tag.Value);
                     }
                 }
             });
 
-            if (options.InfluxEnabled)
+            if (metricsOptions.InfluxEnabled)
             {
                 metricsBuilder.Report.ToInfluxDb(o =>
                 {
-                    o.InfluxDb.Database = options.Database;
-                    o.InfluxDb.BaseUri = new Uri(options.InfluxUrl);
+                    o.InfluxDb.Database = metricsOptions.Database;
+                    o.InfluxDb.BaseUri = new Uri(metricsOptions.InfluxUrl);
                     o.InfluxDb.CreateDataBaseIfNotExists = true;
-                    o.FlushInterval = TimeSpan.FromSeconds(options.Interval);
+                    o.FlushInterval = TimeSpan.FromSeconds(metricsOptions.Interval);
                 });
             }
 
             var metrics = metricsBuilder.Build();
-            var metricsWebHostOptions = GetMetricsWebHostOptions(options);
+            var metricsWebHostOptions = GetMetricsWebHostOptions(metricsOptions);
 
             using (var serviceProvider = builder.Services.BuildServiceProvider())
             {
@@ -149,8 +188,7 @@ namespace Convey.Metrics.AppMetrics
 
             return !options.Enabled
                 ? app
-                : app
-                    .UseHealthAllEndpoints()
+                : app.UseHealthAllEndpoints()
                     .UseMetricsAllEndpoints()
                     .UseMetricsAllMiddleware();
         }

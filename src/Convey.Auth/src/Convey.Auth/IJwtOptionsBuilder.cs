@@ -2,7 +2,7 @@ namespace Convey.Auth
 {
     public interface IJwtOptionsBuilder
     {
-        IJwtOptionsBuilder WithSecretKey(string secretKey);
+        IJwtOptionsBuilder WithIssuerSigningKey(string issuerSigningKey);
         IJwtOptionsBuilder WithIssuer(string issuer);
         IJwtOptionsBuilder WithExpiryMinutes(int expiryMinutes);
         IJwtOptionsBuilder WithLifetimeValidation (bool validateLifetime);

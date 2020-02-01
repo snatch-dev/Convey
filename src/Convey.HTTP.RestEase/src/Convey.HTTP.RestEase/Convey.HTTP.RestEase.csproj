@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.HTTP.RestEase</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.HTTP.RestEase</AssemblyName>
     <Title>Convey.HTTP.RestEase</Title>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.0" />
     <PackageReference Include="RestEase" Version="1.4.10" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>

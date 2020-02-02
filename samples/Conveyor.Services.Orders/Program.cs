@@ -16,6 +16,7 @@ using Convey.MessageBrokers.RabbitMQ;
 using Convey.Metrics.AppMetrics;
 using Convey.Persistence.MongoDB;
 using Convey.Persistence.Redis;
+using Convey.Secrets.Vault;
 using Convey.Tracing.Jaeger;
 using Convey.Tracing.Jaeger.RabbitMQ;
 using Convey.WebApi;
@@ -26,9 +27,11 @@ using Conveyor.Services.Orders.Domain;
 using Conveyor.Services.Orders.DTO;
 using Conveyor.Services.Orders.Events.External;
 using Conveyor.Services.Orders.Queries;
+using Conveyor.Services.Orders.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Conveyor.Services.Orders
@@ -76,12 +79,13 @@ namespace Conveyor.Services.Orders
                             .Get<GetOrder, OrderDto>("orders/{orderId}")
                             .Post<CreateOrder>("orders",
                                 afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
-                        .UseJaeger()
+                            .UseJaeger()
                         .UseMetrics()
                         .UseSwaggerDocs()
                         .UseRabbitMq()
                         .SubscribeEvent<DeliveryStarted>())
-                    .UseLogging();
+                    .UseLogging()
+                    .UseVault();
             });
     }
 }

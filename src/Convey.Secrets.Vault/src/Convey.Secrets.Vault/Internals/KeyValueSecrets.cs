@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using VaultSharp;
 
-namespace Convey.Secrets.Vault.Stores
+namespace Convey.Secrets.Vault.Internals
 {
-    internal sealed class KeyValueVaultStore : IKeyValueVaultStore
+    internal sealed class KeyValueSecrets : IKeyValueSecrets
     {
         private readonly IVaultClient _client;
         private readonly VaultOptions _options;
 
-        public KeyValueVaultStore(IVaultClient client, VaultOptions options)
+        public KeyValueSecrets(IVaultClient client, VaultOptions options)
         {
             _client = client;
             _options = options;

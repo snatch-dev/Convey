@@ -14,7 +14,7 @@ namespace Convey.Secrets.Vault
         {
         }
 
-        public VaultException(string message, Exception innerException, string key) : base(message)
+        public VaultException(string message, Exception innerException, string key) : base(message, innerException)
         {
             Key = key;
         }

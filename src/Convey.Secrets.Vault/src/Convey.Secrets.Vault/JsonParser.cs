@@ -84,6 +84,7 @@ namespace Convey.Secrets.Vault
             {
                 throw new FormatException($"Duplicated key: '{key}'");
             }
+
             _mappings[key] = data.ToString();
         }
 

@@ -10,10 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
-using VaultSharp.V1.AuthMethods.JWT;
 using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
 using VaultSharp.V1.SecretsEngines;
+using VaultSharp.V1.SecretsEngines.PKI;
 
 namespace Convey.Secrets.Vault
 {
@@ -53,7 +53,7 @@ namespace Convey.Secrets.Vault
                     {
                         return;
                     }
-                    
+
                     cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
                 });
 
@@ -90,6 +90,12 @@ namespace Convey.Secrets.Vault
                 await InitLeaseAsync(key, client, lease, configuration);
             }
 
+            if (options.Pki is {} && options.Pki.Enabled)
+            {
+                Console.WriteLine("Initializing Vault PKI.");
+                await SetPkiSecretsAsync(client, options.Pki);
+            }
+
             if (configuration.Any())
             {
                 var source = new MemoryConfigurationSource {InitialData = configuration};
@@ -101,15 +107,15 @@ namespace Convey.Secrets.Vault
             IDictionary<string, string> configuration)
             => options.Type.ToLowerInvariant() switch
             {
-                "activedirectory" => SetActiveDirectorySecrets(key, client, options, configuration),
-                "azure" => SetAzureSecrets(key, client, options, configuration),
-                "consul" => SetConsulSecrets(key, client, options, configuration),
-                "database" => SetDatabaseSecrets(key, client, options, configuration),
-                "rabbitmq" => SetRabbitMqSecrets(key, client, options, configuration),
+                "activedirectory" => SetActiveDirectorySecretsAsync(key, client, options, configuration),
+                "azure" => SetAzureSecretsAsync(key, client, options, configuration),
+                "consul" => SetConsulSecretsAsync(key, client, options, configuration),
+                "database" => SetDatabaseSecretsAsync(key, client, options, configuration),
+                "rabbitmq" => SetRabbitMqSecretsAsync(key, client, options, configuration),
                 _ => Task.CompletedTask
             };
 
-        private static async Task SetActiveDirectorySecrets(string key, IVaultClient client,
+        private static async Task SetActiveDirectorySecretsAsync(string key, IVaultClient client,
             VaultOptions.LeaseOptions options, IDictionary<string, string> configuration)
         {
             const string name = SecretsEngineDefaultPaths.ActiveDirectory;
@@ -124,7 +130,8 @@ namespace Convey.Secrets.Vault
             }, credentials.LeaseId, credentials.LeaseDurationSeconds, credentials.Renewable));
         }
 
-        private static async Task SetAzureSecrets(string key, IVaultClient client, VaultOptions.LeaseOptions options,
+        private static async Task SetAzureSecretsAsync(string key, IVaultClient client,
+            VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
             const string name = SecretsEngineDefaultPaths.Azure;
@@ -138,7 +145,8 @@ namespace Convey.Secrets.Vault
             }, credentials.LeaseId, credentials.LeaseDurationSeconds, credentials.Renewable));
         }
 
-        private static async Task SetConsulSecrets(string key, IVaultClient client, VaultOptions.LeaseOptions options,
+        private static async Task SetConsulSecretsAsync(string key, IVaultClient client,
+            VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
             const string name = SecretsEngineDefaultPaths.Consul;
@@ -151,7 +159,8 @@ namespace Convey.Secrets.Vault
             }, credentials.LeaseId, credentials.LeaseDurationSeconds, credentials.Renewable));
         }
 
-        private static async Task SetDatabaseSecrets(string key, IVaultClient client, VaultOptions.LeaseOptions options,
+        private static async Task SetDatabaseSecretsAsync(string key, IVaultClient client,
+            VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
             const string name = SecretsEngineDefaultPaths.Database;
@@ -165,7 +174,33 @@ namespace Convey.Secrets.Vault
             }, credentials.LeaseId, credentials.LeaseDurationSeconds, credentials.Renewable));
         }
 
-        private static async Task SetRabbitMqSecrets(string key, IVaultClient client, VaultOptions.LeaseOptions options,
+        private static async Task SetPkiSecretsAsync(IVaultClient client, VaultOptions.PkiOptions options)
+        {
+            const string name = SecretsEngineDefaultPaths.PKI;
+            var mountPoint = string.IsNullOrWhiteSpace(options.MountPoint) ? name : options.MountPoint;
+            var credentials =
+                await client.V1.Secrets.PKI.GetCredentialsAsync(options.RoleName,
+                    new CertificateCredentialsRequestOptions
+                    {
+                        CertificateFormat = Enum.Parse<CertificateFormat>(options.CertificateFormat, true),
+                        PrivateKeyFormat = Enum.Parse<PrivateKeyFormat>(options.PrivateKeyFormat, true),
+                        CommonName = options.CommonName,
+                        TimeToLive = options.TTL,
+                        SubjectAlternativeNames = options.SubjectAlternativeNames,
+                        OtherSubjectAlternativeNames = options.OtherSubjectAlternativeNames,
+                        IPSubjectAlternativeNames = options.IPSubjectAlternativeNames,
+                        URISubjectAlternativeNames = options.URISubjectAlternativeNames,
+                        ExcludeCommonNameFromSubjectAlternativeNames =
+                            options.ExcludeCommonNameFromSubjectAlternativeNames
+                    }, mountPoint);
+
+            var leaseData = new LeaseData(name, credentials.LeaseId, credentials.LeaseDurationSeconds,
+                credentials.Renewable, DateTime.UtcNow, credentials);
+            LeaseService.Set(name, leaseData);
+        }
+
+        private static async Task SetRabbitMqSecretsAsync(string key, IVaultClient client,
+            VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
             const string name = SecretsEngineDefaultPaths.RabbitMQ;
@@ -197,7 +232,7 @@ namespace Convey.Secrets.Vault
 
             return (client, settings);
         }
-        
+
         private static void SetTemplates(string key, VaultOptions.LeaseOptions lease,
             IDictionary<string, string> configuration, IDictionary<string, string> values)
         {

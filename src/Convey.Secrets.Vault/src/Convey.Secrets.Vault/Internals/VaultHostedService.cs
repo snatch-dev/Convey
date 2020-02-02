@@ -34,7 +34,7 @@ namespace Convey.Secrets.Vault.Internals
                 return Task.CompletedTask;
             }
 
-            _logger.LogInformation($"Vault is enabled, processing lease renewals every {_interval} seconds.");
+            _logger.LogInformation($"Vault is enabled, processing lease renewals every {_interval} s.");
             _timer = new Timer(ProcessLease, null, TimeSpan.Zero, TimeSpan.FromSeconds(_interval));
             return Task.CompletedTask;
         }
@@ -55,22 +55,26 @@ namespace Convey.Secrets.Vault.Internals
                     continue;
                 }
 
-                _logger.LogInformation($"Renewing a lease with ID: '{lease.Id}, for: '{key}'," +
-                                       $"duration: {lease.Duration} seconds.");
+                _logger.LogInformation($"Renewing a lease with ID: '{lease.Id}, for: '{key}', " +
+                                       $"duration: {lease.Duration} s.");
                 var renewedLease = await _client.V1.System.RenewLeaseAsync(lease.Id, lease.Duration);
                 lease.Refresh(renewedLease.LeaseDurationSeconds);
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             if (!_options.Enabled)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             _timer?.Change(Timeout.Infinite, 0);
-            return Task.CompletedTask;
+            foreach (var (key, lease) in _leaseService.All)
+            {
+                _logger.LogInformation($"Revoking a lease with ID: '{lease.Id}, for: '{key}'");
+                await _client.V1.System.RevokeLeaseAsync(lease.Id);
+            }
         }
     }
 }

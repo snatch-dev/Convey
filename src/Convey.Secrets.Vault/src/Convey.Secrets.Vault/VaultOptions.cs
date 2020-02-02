@@ -12,9 +12,10 @@ namespace Convey.Secrets.Vault
         public string Token { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public bool RevokeLeaseOnShutdown { get; set; }
         public PkiOptions Pki { get; set; }
         public IDictionary<string, LeaseOptions> Lease { get; set; }
-        
+
         public class LeaseOptions
         {
             public bool Enabled { get; set; }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Convey.Configurations.Vault
+namespace Convey.Secrets.Vault
 {
     public interface IVaultStore
     {

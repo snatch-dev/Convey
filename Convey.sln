@@ -11,11 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{75FC00D2-529
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Convey.Auth", "src\Convey.Auth\src\Convey.Auth\Convey.Auth.csproj", "{8BE1AEFA-3768-4168-A0F9-BE62EF264D84}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Convey.Configurations.Vault", "Convey.Configurations.Vault", "{285BCC9C-CA34-4B42-90C5-72043D168DA4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Convey.Secrets.Vault", "Convey.Secrets.Vault", "{285BCC9C-CA34-4B42-90C5-72043D168DA4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C2A85519-0490-4DCC-A0A0-941EB78D235E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Convey.Configurations.Vault", "src\Convey.Configurations.Vault\src\Convey.Configurations.Vault\Convey.Configurations.Vault.csproj", "{64D1488E-7AFC-479E-83B7-E403CC051705}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Convey.Secrets.Vault", "src\Convey.Secrets.Vault\src\Convey.Secrets.Vault\Convey.Secrets.Vault.csproj", "{64D1488E-7AFC-479E-83B7-E403CC051705}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Convey.CQRS.Commands", "Convey.CQRS.Commands", "{1AD3E7C2-AAE9-4BDC-B163-048BA98250AD}"
 EndProject

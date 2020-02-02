@@ -1,12 +1,12 @@
 using System;
-using Convey.Configurations.Vault.Stores;
+using Convey.Secrets.Vault.Stores;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 
-namespace Convey.Configurations.Vault
+namespace Convey.Secrets.Vault
 {
     public static class Extensions
     {

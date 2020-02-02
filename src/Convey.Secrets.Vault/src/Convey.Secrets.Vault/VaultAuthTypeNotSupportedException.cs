@@ -1,6 +1,6 @@
 using System;
 
-namespace Convey.Configurations.Vault
+namespace Convey.Secrets.Vault
 {
     public class VaultAuthTypeNotSupportedException : Exception
     {

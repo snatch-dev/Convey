@@ -7,7 +7,7 @@ using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
 
-namespace Convey.Configurations.Vault.Stores
+namespace Convey.Secrets.Vault.Stores
 {
     public class VaultStore : IVaultStore
     {

@@ -1,4 +1,4 @@
-namespace Convey.Configurations.Vault
+namespace Convey.Secrets.Vault
 {
     public class VaultOptions
     {

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Convey.Secrets.Vault
 {
-    public interface IVaultStore
+    public interface IKeyValueVaultStore
     {
         Task<T> GetDefaultAsync<T>();
         Task<IDictionary<string, object>> GetDefaultAsync();

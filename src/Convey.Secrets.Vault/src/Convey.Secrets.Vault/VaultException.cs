@@ -2,9 +2,9 @@ using System;
 
 namespace Convey.Secrets.Vault
 {
-    public class VaultException : Exception
+    internal sealed class VaultException : Exception
     {
-        public string Key { get; set; }
+        public string Key { get; }
         
         public VaultException(string key) : this(null, key)
         {

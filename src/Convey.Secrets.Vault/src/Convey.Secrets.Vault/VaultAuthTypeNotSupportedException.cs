@@ -2,7 +2,7 @@ using System;
 
 namespace Convey.Secrets.Vault
 {
-    public class VaultAuthTypeNotSupportedException : Exception
+    internal sealed class VaultAuthTypeNotSupportedException : Exception
     {
         public string AuthType { get; set; }
 

@@ -9,7 +9,7 @@ namespace Convey.Secrets.Vault
     //Credits goes to  .NET Foundation Team.
     //JSON parser is based on JsonConfigurationFileParser found in Microsoft.Extensions.Configuration.Json library.
     //https://github.com/aspnet/Configuration/blob/dev/src/Microsoft.Extensions.Configuration.Json/JsonConfigurationFileParser.cs
-    public class JsonParser
+    internal sealed class JsonParser
     {
         private readonly IDictionary<string, string> _mappings =
             new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);

@@ -5,6 +5,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
+using VaultSharp;
+using VaultSharp.V1.AuthMethods;
+using VaultSharp.V1.AuthMethods.JWT;
+using VaultSharp.V1.AuthMethods.Token;
+using VaultSharp.V1.AuthMethods.UserPass;
 
 namespace Convey.Secrets.Vault
 {
@@ -34,19 +39,15 @@ namespace Convey.Secrets.Vault
                     }
 
                     services.AddSingleton(options);
-                    services.AddTransient<IVaultStore, VaultStore>();
+                    services.AddTransient<IKeyValueVaultStore, KeyValueVaultStore>();
+                    var (client, settings) = GetClientAndSettings(options);
+                    services.AddSingleton(settings);
+                    services.AddSingleton(client);
                 })
                 .ConfigureAppConfiguration((ctx, cfg) =>
                 {
                     var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
-                    var enabled = options.Enabled;
-                    var vaultEnabled = Environment.GetEnvironmentVariable("VAULT_ENABLED")?.ToLowerInvariant();
-                    if (!string.IsNullOrWhiteSpace(vaultEnabled))
-                    {
-                        enabled = vaultEnabled == "true" || vaultEnabled == "1";
-                    }
-
-                    if (!enabled)
+                    if (!options.Enabled)
                     {
                         return;
                     }
@@ -57,14 +58,32 @@ namespace Convey.Secrets.Vault
 
         private static void AddVault(this IConfigurationBuilder builder, VaultOptions options, string key)
         {
-            var client = new VaultStore(options);
+            var (client, _) = GetClientAndSettings(options);
+            var keyValueVaultStore = new KeyValueVaultStore(client, options);
             var secret = string.IsNullOrWhiteSpace(key)
-                ? client.GetDefaultAsync().GetAwaiter().GetResult()
-                : client.GetAsync(key).GetAwaiter().GetResult();
+                ? keyValueVaultStore.GetDefaultAsync().GetAwaiter().GetResult()
+                : keyValueVaultStore.GetAsync(key).GetAwaiter().GetResult();
             var parser = new JsonParser();
             var data = parser.Parse(JObject.FromObject(secret));
             var source = new MemoryConfigurationSource {InitialData = data};
             builder.Add(source);
         }
+
+        private static (IVaultClient client, VaultClientSettings settings) GetClientAndSettings(VaultOptions options)
+        {
+            var settings = new VaultClientSettings(options.Url, GetAuthMethod(options));
+            var client = new VaultClient(settings);
+
+            return (client, settings);
+        }
+
+        private static IAuthMethodInfo GetAuthMethod(VaultOptions options)
+            => options.AuthType?.ToLowerInvariant() switch
+            {
+                "token" => new TokenAuthMethodInfo(options.Token),
+                "userpass" => new UserPassAuthMethodInfo(options.Username, options.Password),
+                _ => throw new VaultAuthTypeNotSupportedException(
+                    $"Vault auth type: '{options.AuthType}' is not supported.", options.AuthType)
+            };
     }
 }

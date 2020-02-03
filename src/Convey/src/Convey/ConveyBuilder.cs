@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using Convey.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,14 +8,13 @@ namespace Convey
 {
     public sealed class ConveyBuilder : IConveyBuilder
     {
-        private readonly List<string> _registry;
+        private readonly ConcurrentDictionary<string, bool> _registry = new ConcurrentDictionary<string, bool>();
         private readonly List<Action<IServiceProvider>> _buildActions;
         private readonly IServiceCollection _services;
         IServiceCollection IConveyBuilder.Services => _services;
 
         private ConveyBuilder(IServiceCollection services)
         {
-            _registry = new List<string>();
             _buildActions = new List<Action<IServiceProvider>>();
             _services = services;
             _services.AddSingleton<IStartupInitializer>(new StartupInitializer());
@@ -24,18 +23,7 @@ namespace Convey
         public static IConveyBuilder Create(IServiceCollection services)
             => new ConveyBuilder(services);
 
-        public bool TryRegister(string name)
-        {
-            var isAlreadyRegistered = _registry.Any(r => r == name);
-
-            if (isAlreadyRegistered)
-            {
-                return false;
-            }
-
-            _registry.Add(name);
-            return true;
-        }
+        public bool TryRegister(string name) => _registry.TryAdd(name, true);
 
         public void AddBuildAction(Action<IServiceProvider> execute)
             => _buildActions.Add(execute);

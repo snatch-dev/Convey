@@ -1,12 +1,11 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Clients;
 using Convey.MessageBrokers.RabbitMQ.Contexts;
 using Convey.MessageBrokers.RabbitMQ.Conventions;
 using Convey.MessageBrokers.RabbitMQ.Initializers;
+using Convey.MessageBrokers.RabbitMQ.Internals;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
-using Convey.MessageBrokers.RabbitMQ.Processors;
 using Convey.MessageBrokers.RabbitMQ.Publishers;
 using Convey.MessageBrokers.RabbitMQ.Serializers;
 using Convey.MessageBrokers.RabbitMQ.Subscribers;
@@ -33,7 +32,13 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton(options);
             if (!builder.TryRegister(RegistryName))
             {
+                Console.WriteLine("NOPE");
                 return builder;
+            }
+
+            if (options.HostNames is null || !options.HostNames.Any())
+            {
+                throw new ArgumentException("RabbitMQ hostnames are not specified.", nameof(options.HostNames));
             }
 
             builder.Services.AddSingleton<IContextProvider, ContextProvider>();
@@ -47,6 +52,7 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IBusPublisher, RabbitMqPublisher>();
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();
             builder.Services.AddTransient<RabbitMqExchangeInitializer>();
+            builder.Services.AddHostedService<RabbitMqHostedService>();
             builder.AddInitializer<RabbitMqExchangeInitializer>();
 
             var pluginsRegistry = new RabbitMqPluginsRegistry();
@@ -54,48 +60,26 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IRabbitMqPluginsExecutor, RabbitMqPluginsExecutor>();
             plugins?.Invoke(pluginsRegistry);
 
-            if (options.MessageProcessor?.Enabled == true)
+            var connection = new ConnectionFactory
             {
-                pluginsRegistry.Add<UniqueMessagesPlugin>();
-                switch (options.MessageProcessor.Type?.ToLowerInvariant())
-                {
-                    case "distributed":
-                        builder.Services.AddTransient<IMessageProcessor, DistributedMessageProcessor>();
-                        break;
-                    default:
-                        builder.Services.AddTransient<IMessageProcessor, InMemoryMessageProcessor>();
-                        break;
-                }
-            }
-            else
-            {
-                builder.Services.AddSingleton<IMessageProcessor, EmptyMessageProcessor>();
-            }
+                Port = options.Port,
+                VirtualHost = options.VirtualHost,
+                UserName = options.Username,
+                Password = options.Password,
+                RequestedConnectionTimeout = options.RequestedConnectionTimeout,
+                SocketReadTimeout = options.SocketReadTimeout,
+                SocketWriteTimeout = options.SocketWriteTimeout,
+                RequestedChannelMax = options.RequestedChannelMax,
+                RequestedFrameMax = options.RequestedFrameMax,
+                RequestedHeartbeat = options.RequestedHeartbeat,
+                UseBackgroundThreadsForIO = options.UseBackgroundThreadsForIO,
+                DispatchConsumersAsync = true,
+                Ssl = options.Ssl is null
+                    ? new SslOption()
+                    : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled)
+            }.CreateConnection(options.HostNames.ToList(), options.ConnectionName);
 
-            builder.Services.AddSingleton(sp =>
-            {
-                var connectionFactory = new ConnectionFactory
-                {
-                    HostName = options.HostNames?.FirstOrDefault(),
-                    Port = options.Port,
-                    VirtualHost = options.VirtualHost,
-                    UserName = options.Username,
-                    Password = options.Password,
-                    RequestedConnectionTimeout = options.RequestedConnectionTimeout,
-                    SocketReadTimeout = options.SocketReadTimeout,
-                    SocketWriteTimeout = options.SocketWriteTimeout,
-                    RequestedChannelMax = options.RequestedChannelMax,
-                    RequestedFrameMax = options.RequestedFrameMax,
-                    RequestedHeartbeat = options.RequestedHeartbeat,
-                    UseBackgroundThreadsForIO = options.UseBackgroundThreadsForIO,
-                    DispatchConsumersAsync = true,
-                    Ssl = options.Ssl is null
-                        ? new SslOption()
-                        : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled)
-                };
-
-                return connectionFactory.CreateConnection(options.ConnectionName);
-            });
+            builder.Services.AddSingleton(connection);
 
             ((IRabbitMqPluginsRegistryAccessor) pluginsRegistry).Get().ToList().ForEach(p =>
                 builder.Services.AddTransient(p.PluginType));
@@ -113,12 +97,5 @@ namespace Convey.MessageBrokers.RabbitMQ
 
         public static IBusSubscriber UseRabbitMq(this IApplicationBuilder app)
             => new RabbitMqSubscriber(app.ApplicationServices);
-
-        private class EmptyMessageProcessor : IMessageProcessor
-        {
-            public Task<bool> TryProcessAsync(string id) => Task.FromResult(true);
-
-            public Task RemoveAsync(string id) => Task.CompletedTask;
-        }
     }
 }

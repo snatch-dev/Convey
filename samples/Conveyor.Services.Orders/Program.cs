@@ -27,11 +27,9 @@ using Conveyor.Services.Orders.Domain;
 using Conveyor.Services.Orders.DTO;
 using Conveyor.Services.Orders.Events.External;
 using Conveyor.Services.Orders.Queries;
-using Conveyor.Services.Orders.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Conveyor.Services.Orders

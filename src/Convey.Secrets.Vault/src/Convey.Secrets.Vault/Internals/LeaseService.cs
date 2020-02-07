@@ -12,6 +12,10 @@ namespace Convey.Secrets.Vault.Internals
 
         public LeaseData Get(string key) => Secrets.TryGetValue(key, out var data) ? data : null;
 
-        public void Set(string key, LeaseData data) => Secrets.TryAdd(key, data);
+        public void Set(string key, LeaseData data)
+        {
+            Secrets.TryRemove(key, out _);
+            Secrets.TryAdd(key, data);
+        }
     }
 }

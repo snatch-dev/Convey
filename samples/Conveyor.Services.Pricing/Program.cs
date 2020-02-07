@@ -6,8 +6,10 @@ using Convey.Logging;
 using Convey.Metrics.AppMetrics;
 using Convey.Tracing.Jaeger;
 using Convey.WebApi;
+using Convey.WebApi.Security;
 using Conveyor.Services.Pricing.DTO;
 using Conveyor.Services.Pricing.Queries;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,7 @@ namespace Conveyor.Services.Pricing
                 webBuilder.ConfigureServices(services => services
                         .AddConvey()
                         .AddErrorHandler<ExceptionToResponseMapper>()
+                        .AddServices()
                         .AddConsul()
                         .AddFabio()
                         .AddJaeger()
@@ -34,19 +37,22 @@ namespace Conveyor.Services.Pricing
                         .AddWebApi()
                         .Build())
                     .Configure(app => app
-                        .UseConvey()    
+                        .UseConvey()
                         .UseErrorHandler()
                         .UseJaeger()
                         .UseMetrics()
+                        .UseCertificateAuthentication()
+                        .UseAuthentication()
+                        .UseAuthorization()
                         .UseEndpoints(endpoints => endpoints
-                            .Get("", ctx => ctx.Response.WriteAsync("Pricing Service"))
-                            .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
-                            .Get<GetOrderPricing>("orders/{orderId}/pricing", async (query, ctx) =>
-                                await ctx.RequestServices.GetRequiredService<IJsonSerializer>()
-                                    .SerializeAsync(ctx.Response.Body, new PricingDto
-                                    {
-                                        OrderId = query.OrderId, TotalAmount = 20.50m
-                                    }))))
+                                .Get("", ctx => ctx.Response.WriteAsync("Pricing Service"))
+                                .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
+                                .Get<GetOrderPricing>("orders/{orderId}/pricing", async (query, ctx) =>
+                                    await ctx.RequestServices.GetRequiredService<IJsonSerializer>()
+                                        .SerializeAsync(ctx.Response.Body, new PricingDto
+                                        {
+                                            OrderId = query.OrderId, TotalAmount = 20.50m
+                                        }))))
                     .UseLogging();
             });
     }

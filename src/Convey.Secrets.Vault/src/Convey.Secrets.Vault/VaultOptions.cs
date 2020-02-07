@@ -12,6 +12,7 @@ namespace Convey.Secrets.Vault
         public string Username { get; set; }
         public string Password { get; set; }
         public bool RevokeLeaseOnShutdown { get; set; }
+        public int RenewalsInterval { get; set; }
         public PkiOptions Pki { get; set; }
         public IDictionary<string, LeaseOptions> Lease { get; set; }
 
@@ -39,6 +40,7 @@ namespace Convey.Secrets.Vault
             public bool ExcludeCommonNameFromSubjectAlternativeNames { get; set; }
             public string IPSubjectAlternativeNames { get; set; }
             public string URISubjectAlternativeNames { get; set; }
+            public bool ImportPrivateKey { get; set; }
         }
     }
 }

@@ -21,6 +21,7 @@ using Convey.Tracing.Jaeger;
 using Convey.Tracing.Jaeger.RabbitMQ;
 using Convey.WebApi;
 using Convey.WebApi.CQRS;
+using Convey.WebApi.Security;
 using Convey.WebApi.Swagger;
 using Conveyor.Services.Orders.Commands;
 using Conveyor.Services.Orders.Domain;
@@ -67,17 +68,18 @@ namespace Conveyor.Services.Orders
                         .AddWebApiSwaggerDocs()
                         .Build())
                     .Configure(app => app
-                        .UseConvey()    
+                        .UseConvey()
                         .UseErrorHandler()
                         .UseRouting()
+                        .UseCertificateAuthentication()
                         .UseEndpoints(r => r.MapControllers())
                         .UseDispatcherEndpoints(endpoints => endpoints
-                            .Get("", ctx => ctx.Response.WriteAsync("Orders Service"))
-                            .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
-                            .Get<GetOrder, OrderDto>("orders/{orderId}")
-                            .Post<CreateOrder>("orders",
-                                afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
-                            .UseJaeger()
+                                .Get("", ctx => ctx.Response.WriteAsync("Orders Service"))
+                                .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
+                                .Get<GetOrder, OrderDto>("orders/{orderId}")
+                                .Post<CreateOrder>("orders",
+                                    afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
+                        .UseJaeger()
                         .UseMetrics()
                         .UseSwaggerDocs()
                         .UseRabbitMq()

@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger.RabbitMQ\src\Convey.Tracing.Jaeger.RabbitMQ\Convey.Tracing.Jaeger.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi.CQRS\src\Convey.WebApi.CQRS\Convey.WebApi.CQRS.csproj" />
+    <ProjectReference Include="..\..\src\Convey.WebApi.Security\src\Convey.WebApi.Security\Convey.WebApi.Security.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi.Swagger\src\Convey.WebApi.Swagger\Convey.WebApi.Swagger.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
   </ItemGroup>

@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\src\Convey.Logging\src\Convey.Logging\Convey.Logging.csproj" />
     <ProjectReference Include="..\..\src\Convey.Metrics.AppMetrics\src\Convey.Metrics.AppMetrics\Convey.Metrics.AppMetrics.csproj" />
     <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />
+    <ProjectReference Include="..\..\src\Convey.WebApi.Security\src\Convey.WebApi.Security\Convey.WebApi.Security.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
   </ItemGroup>
   

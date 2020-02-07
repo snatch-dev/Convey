@@ -13,7 +13,6 @@ using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
 using VaultSharp.V1.SecretsEngines;
-using VaultSharp.V1.SecretsEngines.PKI;
 
 namespace Convey.Secrets.Vault
 {
@@ -21,6 +20,7 @@ namespace Convey.Secrets.Vault
     {
         private const string SectionName = "vault";
         private static readonly ILeaseService LeaseService = new LeaseService();
+        private static readonly ICertificatesService CertificatesService = new CertificatesService();
 
         public static IWebHostBuilder UseVault(this IWebHostBuilder builder, string keyValuePath = null,
             string sectionName = SectionName)
@@ -44,6 +44,8 @@ namespace Convey.Secrets.Vault
                     services.AddSingleton(settings);
                     services.AddSingleton(client);
                     services.AddSingleton(LeaseService);
+                    services.AddSingleton(CertificatesService);
+                    services.AddSingleton<ICertificatesIssuer, CertificatesIssuer>();
                     services.AddHostedService<VaultHostedService>();
                 })
                 .ConfigureAppConfiguration((ctx, cfg) =>
@@ -72,12 +74,18 @@ namespace Convey.Secrets.Vault
                 var source = new MemoryConfigurationSource {InitialData = data};
                 builder.Add(source);
             }
-
+            
+            if (options.Pki is {} && options.Pki.Enabled)
+            {
+                Console.WriteLine("Initializing Vault PKI.");
+                await SetPkiSecretsAsync(client, options);
+            }
+            
             if (options.Lease is null || !options.Lease.Any())
             {
                 return;
             }
-
+            
             var configuration = new Dictionary<string, string>();
             foreach (var (key, lease) in options.Lease)
             {
@@ -88,12 +96,6 @@ namespace Convey.Secrets.Vault
 
                 Console.WriteLine($"Initializing Vault lease for: '{key}', type: '{lease.Type}'.");
                 await InitLeaseAsync(key, client, lease, configuration);
-            }
-
-            if (options.Pki is {} && options.Pki.Enabled)
-            {
-                Console.WriteLine("Initializing Vault PKI.");
-                await SetPkiSecretsAsync(client, options.Pki);
             }
 
             if (configuration.Any())
@@ -174,29 +176,11 @@ namespace Convey.Secrets.Vault
             }, credentials.LeaseId, credentials.LeaseDurationSeconds, credentials.Renewable));
         }
 
-        private static async Task SetPkiSecretsAsync(IVaultClient client, VaultOptions.PkiOptions options)
+        private static async Task SetPkiSecretsAsync(IVaultClient client, VaultOptions options)
         {
-            const string name = SecretsEngineDefaultPaths.PKI;
-            var mountPoint = string.IsNullOrWhiteSpace(options.MountPoint) ? name : options.MountPoint;
-            var credentials =
-                await client.V1.Secrets.PKI.GetCredentialsAsync(options.RoleName,
-                    new CertificateCredentialsRequestOptions
-                    {
-                        CertificateFormat = Enum.Parse<CertificateFormat>(options.CertificateFormat, true),
-                        PrivateKeyFormat = Enum.Parse<PrivateKeyFormat>(options.PrivateKeyFormat, true),
-                        CommonName = options.CommonName,
-                        TimeToLive = options.TTL,
-                        SubjectAlternativeNames = options.SubjectAlternativeNames,
-                        OtherSubjectAlternativeNames = options.OtherSubjectAlternativeNames,
-                        IPSubjectAlternativeNames = options.IPSubjectAlternativeNames,
-                        URISubjectAlternativeNames = options.URISubjectAlternativeNames,
-                        ExcludeCommonNameFromSubjectAlternativeNames =
-                            options.ExcludeCommonNameFromSubjectAlternativeNames
-                    }, mountPoint);
-
-            var leaseData = new LeaseData(name, credentials.LeaseId, credentials.LeaseDurationSeconds,
-                credentials.Renewable, DateTime.UtcNow, credentials);
-            LeaseService.Set(name, leaseData);
+            var issuer = new CertificatesIssuer(client, options);
+            var certificate = await issuer.IssueAsync();
+            CertificatesService.Set(options.Pki.RoleName, certificate);
         }
 
         private static async Task SetRabbitMqSecretsAsync(string key, IVaultClient client,

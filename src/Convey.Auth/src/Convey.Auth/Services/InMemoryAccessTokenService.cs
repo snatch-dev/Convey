@@ -25,13 +25,13 @@ namespace Convey.Auth.Services
         public async Task<bool> IsCurrentActiveToken()
             => await IsActiveAsync(GetCurrentAsync());
 
-        public async Task DeactivateCurrentAsync(string userId)
-            => await DeactivateAsync(userId, GetCurrentAsync());
+        public async Task DeactivateCurrentAsync()
+            => await DeactivateAsync(GetCurrentAsync());
 
         public Task<bool> IsActiveAsync(string token)
             => Task.FromResult(string.IsNullOrWhiteSpace(_cache.Get<string>(token)));
 
-        public Task DeactivateAsync(string userId, string token)
+        public Task DeactivateAsync(string token)
         {
             _cache.Set(GetKey(token), string.Empty, new MemoryCacheEntryOptions
             {

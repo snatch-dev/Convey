@@ -5,8 +5,8 @@ namespace Convey.Auth
     public interface IAccessTokenService
     {
         Task<bool> IsCurrentActiveToken();
-        Task DeactivateCurrentAsync(string userId);
+        Task DeactivateCurrentAsync();
         Task<bool> IsActiveAsync(string token);
-        Task DeactivateAsync(string userId, string token);
+        Task DeactivateAsync(string token);
     }
 }

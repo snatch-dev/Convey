@@ -25,13 +25,13 @@ namespace Convey.Auth.Distributed
         public async Task<bool> IsCurrentActiveToken()
             => await IsActiveAsync(GetCurrentAsync());
 
-        public async Task DeactivateCurrentAsync(string userId)
-            => await DeactivateAsync(userId, GetCurrentAsync());
+        public async Task DeactivateCurrentAsync()
+            => await DeactivateAsync(GetCurrentAsync());
 
         public async Task<bool> IsActiveAsync(string token)
             => string.IsNullOrWhiteSpace(await _cache.GetStringAsync(GetKey(token)));
 
-        public async Task DeactivateAsync(string userId, string token)
+        public async Task DeactivateAsync(string token)
         {
             await _cache.SetStringAsync(GetKey(token),
                 string.Empty, new DistributedCacheEntryOptions

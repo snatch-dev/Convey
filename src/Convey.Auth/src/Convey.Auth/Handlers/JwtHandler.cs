@@ -35,11 +35,12 @@ namespace Convey.Auth.Handlers
             _issuer = options.Issuer;
         }
 
-        public JsonWebToken CreateToken(string userId, string role = null, IDictionary<string, string> claims = null)
+        public JsonWebToken CreateToken(string userId, string role = null, string audience = null,
+            IDictionary<string, string> claims = null)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
-                throw new ArgumentException("User id claim can not be empty.", nameof(userId));
+                throw new ArgumentException("User ID claim (subject) cannot be empty.", nameof(userId));
             }
 
             var now = DateTime.UtcNow;
@@ -53,6 +54,11 @@ namespace Convey.Auth.Handlers
             if (!string.IsNullOrWhiteSpace(role))
             {
                 jwtClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            if (!string.IsNullOrWhiteSpace(audience))
+            {
+                jwtClaims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
             }
 
             var customClaims = claims?.Select(claim => new Claim(claim.Key, claim.Value)).ToArray()

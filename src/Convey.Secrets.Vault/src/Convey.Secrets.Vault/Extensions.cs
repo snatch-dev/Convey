@@ -45,8 +45,16 @@ namespace Convey.Secrets.Vault
                     services.AddSingleton(client);
                     services.AddSingleton(LeaseService);
                     services.AddSingleton(CertificatesService);
-                    services.AddSingleton<ICertificatesIssuer, CertificatesIssuer>();
                     services.AddHostedService<VaultHostedService>();
+                    if (options.Pki is {})
+                    {
+                        services.AddSingleton<ICertificatesIssuer, CertificatesIssuer>();
+                    }
+                    else
+                    {
+                        services.AddSingleton<ICertificatesIssuer, EmptyCertificatesIssuer>();
+                    }
+                    
                 })
                 .ConfigureAppConfiguration((ctx, cfg) =>
                 {

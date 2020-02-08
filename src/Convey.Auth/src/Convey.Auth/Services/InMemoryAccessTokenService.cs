@@ -33,7 +33,7 @@ namespace Convey.Auth.Services
 
         public Task DeactivateAsync(string token)
         {
-            _cache.Set(GetKey(token), string.Empty, new MemoryCacheEntryOptions
+            _cache.Set(GetKey(token), "revoked", new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow =
                     TimeSpan.FromMinutes(_jwtOptions.ExpiryMinutes)

@@ -34,7 +34,7 @@ namespace Convey.Auth.Distributed
         public async Task DeactivateAsync(string token)
         {
             await _cache.SetStringAsync(GetKey(token),
-                string.Empty, new DistributedCacheEntryOptions
+                "revoked", new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow =
                         TimeSpan.FromMinutes(_jwtOptions.ExpiryMinutes)

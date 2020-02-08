@@ -29,7 +29,7 @@ namespace Convey.Auth.Services
             => await DeactivateAsync(GetCurrentAsync());
 
         public Task<bool> IsActiveAsync(string token)
-            => Task.FromResult(string.IsNullOrWhiteSpace(_cache.Get<string>(token)));
+            => Task.FromResult(string.IsNullOrWhiteSpace(_cache.Get<string>(GetKey(token))));
 
         public Task DeactivateAsync(string token)
         {

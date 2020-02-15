@@ -17,6 +17,9 @@ namespace Convey.HTTP
         Task<HttpResponseMessage> PutAsync(string uri, object data = null);
         Task<T> PutAsync<T>(string uri, object data = null);
         Task<HttpResult<T>> PutResultAsync<T>(string uri, object data = null);
+        Task<HttpResponseMessage> PatchAsync(string uri, object data = null);
+        Task<T> PatchAsync<T>(string uri, object data = null);
+        Task<HttpResult<T>> PatchResultAsync<T>(string uri, object data = null);
         Task<HttpResponseMessage> DeleteAsync(string uri);
         Task<T> DeleteAsync<T>(string uri);
         Task<HttpResult<T>> DeleteResultAsync<T>(string uri);

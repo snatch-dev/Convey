@@ -59,6 +59,15 @@ namespace Convey.HTTP
         public Task<HttpResult<T>> PutResultAsync<T>(string uri, object data = null)
             => SendResultAsync<T>(uri, Method.Put, data);
 
+        public Task<HttpResponseMessage> PatchAsync(string uri, object data = null)
+            => SendAsync(uri, Method.Patch, data);
+
+        public Task<T> PatchAsync<T>(string uri, object data = null)
+            => SendAsync<T>(uri, Method.Patch, data);
+
+        public Task<HttpResult<T>> PatchResultAsync<T>(string uri, object data = null)
+            => SendResultAsync<T>(uri, Method. Patch, data);
+        
         public virtual Task<HttpResponseMessage> DeleteAsync(string uri)
             => SendAsync(uri, Method.Delete);
 
@@ -173,6 +182,8 @@ namespace Convey.HTTP
                     return _client.PostAsync(uri, GetJsonPayload(data));
                 case Method.Put:
                     return _client.PutAsync(uri, GetJsonPayload(data));
+                case Method.Patch:
+                    return _client.PatchAsync(uri, GetJsonPayload(data));
                 case Method.Delete:
                     return _client.DeleteAsync(uri);
                 default:
@@ -203,6 +214,7 @@ namespace Convey.HTTP
             Get,
             Post,
             Put,
+            Patch,
             Delete
         }
     }

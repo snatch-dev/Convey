@@ -1,27 +1,33 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Convey.WebApi.Security
 {
     internal sealed class CertificateMiddleware : IMiddleware
     {
         private readonly ICertificatePermissionValidator _certificatePermissionValidator;
+        private readonly ILogger<CertificateMiddleware> _logger;
         private readonly SecurityOptions.CertificateOptions _options;
         private readonly HashSet<string> _allowedHosts;
         private readonly IDictionary<string, SecurityOptions.CertificateOptions.AclOptions> _acl;
         private readonly IDictionary<string, string> _subjects = new Dictionary<string, string>();
         private readonly bool _validateAcl;
+        private readonly bool _skipRevocationCheck;
 
         public CertificateMiddleware(ICertificatePermissionValidator certificatePermissionValidator,
-            SecurityOptions options)
+            SecurityOptions options, ILogger<CertificateMiddleware> logger)
         {
             _certificatePermissionValidator = certificatePermissionValidator;
+            _logger = logger;
             _options = options.Certificate;
             _allowedHosts = new HashSet<string>(_options.AllowedHosts ?? Array.Empty<string>());
             _validateAcl = _options.Acl is {} && _options.Acl.Any();
+            _skipRevocationCheck = options.Certificate.SkipRevocationCheck;
             if (!_validateAcl)
             {
                 return;
@@ -61,7 +67,7 @@ namespace Convey.WebApi.Security
             }
 
             var certificate = context.Connection.ClientCertificate;
-            if (certificate is null || !certificate.Verify())
+            if (certificate is null || !Verify(certificate))
             {
                 context.Response.StatusCode = 401;
                 return Task.CompletedTask;
@@ -124,6 +130,35 @@ namespace Convey.WebApi.Security
 
             context.Response.StatusCode = 403;
             return Task.CompletedTask;
+        }
+
+        private bool Verify(X509Certificate2 certificate)
+        {
+            var chain = new X509Chain
+            {
+                ChainPolicy = new X509ChainPolicy()
+                {
+                    RevocationMode = _skipRevocationCheck ? X509RevocationMode.NoCheck : X509RevocationMode.Online,
+                }
+            };
+            var chainBuilt = chain.Build(certificate);
+            foreach (var chainElement in chain.ChainElements)
+            {
+                chainElement.Certificate.Dispose();
+            }
+            
+            if (chainBuilt)
+            {
+                return true;
+            }
+            
+            _logger.LogError("Certificate validation failed.");
+            foreach (var chainStatus in chain.ChainStatus)
+            {
+                _logger.LogError($"Chain error: {chainStatus.Status} -> {chainStatus.StatusInformation}");
+            }
+
+            return false;
         }
 
         private bool IsAllowedHost(HttpContext context)

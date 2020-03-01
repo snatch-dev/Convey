@@ -14,6 +14,7 @@ namespace Convey.WebApi.Security
             public IEnumerable<string> AllowedDomains { get; set; }
             public IEnumerable<string> AllowedHosts { get; set; }
             public IDictionary<string, AclOptions> Acl { get; set; }
+            public bool SkipRevocationCheck { get; set; }
 
             public string GetHeaderName() => string.IsNullOrWhiteSpace(Header) ? "Certificate" : Header;
 

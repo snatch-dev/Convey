@@ -15,7 +15,8 @@ namespace Convey.Auth
         private const string SectionName = "jwt";
         private const string RegistryName = "auth";
 
-        public static IConveyBuilder AddJwt(this IConveyBuilder builder, string sectionName = SectionName)
+        public static IConveyBuilder AddJwt(this IConveyBuilder builder, string sectionName = SectionName,
+            Action<JwtBearerOptions> optionsFactory = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
@@ -23,7 +24,7 @@ namespace Convey.Auth
             }
 
             var options = builder.GetOptions<JwtOptions>(sectionName);
-            return builder.AddJwt(options);
+            return builder.AddJwt(options, optionsFactory);
         }
 
         private static IConveyBuilder AddJwt(this IConveyBuilder builder, JwtOptions options,

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using Convey.Auth.Dates;
 using Microsoft.IdentityModel.Tokens;
 
@@ -28,10 +27,20 @@ namespace Convey.Auth.Handlers
 
         public JwtHandler(JwtOptions options, TokenValidationParameters tokenValidationParameters)
         {
+            var issuerSigningKey = tokenValidationParameters.IssuerSigningKey;
+            if (issuerSigningKey is null)
+            {
+                throw new InvalidOperationException("Issuer signing key not set.");
+            }
+
+            if (string.IsNullOrWhiteSpace(options.Algorithm))
+            {
+                throw new InvalidOperationException("Security algorithm not set.");
+            }
+
             _options = options;
             _tokenValidationParameters = tokenValidationParameters;
-            var issuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.IssuerSigningKey));
-            _signingCredentials = new SigningCredentials(issuerSigningKey, SecurityAlgorithms.HmacSha256);
+            _signingCredentials = new SigningCredentials(issuerSigningKey, _options.Algorithm);
             _issuer = options.Issuer;
         }
 

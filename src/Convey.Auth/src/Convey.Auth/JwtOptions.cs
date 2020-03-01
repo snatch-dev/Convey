@@ -5,6 +5,8 @@ namespace Convey.Auth
     public class JwtOptions
     {
         public IEnumerable<string> AllowAnonymousEndpoints { get; set; }
+        public CertificateOptions Certificate { get; set; }
+        public string Algorithm { get; set; }
         public string Issuer { get; set; }
         public string IssuerSigningKey { get; set; }
         public string Authority { get; set; }
@@ -33,5 +35,12 @@ namespace Convey.Auth
         public string AuthenticationType { get; set; }
         public string NameClaimType { get; set; }
         public string RoleClaimType { get; set; }
+
+        public class CertificateOptions
+        {
+            public string Location { get; set; }
+            public string RawData { get; set; }
+            public string Password { get; set; }
+        }
     }
 }

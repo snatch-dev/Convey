@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Convey.Auth.Handlers;
 using Convey.Auth.Services;
@@ -20,19 +21,19 @@ namespace Convey.Auth
             {
                 sectionName = SectionName;
             }
-            
+
             var options = builder.GetOptions<JwtOptions>(sectionName);
             return builder.AddJwt(options);
         }
 
-        private static IConveyBuilder AddJwt(this IConveyBuilder builder, JwtOptions options)
+        private static IConveyBuilder AddJwt(this IConveyBuilder builder, JwtOptions options,
+            Action<JwtBearerOptions> optionsFactory = null)
         {
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;
             }
 
-            builder.Services.AddSingleton(options);
             builder.Services.AddSingleton<IJwtHandler, JwtHandler>();
             builder.Services.AddSingleton<IAccessTokenService, InMemoryAccessTokenService>();
             builder.Services.AddTransient<AccessTokenValidatorMiddleware>();
@@ -61,10 +62,48 @@ namespace Convey.Auth
                 tokenValidationParameters.AuthenticationType = options.AuthenticationType;
             }
 
+            if (options.Certificate is {})
+            {
+                if (string.IsNullOrWhiteSpace(options.Algorithm))
+                {
+                    options.Algorithm = SecurityAlgorithms.RsaSha256;
+                }
+
+                X509Certificate2 certificate = null;
+                var password = options.Certificate.Password;
+                var hasPassword = !string.IsNullOrWhiteSpace(password);
+                if (!string.IsNullOrWhiteSpace(options.Certificate.RawData))
+                {
+                    var rawData = Convert.FromBase64String(options.Certificate.RawData);
+                    certificate = hasPassword
+                        ? new X509Certificate2(rawData, password)
+                        : new X509Certificate2(rawData);
+                }
+
+                if (!string.IsNullOrWhiteSpace(options.Certificate.Location))
+                {
+                    certificate = hasPassword
+                        ? new X509Certificate2(options.Certificate.Location, password)
+                        : new X509Certificate2(options.Certificate.Location);
+                }
+
+                if (certificate is null)
+                {
+                    throw new InvalidOperationException("Certificate not set.");
+                }
+
+                tokenValidationParameters.IssuerSigningKey = new X509SecurityKey(certificate);
+            }
+
             if (!string.IsNullOrWhiteSpace(options.IssuerSigningKey))
             {
-                tokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(options.IssuerSigningKey));
+                if (string.IsNullOrWhiteSpace(options.Algorithm))
+                {
+                    options.Algorithm = SecurityAlgorithms.HmacSha256;
+                }
+
+                tokenValidationParameters.IssuerSigningKey =
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.IssuerSigningKey));
             }
 
             if (!string.IsNullOrWhiteSpace(options.NameClaimType))
@@ -76,8 +115,6 @@ namespace Convey.Auth
             {
                 tokenValidationParameters.RoleClaimType = options.RoleClaimType;
             }
-
-            builder.Services.AddSingleton(tokenValidationParameters);
 
             builder.Services
                 .AddAuthentication(o =>
@@ -99,7 +136,12 @@ namespace Convey.Auth
                     {
                         o.Challenge = options.Challenge;
                     }
+
+                    optionsFactory?.Invoke(o);
                 });
+
+            builder.Services.AddSingleton(options);
+            builder.Services.AddSingleton(tokenValidationParameters);
 
             return builder;
         }

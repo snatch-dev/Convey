@@ -32,7 +32,6 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton(options);
             if (!builder.TryRegister(RegistryName))
             {
-                Console.WriteLine("NOPE");
                 return builder;
             }
 

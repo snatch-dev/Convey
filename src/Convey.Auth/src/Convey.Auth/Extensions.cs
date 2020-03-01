@@ -63,48 +63,52 @@ namespace Convey.Auth
                 tokenValidationParameters.AuthenticationType = options.AuthenticationType;
             }
 
+            var hasCertificate = false;
             if (options.Certificate is {})
             {
-                if (string.IsNullOrWhiteSpace(options.Algorithm))
-                {
-                    options.Algorithm = SecurityAlgorithms.RsaSha256;
-                }
-
                 X509Certificate2 certificate = null;
                 var password = options.Certificate.Password;
                 var hasPassword = !string.IsNullOrWhiteSpace(password);
+                if (!string.IsNullOrWhiteSpace(options.Certificate.Location))
+                {
+                    certificate = hasPassword
+                        ? new X509Certificate2(options.Certificate.Location, password)
+                        : new X509Certificate2(options.Certificate.Location);
+                    Console.WriteLine($"Loaded X.509 certificate from location: '{options.Certificate.Location}'.");
+                }
+                
                 if (!string.IsNullOrWhiteSpace(options.Certificate.RawData))
                 {
                     var rawData = Convert.FromBase64String(options.Certificate.RawData);
                     certificate = hasPassword
                         ? new X509Certificate2(rawData, password)
                         : new X509Certificate2(rawData);
+                    Console.WriteLine("Loaded X.509 certificate from raw data.");
                 }
 
-                if (!string.IsNullOrWhiteSpace(options.Certificate.Location))
+                if (certificate is {})
                 {
-                    certificate = hasPassword
-                        ? new X509Certificate2(options.Certificate.Location, password)
-                        : new X509Certificate2(options.Certificate.Location);
-                }
+                    if (string.IsNullOrWhiteSpace(options.Algorithm))
+                    {
+                        options.Algorithm = SecurityAlgorithms.RsaSha256;
+                    }
 
-                if (certificate is null)
-                {
-                    throw new InvalidOperationException("Certificate not set.");
+                    hasCertificate = true;
+                    tokenValidationParameters.IssuerSigningKey = new X509SecurityKey(certificate);
+                    Console.WriteLine("Using X.509 certificate for issuing tokens.");
                 }
-
-                tokenValidationParameters.IssuerSigningKey = new X509SecurityKey(certificate);
             }
 
             if (!string.IsNullOrWhiteSpace(options.IssuerSigningKey))
             {
-                if (string.IsNullOrWhiteSpace(options.Algorithm))
+                if (string.IsNullOrWhiteSpace(options.Algorithm) || hasCertificate)
                 {
                     options.Algorithm = SecurityAlgorithms.HmacSha256;
                 }
 
-                tokenValidationParameters.IssuerSigningKey =
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.IssuerSigningKey));
+                var rawKey = Encoding.UTF8.GetBytes(options.IssuerSigningKey);
+                tokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(rawKey);
+                Console.WriteLine("Using symmetric encryption for issuing tokens.");
             }
 
             if (!string.IsNullOrWhiteSpace(options.NameClaimType))

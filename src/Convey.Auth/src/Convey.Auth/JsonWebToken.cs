@@ -9,6 +9,6 @@ namespace Convey.Auth
         public long Expires { get; set; }
         public string Id { get; set; }
         public string Role { get; set; }
-        public IDictionary<string, string> Claims { get; set; }
+        public IDictionary<string, IEnumerable<string>> Claims { get; set; }
     }
 }

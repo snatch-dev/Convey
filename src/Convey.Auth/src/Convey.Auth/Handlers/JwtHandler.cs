@@ -10,6 +10,8 @@ namespace Convey.Auth.Handlers
 {
     internal sealed class JwtHandler : IJwtHandler
     {
+        private static readonly IDictionary<string, IEnumerable<string>> EmptyClaims =
+            new Dictionary<string, IEnumerable<string>>();
         private static readonly ISet<string> DefaultClaims = new HashSet<string>
         {
             JwtRegisteredClaimNames.Sub,
@@ -47,10 +49,10 @@ namespace Convey.Auth.Handlers
         public JsonWebToken CreateToken(string userId, string role = null, string audience = null,
             IDictionary<string, string> claims = null)
             => CreateToken(userId, role, audience,
-                claims?.Select(c => new KeyValuePair<string, string>(c.Key, c.Value)));
+                claims?.ToDictionary(c => c.Key, c => new[] {c.Value}.AsEnumerable()));
 
         public JsonWebToken CreateToken(string userId, string role = null, string audience = null,
-            IEnumerable<KeyValuePair<string, string>> claims = null)
+            IDictionary<string, IEnumerable<string>> claims = null)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -75,9 +77,17 @@ namespace Convey.Auth.Handlers
                 jwtClaims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
             }
 
-            var customClaims = claims?.Select(claim => new Claim(claim.Key, claim.Value)).ToArray()
-                               ?? Array.Empty<Claim>();
-            jwtClaims.AddRange(customClaims);
+            if (claims?.Any() is true)
+            {
+                var customClaims = new List<Claim>();
+                foreach (var (claim, values) in claims)
+                {
+                    customClaims.AddRange(values.Select(value => new Claim(claim, value)));
+                }
+
+                jwtClaims.AddRange(customClaims);
+            }
+
             var expires = now.AddMinutes(_options.ExpiryMinutes);
             var jwt = new JwtSecurityToken(
                 _issuer,
@@ -95,7 +105,7 @@ namespace Convey.Auth.Handlers
                 Expires = expires.ToTimestamp(),
                 Id = userId,
                 Role = role ?? string.Empty,
-                Claims = customClaims.ToDictionary(c => c.Type, c => c.Value)
+                Claims = claims ?? EmptyClaims
             };
         }
 
@@ -114,7 +124,8 @@ namespace Convey.Auth.Handlers
                 Role = jwt.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Role)?.Value,
                 Expires = jwt.ValidTo.ToTimestamp(),
                 Claims = jwt.Claims.Where(x => !DefaultClaims.Contains(x.Type))
-                    .ToDictionary(k => k.Type, v => v.Value)
+                    .GroupBy(c => c.Type)
+                    .ToDictionary(k => k.Key, v => v.Select(c => c.Value))
             };
         }
     }

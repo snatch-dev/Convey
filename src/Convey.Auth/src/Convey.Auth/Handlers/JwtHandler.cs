@@ -47,11 +47,6 @@ namespace Convey.Auth.Handlers
         }
 
         public JsonWebToken CreateToken(string userId, string role = null, string audience = null,
-            IDictionary<string, string> claims = null)
-            => CreateToken(userId, role, audience,
-                claims?.ToDictionary(c => c.Key, c => new[] {c.Value}.AsEnumerable()));
-
-        public JsonWebToken CreateToken(string userId, string role = null, string audience = null,
             IDictionary<string, IEnumerable<string>> claims = null)
         {
             if (string.IsNullOrWhiteSpace(userId))

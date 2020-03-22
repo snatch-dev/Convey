@@ -22,7 +22,7 @@ namespace Convey.Persistence.MongoDB
         private const string RegistryName = "persistence.mongoDb";
 
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, string sectionName = SectionName,
-            Type seederType = null)
+            Type seederType = null, bool registerConventions = true)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
@@ -30,18 +30,18 @@ namespace Convey.Persistence.MongoDB
             }
 
             var mongoOptions = builder.GetOptions<MongoDbOptions>(sectionName);
-            return builder.AddMongo(mongoOptions, seederType);
+            return builder.AddMongo(mongoOptions, seederType, registerConventions);
         }
 
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, Func<IMongoDbOptionsBuilder,
-            IMongoDbOptionsBuilder> buildOptions, Type seederType = null)
+            IMongoDbOptionsBuilder> buildOptions, Type seederType = null, bool registerConventions = true)
         {
             var mongoOptions = buildOptions(new MongoDbOptionsBuilder()).Build();
-            return builder.AddMongo(mongoOptions, seederType);
+            return builder.AddMongo(mongoOptions, seederType, registerConventions);
         }
 
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, MongoDbOptions mongoOptions,
-            Type seederType = null)
+            Type seederType = null, bool registerConventions = true)
         {
             if (!builder.TryRegister(RegistryName))
             {
@@ -73,18 +73,16 @@ namespace Convey.Persistence.MongoDB
             }
 
             builder.AddInitializer<IMongoDbInitializer>();
-            RegisterConventions();
+            if (registerConventions && !_conventionsRegistered)
+            {
+                RegisterConventions();
+            }
 
             return builder;
         }
 
         private static void RegisterConventions()
         {
-            if (_conventionsRegistered)
-            {
-                return;
-            }
-
             _conventionsRegistered = true;
             BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
             BsonSerializer.RegisterSerializer(typeof(decimal?),

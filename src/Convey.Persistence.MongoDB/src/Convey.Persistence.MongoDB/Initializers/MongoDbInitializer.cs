@@ -1,9 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Conventions;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
 namespace Convey.Persistence.MongoDB.Initializers
@@ -29,22 +25,7 @@ namespace Convey.Persistence.MongoDB.Initializers
                 return Task.CompletedTask;
             }
 
-            RegisterConventions();
-
             return _seed ? _seeder.SeedAsync(_database) : Task.CompletedTask;
-        }
-
-        private void RegisterConventions()
-        {
-            BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
-            BsonSerializer.RegisterSerializer(typeof(decimal?),
-                new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
-            ConventionRegistry.Register("convey", new ConventionPack
-            {
-                new CamelCaseElementNameConvention(),
-                new IgnoreExtraElementsConvention(true),
-                new EnumRepresentationConvention(BsonType.String),
-            }, _ => true);
         }
     }
 }

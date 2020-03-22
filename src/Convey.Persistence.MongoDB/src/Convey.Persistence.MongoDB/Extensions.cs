@@ -6,6 +6,10 @@ using Convey.Persistence.MongoDB.Repositories;
 using Convey.Persistence.MongoDB.Seeders;
 using Convey.Types;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
 namespace Convey.Persistence.MongoDB
@@ -16,26 +20,26 @@ namespace Convey.Persistence.MongoDB
         private const string RegistryName = "persistence.mongoDb";
 
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, string sectionName = SectionName,
-            IMongoDbSeeder seeder = null)
+            Type seederType = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
                 sectionName = SectionName;
             }
-            
+
             var mongoOptions = builder.GetOptions<MongoDbOptions>(sectionName);
-            return builder.AddMongo(mongoOptions, seeder);
+            return builder.AddMongo(mongoOptions, seederType);
         }
 
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, Func<IMongoDbOptionsBuilder,
-            IMongoDbOptionsBuilder> buildOptions, IMongoDbSeeder seeder = null)
+            IMongoDbOptionsBuilder> buildOptions, Type seederType = null)
         {
             var mongoOptions = buildOptions(new MongoDbOptionsBuilder()).Build();
-            return builder.AddMongo(mongoOptions, seeder);
+            return builder.AddMongo(mongoOptions, seederType);
         }
 
         public static IConveyBuilder AddMongo(this IConveyBuilder builder, MongoDbOptions mongoOptions,
-            IMongoDbSeeder seeder = null)
+            Type seederType = null)
         {
             if (!builder.TryRegister(RegistryName))
             {
@@ -57,18 +61,32 @@ namespace Convey.Persistence.MongoDB
             builder.Services.AddTransient<IMongoDbInitializer, MongoDbInitializer>();
             builder.Services.AddTransient<IMongoSessionFactory, MongoSessionFactory>();
 
-            if (seeder is null)
+            if (seederType is null)
             {
-                builder.Services.AddSingleton<IMongoDbSeeder, MongoDbSeeder>();
+                builder.Services.AddTransient<IMongoDbSeeder, MongoDbSeeder>();
             }
             else
             {
-                builder.Services.AddSingleton(seeder);
+                builder.Services.AddTransient(typeof(IMongoDbSeeder), seederType);
             }
 
             builder.AddInitializer<IMongoDbInitializer>();
+            RegisterConventions();
 
             return builder;
+        }
+
+        private static void RegisterConventions()
+        {
+            BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
+            BsonSerializer.RegisterSerializer(typeof(decimal?),
+                new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
+            ConventionRegistry.Register("convey", new ConventionPack
+            {
+                new CamelCaseElementNameConvention(),
+                new IgnoreExtraElementsConvention(true),
+                new EnumRepresentationConvention(BsonType.String),
+            }, _ => true);
         }
 
         public static IConveyBuilder AddMongoRepository<TEntity, TIdentifiable>(this IConveyBuilder builder,

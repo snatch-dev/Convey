@@ -19,6 +19,7 @@ namespace Convey.Persistence.MongoDB.Seeders
             {
                 return;
             }
+
             await Task.CompletedTask;
         }
     }

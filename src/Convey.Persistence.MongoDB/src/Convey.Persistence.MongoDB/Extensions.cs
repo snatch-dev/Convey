@@ -16,6 +16,8 @@ namespace Convey.Persistence.MongoDB
 {
     public static class Extensions
     {
+        // Helpful when dealing with integration testing
+        private static bool _conventionsRegistered;
         private const string SectionName = "mongo";
         private const string RegistryName = "persistence.mongoDb";
 
@@ -78,6 +80,12 @@ namespace Convey.Persistence.MongoDB
 
         private static void RegisterConventions()
         {
+            if (_conventionsRegistered)
+            {
+                return;
+            }
+
+            _conventionsRegistered = true;
             BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
             BsonSerializer.RegisterSerializer(typeof(decimal?),
                 new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));

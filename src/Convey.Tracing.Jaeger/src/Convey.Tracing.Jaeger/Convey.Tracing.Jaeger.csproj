@@ -16,7 +16,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Jaeger" Version="0.3.6" />
+    <PackageReference Include="Jaeger" Version="0.3.7" />
     <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.6.2" />
   </ItemGroup>
 

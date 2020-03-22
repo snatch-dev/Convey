@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using Convey.Tracing.Jaeger.Builders;
-using Convey.Tracing.Jaeger.Middlewares;
 using Convey.Tracing.Jaeger.Tracers;
 using Jaeger;
 using Jaeger.Reporters;
@@ -28,7 +27,7 @@ namespace Convey.Tracing.Jaeger
             {
                 sectionName = SectionName;
             }
-            
+
             var options = builder.GetOptions<JaegerOptions>(sectionName);
             return builder.AddJaeger(options);
         }
@@ -46,7 +45,7 @@ namespace Convey.Tracing.Jaeger
             {
                 return builder;
             }
-            
+
             builder.Services.AddSingleton(options);
             if (!options.Enabled)
             {
@@ -105,7 +104,7 @@ namespace Convey.Tracing.Jaeger
                 options = scope.ServiceProvider.GetService<JaegerOptions>();
             }
 
-            return options.Enabled ? app.UseMiddleware<JaegerHttpMiddleware>() : app;
+            return app;
         }
 
         private static ISampler GetSampler(JaegerOptions options)

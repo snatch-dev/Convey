@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Convey.Persistence.OpenStack.OCS</Description>
+    <Authors>Patryk Ciebień</Authors>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>Latest</LangVersion>
+    <AssemblyName>Convey.Persistence.OpenStack.OCS</AssemblyName>
+    <Title>Convey.Persistence.OpenStack.OCS</Title>
+    <PackageId>Convey.Persistence.OpenStack.OCS</PackageId>
+    <PackageTags>Convey.Persistence.OpenStack.OCS</PackageTags>
+    <Company>CyberityMotion</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
+  </ItemGroup>
+
+</Project>

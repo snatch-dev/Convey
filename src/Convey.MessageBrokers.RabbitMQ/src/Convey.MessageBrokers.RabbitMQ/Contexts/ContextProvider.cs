@@ -18,6 +18,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Contexts
 
         public object Get(IDictionary<string, object> headers)
         {
+            if (headers is null)
+            {
+                return null;
+            }
+            
             if (!headers.TryGetValue(HeaderName, out var context))
             {
                 return null;

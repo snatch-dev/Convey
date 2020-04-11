@@ -36,10 +36,13 @@ namespace Convey.Persistence.MongoDB.Repositories
 			=> Collection.InsertOneAsync(entity);
 
 		public Task UpdateAsync(TEntity entity)
-			=> Collection.ReplaceOneAsync(e => e.Id.Equals(entity.Id), entity);
+			=> UpdateAsync(entity, e => e.Id.Equals(entity.Id));
+
+		public Task UpdateAsync(TEntity entity, Expression<Func<TEntity, bool>> predicate)
+			=> Collection.ReplaceOneAsync(predicate, entity);
 
 		public Task DeleteAsync(TIdentifiable id)
-			=> Collection.DeleteOneAsync(e => e.Id.Equals(id));
+			=> DeleteAsync(e => e.Id.Equals(id));
 
 		public Task DeleteAsync(Expression<Func<TEntity, bool>> predicate)
 			=> Collection.DeleteOneAsync(predicate);

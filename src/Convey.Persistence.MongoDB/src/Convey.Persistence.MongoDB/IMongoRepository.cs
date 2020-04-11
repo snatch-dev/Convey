@@ -20,6 +20,7 @@ namespace Convey.Persistence.MongoDB
 
 		Task AddAsync(TEntity entity);
 		Task UpdateAsync(TEntity entity);
+		Task UpdateAsync(TEntity entity, Expression<Func<TEntity, bool>> predicate);
 		Task DeleteAsync(TIdentifiable id);
 		Task DeleteAsync(Expression<Func<TEntity, bool>> predicate);
 		Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate);

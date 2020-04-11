@@ -19,29 +19,32 @@ namespace Convey.Persistence.MongoDB.Repositories
 
 		public IMongoCollection<TEntity> Collection { get; }
 
-		public async Task<TEntity> GetAsync(TIdentifiable id)
-			=> await GetAsync(e => e.Id.Equals(id));
+		public Task<TEntity> GetAsync(TIdentifiable id)
+			=> GetAsync(e => e.Id.Equals(id));
 
-		public async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate)
-			=> await Collection.Find(predicate).SingleOrDefaultAsync();
+		public Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate)
+			=> Collection.Find(predicate).SingleOrDefaultAsync();
 
 		public async Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
 			=> await Collection.Find(predicate).ToListAsync();
 
-		public async Task<PagedResult<TEntity>> BrowseAsync<TQuery>(Expression<Func<TEntity, bool>> predicate,
+		public Task<PagedResult<TEntity>> BrowseAsync<TQuery>(Expression<Func<TEntity, bool>> predicate,
 			TQuery query) where TQuery : IPagedQuery
-			=> await Collection.AsQueryable().Where(predicate).PaginateAsync(query);
+			=> Collection.AsQueryable().Where(predicate).PaginateAsync(query);
 
-		public async Task AddAsync(TEntity entity)
-			=> await Collection.InsertOneAsync(entity);
+		public Task AddAsync(TEntity entity)
+			=> Collection.InsertOneAsync(entity);
 
-		public async Task UpdateAsync(TEntity entity)
-			=> await Collection.ReplaceOneAsync(e => e.Id.Equals(entity.Id), entity);
+		public Task UpdateAsync(TEntity entity)
+			=> Collection.ReplaceOneAsync(e => e.Id.Equals(entity.Id), entity);
 
-		public async Task DeleteAsync(TIdentifiable id)
-			=> await Collection.DeleteOneAsync(e => e.Id.Equals(id));
+		public Task DeleteAsync(TIdentifiable id)
+			=> Collection.DeleteOneAsync(e => e.Id.Equals(id));
 
-		public async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate)
-			=> await Collection.Find(predicate).AnyAsync();
+		public Task DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+			=> Collection.DeleteOneAsync(predicate);
+
+		public Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate)
+			=> Collection.Find(predicate).AnyAsync();
 	}
 }

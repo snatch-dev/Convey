@@ -48,6 +48,13 @@ namespace Convey.Persistence.MongoDB
                 return builder;
             }
 
+            if (mongoOptions.SetRandomDatabaseSuffix)
+            {
+                var suffix = $"{Guid.NewGuid():N}";
+                Console.WriteLine($"Setting a random MongoDB database suffix: '{suffix}'.");
+                mongoOptions.Database = $"{mongoOptions.Database}_{suffix}";
+            }
+
             builder.Services.AddSingleton(mongoOptions);
             builder.Services.AddSingleton<IMongoClient>(sp =>
             {

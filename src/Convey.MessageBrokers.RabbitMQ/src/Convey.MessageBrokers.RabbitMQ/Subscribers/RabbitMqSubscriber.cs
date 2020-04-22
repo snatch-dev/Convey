@@ -79,11 +79,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
             _channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
             _channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
-            
+
             var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.Received += async (model, args) =>
             {
-                using var scope = _serviceProvider.CreateScope();
                 try
                 {
                     var messageId = args.BasicProperties.MessageId;
@@ -97,7 +96,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
                     var payload = Encoding.UTF8.GetString(args.Body);
                     var message = _rabbitMqSerializer.Deserialize<T>(payload);
-                    var correlationContext = BuildCorrelationContext(scope, args);
+                    var correlationContext = BuildCorrelationContext(args);
 
                     Task Next(object m, object ctx, BasicDeliverEventArgs a)
                         => TryHandleAsync((T) m, messageId, correlationId, ctx, a, handle);
@@ -117,8 +116,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             return this;
         }
 
-        private object BuildCorrelationContext(IServiceScope scope, BasicDeliverEventArgs args)
+        private object BuildCorrelationContext(BasicDeliverEventArgs args)
         {
+            using var scope = _serviceProvider.CreateScope();
             var messagePropertiesAccessor = scope.ServiceProvider.GetService<IMessagePropertiesAccessor>();
             messagePropertiesAccessor.MessageProperties = new MessageProperties
             {
@@ -178,12 +178,12 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         var errorMessage = $"Unable to handle a message: '{messageName}' [id: '{messageId}'] " +
                                            $"with correlation id: '{correlationId}', " +
                                            $"retry {currentRetry - 1}/{_retries}...";
-                        
+
                         if (currentRetry > 1)
                         {
                             _logger.LogError(errorMessage);
                         }
-                        
+
                         if (currentRetry - 1 < _retries)
                         {
                             throw new Exception(errorMessage, ex);
@@ -205,7 +205,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     _logger.LogError($"Handling a message: '{messageName}' [id: '{messageId}'] " +
                                      $"with correlation id: '{correlationId}' failed and rejected event: " +
                                      $"'{rejectedEventName}' was published.", ex);
-                    
+
                     _channel.BasicAck(args.DeliveryTag, false);
                 }
             });

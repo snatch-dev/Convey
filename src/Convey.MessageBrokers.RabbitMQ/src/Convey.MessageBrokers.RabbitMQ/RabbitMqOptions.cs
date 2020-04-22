@@ -52,6 +52,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         
         public class QueueOptions
         {
+            public string Template { get; set; }
             public bool Declare { get; set; }
             public bool Durable { get; set; }
             public bool Exclusive { get; set; }

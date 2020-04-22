@@ -8,10 +8,14 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
     {
         private readonly RabbitMqOptions _options;
         private readonly bool _snakeCase;
+        private readonly string _queueTemplate;
 
         public ConventionsBuilder(RabbitMqOptions options)
         {
             _options = options;
+            _queueTemplate = string.IsNullOrWhiteSpace(_options.Queue.Template)
+                ? "{{assembly}}/{{exchange}}.{{message}}"
+                : options.Queue.Template;
             _snakeCase = options.ConventionsCasing?.Equals("snakeCase",
                              StringComparison.InvariantCultureIgnoreCase) == true;
         }
@@ -38,11 +42,17 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
         public string GetQueue(Type type)
         {
             var attribute = GeAttribute(type);
+            if (!string.IsNullOrWhiteSpace(attribute?.Queue))
+            {
+                return WithCasing(attribute.Queue);
+            }
+
+            var assembly = type.Assembly.GetName().Name;
+            var message = type.Name;
             var exchange = string.IsNullOrWhiteSpace(attribute?.Exchange) ? _options.Exchange.Name : attribute.Exchange;
-            exchange = string.IsNullOrWhiteSpace(exchange) ? string.Empty : $"{exchange}.";
-            var queue = string.IsNullOrWhiteSpace(attribute?.Queue)
-                ? $"{type.Assembly.GetName().Name}/{exchange}{type.Name}"
-                : attribute.Queue;
+            var queue = _queueTemplate.Replace("{{assembly}}", assembly)
+                .Replace("{{exchange}}", exchange)
+                .Replace("{{message}}", message);
 
             return WithCasing(queue);
         }

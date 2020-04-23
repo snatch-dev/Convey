@@ -94,7 +94,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                                $"correlation id: '{correlationId}', timestamp: {timestamp} {info}.");
                     }
 
-                    var payload = Encoding.UTF8.GetString(args.Body);
+                    var payload = Encoding.UTF8.GetString(args.Body.Span);
                     var message = _rabbitMqSerializer.Deserialize<T>(payload);
                     var correlationContext = BuildCorrelationContext(args);
 

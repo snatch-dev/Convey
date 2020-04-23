@@ -4,6 +4,7 @@ using System.Text;
 using Convey.Auth.Handlers;
 using Convey.Auth.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -38,6 +39,11 @@ namespace Convey.Auth
             builder.Services.AddSingleton<IJwtHandler, JwtHandler>();
             builder.Services.AddSingleton<IAccessTokenService, InMemoryAccessTokenService>();
             builder.Services.AddTransient<AccessTokenValidatorMiddleware>();
+
+            if (options.AuthenticationDisabled)
+            {
+                builder.Services.AddSingleton<IPolicyEvaluator, DisabledAuthenticationPolicyEvaluator>();
+            }
 
             var tokenValidationParameters = new TokenValidationParameters
             {

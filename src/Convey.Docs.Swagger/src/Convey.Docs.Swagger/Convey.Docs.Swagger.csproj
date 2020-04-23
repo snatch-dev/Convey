@@ -16,9 +16,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" Version="5.2.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.2.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" Version="5.3.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.3.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.3.3" />
   </ItemGroup>
   
 </Project>

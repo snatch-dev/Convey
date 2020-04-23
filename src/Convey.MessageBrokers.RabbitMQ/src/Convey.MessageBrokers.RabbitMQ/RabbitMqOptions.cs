@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Convey.MessageBrokers.RabbitMQ
@@ -10,12 +11,15 @@ namespace Convey.MessageBrokers.RabbitMQ
         public string VirtualHost { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
-        public int RequestedConnectionTimeout { get; set; } = 30000;
-        public int SocketReadTimeout { get; set; } = 30000;
-        public int SocketWriteTimeout { get; set; } = 30000;
+        public TimeSpan RequestedHeartbeat { get; set; } = TimeSpan.FromSeconds(60);
+        public TimeSpan RequestedConnectionTimeout { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan SocketReadTimeout { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan SocketWriteTimeout { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
+        public TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
+        public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
         public ushort RequestedChannelMax { get; set; }
         public uint RequestedFrameMax { get; set; }
-        public ushort RequestedHeartbeat { get; set; }
         public bool UseBackgroundThreadsForIO { get; set; }
         public string ConventionsCasing { get; set; }
         public int Retries { get; set; }
@@ -23,7 +27,6 @@ namespace Convey.MessageBrokers.RabbitMQ
         public ContextOptions Context { get; set; }
         public ExchangeOptions Exchange { get; set; }
         public LoggerOptions Logger { get; set; }
-        public MessageProcessorOptions MessageProcessor { get; set; }
         public SslOptions Ssl { get; set; }
         public QueueOptions Queue { get; set; }
         public QosOptions Qos { get; set; }
@@ -57,13 +60,6 @@ namespace Convey.MessageBrokers.RabbitMQ
             public bool Durable { get; set; }
             public bool Exclusive { get; set; }
             public bool AutoDelete { get; set; }
-        }
-
-        public class MessageProcessorOptions
-        {
-            public bool Enabled { get; set; }
-            public string Type { get; set; }
-            public int MessageExpirySeconds { get; set; }
         }
 
         public class SslOptions

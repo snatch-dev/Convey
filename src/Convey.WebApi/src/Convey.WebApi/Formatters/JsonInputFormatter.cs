@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -18,7 +19,8 @@ namespace Convey.WebApi.Formatters
         public JsonInputFormatter(IJsonSerializer serializer)
         {
             _serializer = serializer;
-            _deserializeMethod = _serializer.GetType().GetMethod(nameof(_serializer.Deserialize));
+            _deserializeMethod = _serializer.GetType().GetMethods()
+                .Single(m => m.IsGenericMethod && m.Name == nameof(_serializer.Deserialize));
         }
 
         public bool CanRead(InputFormatterContext context)

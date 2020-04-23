@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Serialization.Json.Newtonsoft" Version="1.4.0" />
-    <PackageReference Include="Open.Serialization.Json.System" Version="1.4.0" />
-    <PackageReference Include="Open.Serialization.Json.Utf8Json" Version="1.4.1" />
+    <PackageReference Include="Open.Serialization.Json.Newtonsoft" Version="2.2.5" />
+    <PackageReference Include="Open.Serialization.Json.System" Version="2.2.4" />
+    <PackageReference Include="Open.Serialization.Json.Utf8Json" Version="2.2.4" />
   </ItemGroup>
 
 </Project>

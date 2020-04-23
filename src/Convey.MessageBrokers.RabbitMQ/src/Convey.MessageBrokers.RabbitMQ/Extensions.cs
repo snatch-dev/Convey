@@ -21,13 +21,14 @@ namespace Convey.MessageBrokers.RabbitMQ
         private const string RegistryName = "messageBrokers.rabbitmq";
 
         public static IConveyBuilder AddRabbitMq(this IConveyBuilder builder, string sectionName = SectionName,
-            Func<IRabbitMqPluginsRegistry, IRabbitMqPluginsRegistry> plugins = null)
+            Func<IRabbitMqPluginsRegistry, IRabbitMqPluginsRegistry> plugins = null,
+            Action<ConnectionFactory> connectionFactoryConfigurator = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
                 sectionName = SectionName;
             }
-            
+
             var options = builder.GetOptions<RabbitMqOptions>(sectionName);
             builder.Services.AddSingleton(options);
             if (!builder.TryRegister(RegistryName))
@@ -59,25 +60,31 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IRabbitMqPluginsExecutor, RabbitMqPluginsExecutor>();
             plugins?.Invoke(pluginsRegistry);
 
-            var connection = new ConnectionFactory
+            var connectionFactory = new ConnectionFactory
             {
                 Port = options.Port,
                 VirtualHost = options.VirtualHost,
                 UserName = options.Username,
                 Password = options.Password,
+                RequestedHeartbeat = options.RequestedHeartbeat,
                 RequestedConnectionTimeout = options.RequestedConnectionTimeout,
                 SocketReadTimeout = options.SocketReadTimeout,
                 SocketWriteTimeout = options.SocketWriteTimeout,
                 RequestedChannelMax = options.RequestedChannelMax,
                 RequestedFrameMax = options.RequestedFrameMax,
-                RequestedHeartbeat = options.RequestedHeartbeat,
                 UseBackgroundThreadsForIO = options.UseBackgroundThreadsForIO,
                 DispatchConsumersAsync = true,
+                ContinuationTimeout = options.ContinuationTimeout,
+                HandshakeContinuationTimeout = options.HandshakeContinuationTimeout,
+                NetworkRecoveryInterval = options.NetworkRecoveryInterval,
                 Ssl = options.Ssl is null
                     ? new SslOption()
-                    : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled)
-            }.CreateConnection(options.HostNames.ToList(), options.ConnectionName);
-
+                    : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled),
+            };
+            
+            connectionFactoryConfigurator?.Invoke(connectionFactory);
+            
+            var connection = connectionFactory.CreateConnection(options.HostNames.ToList(), options.ConnectionName);
             builder.Services.AddSingleton(connection);
 
             ((IRabbitMqPluginsRegistryAccessor) pluginsRegistry).Get().ToList().ForEach(p =>

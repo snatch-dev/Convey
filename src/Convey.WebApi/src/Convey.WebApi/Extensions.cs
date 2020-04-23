@@ -119,6 +119,7 @@ namespace Convey.WebApi
                     .WithTransientLifetime());
 
             builder.Services.AddTransient<IRequestDispatcher, RequestDispatcher>();
+            builder.AddErrorHandler<EmptyExceptionToResponseMapper>();
 
             return builder;
         }
@@ -395,6 +396,11 @@ namespace Convey.WebApi
             }
 
             return (T) TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(data);
+        }
+        
+        private class EmptyExceptionToResponseMapper : IExceptionToResponseMapper
+        {
+            public ExceptionResponse Map(Exception exception) => null;
         }
     }
 }

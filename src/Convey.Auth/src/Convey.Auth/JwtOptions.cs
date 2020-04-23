@@ -4,6 +4,7 @@ namespace Convey.Auth
 {
     public class JwtOptions
     {
+        public bool AuthenticationDisabled { get; set; }
         public IEnumerable<string> AllowAnonymousEndpoints { get; set; }
         public CertificateOptions Certificate { get; set; }
         public string Algorithm { get; set; }

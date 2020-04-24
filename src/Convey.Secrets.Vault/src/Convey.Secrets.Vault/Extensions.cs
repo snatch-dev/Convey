@@ -76,6 +76,7 @@ namespace Convey.Secrets.Vault
                 {
                     options.Kv = new VaultOptions.KeyValueOptions
                     {
+                        Enabled = options.Enabled,
                         Path = options.Key
                     };
                 }
@@ -97,14 +98,10 @@ namespace Convey.Secrets.Vault
         private static async Task AddVaultAsync(this IConfigurationBuilder builder, VaultOptions options,
             string keyValuePath)
         {
+            VerifyOptions(options);
             var kvPath = string.IsNullOrWhiteSpace(keyValuePath) ? options.Key : keyValuePath;
-            if (string.IsNullOrWhiteSpace(kvPath))
-            {
-                kvPath = options.Kv?.Path;
-            }
-            
             var (client, _) = GetClientAndSettings(options);
-            if (!string.IsNullOrWhiteSpace(kvPath))
+            if (!string.IsNullOrWhiteSpace(kvPath) && options.Kv.Enabled)
             {
                 Console.WriteLine($"Loading settings from Vault: '{options.Url}', KV path: '{kvPath}'.");
                 var keyValueSecrets = new KeyValueSecrets(client, options);

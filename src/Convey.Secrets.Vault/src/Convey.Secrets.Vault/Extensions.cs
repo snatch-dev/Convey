@@ -99,7 +99,7 @@ namespace Convey.Secrets.Vault
             string keyValuePath)
         {
             VerifyOptions(options);
-            var kvPath = string.IsNullOrWhiteSpace(keyValuePath) ? options.Key : keyValuePath;
+            var kvPath = string.IsNullOrWhiteSpace(keyValuePath) ? options.Kv?.Path : keyValuePath;
             var (client, _) = GetClientAndSettings(options);
             if (!string.IsNullOrWhiteSpace(kvPath) && options.Kv.Enabled)
             {
@@ -111,7 +111,7 @@ namespace Convey.Secrets.Vault
                 var source = new MemoryConfigurationSource {InitialData = data};
                 builder.Add(source);
             }
-            
+
             if (options.Pki is {} && options.Pki.Enabled)
             {
                 Console.WriteLine("Initializing Vault PKI.");

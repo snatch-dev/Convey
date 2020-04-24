@@ -38,6 +38,7 @@ namespace Convey.Secrets.Vault
                     }
 
                     var options = configuration.GetOptions<VaultOptions>(sectionName);
+                    VerifyOptions(options);
                     services.AddSingleton(options);
                     services.AddTransient<IKeyValueSecrets, KeyValueSecrets>();
                     var (client, settings) = GetClientAndSettings(options);
@@ -67,16 +68,47 @@ namespace Convey.Secrets.Vault
                     cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
                 });
 
+        private static void VerifyOptions(VaultOptions options)
+        {
+            if (options.Kv is null)
+            {
+                if (!string.IsNullOrWhiteSpace(options.Key))
+                {
+                    options.Kv = new VaultOptions.KeyValueOptions
+                    {
+                        Path = options.Key
+                    };
+                }
+                
+                return;
+            }
+
+            if (options.Kv.EngineVersion > 2 || options.Kv.EngineVersion < 0)
+            {
+                throw new VaultException($"Invalid KV engine version: {options.Kv.EngineVersion} (available: 1 or 2).");
+            }
+                
+            if (options.Kv.EngineVersion == 0)
+            {
+                options.Kv.EngineVersion = 2;
+            }
+        }
+
         private static async Task AddVaultAsync(this IConfigurationBuilder builder, VaultOptions options,
             string keyValuePath)
         {
             var kvPath = string.IsNullOrWhiteSpace(keyValuePath) ? options.Key : keyValuePath;
+            if (string.IsNullOrWhiteSpace(kvPath))
+            {
+                kvPath = options.Kv?.Path;
+            }
+            
             var (client, _) = GetClientAndSettings(options);
             if (!string.IsNullOrWhiteSpace(kvPath))
             {
                 Console.WriteLine($"Loading settings from Vault: '{options.Url}', KV path: '{kvPath}'.");
-                var keyValueVaultStore = new KeyValueSecrets(client, options);
-                var secret = await keyValueVaultStore.GetAsync(kvPath);
+                var keyValueSecrets = new KeyValueSecrets(client, options);
+                var secret = await keyValueSecrets.GetAsync(kvPath);
                 var parser = new JsonParser();
                 var data = parser.Parse(JObject.FromObject(secret));
                 var source = new MemoryConfigurationSource {InitialData = data};

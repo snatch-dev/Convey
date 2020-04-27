@@ -13,11 +13,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
         public ConventionsBuilder(RabbitMqOptions options)
         {
             _options = options;
-            _queueTemplate = string.IsNullOrWhiteSpace(_options.Queue.Template)
+            _queueTemplate = string.IsNullOrWhiteSpace(_options.Queue?.Template)
                 ? "{{assembly}}/{{exchange}}.{{message}}"
                 : options.Queue.Template;
             _snakeCase = options.ConventionsCasing?.Equals("snakeCase",
-                             StringComparison.InvariantCultureIgnoreCase) == true;
+                StringComparison.InvariantCultureIgnoreCase) == true;
         }
 
         public string GetRoutingKey(Type type)
@@ -49,7 +49,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
 
             var assembly = type.Assembly.GetName().Name;
             var message = type.Name;
-            var exchange = string.IsNullOrWhiteSpace(attribute?.Exchange) ? _options.Exchange.Name : attribute.Exchange;
+            var exchange = string.IsNullOrWhiteSpace(attribute?.Exchange)
+                ? _options.Exchange?.Name
+                : attribute.Exchange;
+
             var queue = _queueTemplate.Replace("{{assembly}}", assembly)
                 .Replace("{{exchange}}", exchange)
                 .Replace("{{message}}", message);

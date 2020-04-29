@@ -67,6 +67,8 @@ namespace Convey.MessageBrokers.RabbitMQ
             public bool Enabled { get; set; }
             public string ServerName { get; set; }
             public string CertificatePath { get; set; }
+            public string CaCertificatePath { get; set; }
+            public bool TrustUntrustedRoot { get; set; }
         }
 
         public class QosOptions

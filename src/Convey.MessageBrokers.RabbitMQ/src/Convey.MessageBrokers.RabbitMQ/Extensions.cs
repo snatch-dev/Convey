@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using Convey.MessageBrokers.RabbitMQ.Clients;
 using Convey.MessageBrokers.RabbitMQ.Contexts;
 using Convey.MessageBrokers.RabbitMQ.Conventions;
@@ -79,11 +81,11 @@ namespace Convey.MessageBrokers.RabbitMQ
                 NetworkRecoveryInterval = options.NetworkRecoveryInterval,
                 Ssl = options.Ssl is null
                     ? new SslOption()
-                    : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled),
+                    : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled)
             };
-            
+            ConfigureSsl(connectionFactory, options);
             connectionFactoryConfigurator?.Invoke(connectionFactory);
-            
+
             var connection = connectionFactory.CreateConnection(options.HostNames.ToList(), options.ConnectionName);
             builder.Services.AddSingleton(connection);
 
@@ -91,6 +93,51 @@ namespace Convey.MessageBrokers.RabbitMQ
                 builder.Services.AddTransient(p.PluginType));
 
             return builder;
+        }
+
+        private static void ConfigureSsl(ConnectionFactory connectionFactory, RabbitMqOptions options)
+        {
+            if (options.Ssl is null || string.IsNullOrWhiteSpace(options.Ssl.ServerName))
+            {
+                connectionFactory.Ssl = new SslOption();
+                return;
+            }
+
+            connectionFactory.Ssl = new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath,
+                options.Ssl.Enabled);
+
+            Console.WriteLine($"RabbitMQ SSL is: {(options.Ssl.Enabled ? "enabled" : "disabled")}, " +
+                              $"server: '{options.Ssl.ServerName}', client certificate: '{options.Ssl.CertificatePath}', " +
+                              $"CA certificate: '{options.Ssl.CaCertificatePath}'.");
+
+            if (string.IsNullOrWhiteSpace(options.Ssl.CaCertificatePath))
+            {
+                return;
+            }
+
+            connectionFactory.Ssl.CertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+            {
+                if (sslPolicyErrors == SslPolicyErrors.None)
+                {
+                    return true;
+                }
+
+                if (chain is null)
+                {
+                    return false;
+                }
+
+                chain = new X509Chain();
+                var certificate2 = new X509Certificate2(certificate);
+                var signerCertificate2 = new X509Certificate2(options.Ssl.CaCertificatePath);
+                chain.ChainPolicy.ExtraStore.Add(signerCertificate2);
+                chain.Build(certificate2);
+
+                return chain.ChainStatus.All(chainStatus => chainStatus.Status == X509ChainStatusFlags.NoError
+                                                            || options.Ssl.TrustUntrustedRoot &&
+                                                            chainStatus.Status ==
+                                                            X509ChainStatusFlags.UntrustedRoot);
+            };
         }
 
         public static IConveyBuilder AddExceptionToMessageMapper<T>(this IConveyBuilder builder)

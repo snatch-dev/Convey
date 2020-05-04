@@ -13,6 +13,7 @@ using Convey.MessageBrokers.RabbitMQ.Serializers;
 using Convey.MessageBrokers.RabbitMQ.Subscribers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Convey.MessageBrokers.RabbitMQ
@@ -41,6 +42,13 @@ namespace Convey.MessageBrokers.RabbitMQ
             if (options.HostNames is null || !options.HostNames.Any())
             {
                 throw new ArgumentException("RabbitMQ hostnames are not specified.", nameof(options.HostNames));
+            }
+
+
+            ILogger<IRabbitMqClient> logger;
+            using (var serviceProvider = builder.Services.BuildServiceProvider())
+            {
+                logger = serviceProvider.GetService<ILogger<IRabbitMqClient>>();
             }
 
             builder.Services.AddSingleton<IContextProvider, ContextProvider>();
@@ -83,10 +91,12 @@ namespace Convey.MessageBrokers.RabbitMQ
                     ? new SslOption()
                     : new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath, options.Ssl.Enabled)
             };
-            ConfigureSsl(connectionFactory, options);
+            ConfigureSsl(connectionFactory, options, logger);
             connectionFactoryConfigurator?.Invoke(connectionFactory);
 
+            logger.LogDebug($"Connecting to RabbitMQ: '{string.Join(", ", options.HostNames)}'...");
             var connection = connectionFactory.CreateConnection(options.HostNames.ToList(), options.ConnectionName);
+            logger.LogDebug($"Connected to RabbitMQ: '{string.Join(", ", options.HostNames)}'.");
             builder.Services.AddSingleton(connection);
 
             ((IRabbitMqPluginsRegistryAccessor) pluginsRegistry).Get().ToList().ForEach(p =>
@@ -95,7 +105,8 @@ namespace Convey.MessageBrokers.RabbitMQ
             return builder;
         }
 
-        private static void ConfigureSsl(ConnectionFactory connectionFactory, RabbitMqOptions options)
+        private static void ConfigureSsl(ConnectionFactory connectionFactory, RabbitMqOptions options,
+            ILogger<IRabbitMqClient> logger)
         {
             if (options.Ssl is null || string.IsNullOrWhiteSpace(options.Ssl.ServerName))
             {
@@ -106,9 +117,9 @@ namespace Convey.MessageBrokers.RabbitMQ
             connectionFactory.Ssl = new SslOption(options.Ssl.ServerName, options.Ssl.CertificatePath,
                 options.Ssl.Enabled);
 
-            Console.WriteLine($"RabbitMQ SSL is: {(options.Ssl.Enabled ? "enabled" : "disabled")}, " +
-                              $"server: '{options.Ssl.ServerName}', client certificate: '{options.Ssl.CertificatePath}', " +
-                              $"CA certificate: '{options.Ssl.CaCertificatePath}'.");
+            logger.LogDebug($"RabbitMQ SSL is: {(options.Ssl.Enabled ? "enabled" : "disabled")}, " +
+                            $"server: '{options.Ssl.ServerName}', client certificate: '{options.Ssl.CertificatePath}', " +
+                            $"CA certificate: '{options.Ssl.CaCertificatePath}'.");
 
             if (string.IsNullOrWhiteSpace(options.Ssl.CaCertificatePath))
             {
@@ -132,11 +143,28 @@ namespace Convey.MessageBrokers.RabbitMQ
                 var signerCertificate2 = new X509Certificate2(options.Ssl.CaCertificatePath);
                 chain.ChainPolicy.ExtraStore.Add(signerCertificate2);
                 chain.Build(certificate2);
+                var ignoredStatuses = Enumerable.Empty<X509ChainStatusFlags>();
+                if (options.Ssl.X509IgnoredStatuses?.Any() is true)
+                {
+                    logger.LogDebug("Ignored X509 certificate chain statuses: " +
+                                    $"{string.Join(", ", options.Ssl.X509IgnoredStatuses)}.");
+                    ignoredStatuses = options.Ssl.X509IgnoredStatuses
+                        .Select(s => Enum.Parse<X509ChainStatusFlags>(s, true));
+                }
 
-                return chain.ChainStatus.All(chainStatus => chainStatus.Status == X509ChainStatusFlags.NoError
-                                                            || options.Ssl.TrustUntrustedRoot &&
-                                                            chainStatus.Status ==
-                                                            X509ChainStatusFlags.UntrustedRoot);
+                var statuses = chain.ChainStatus.ToList();
+                logger.LogDebug("Received X509 certificate chain statuses: " +
+                                $"{string.Join(", ", statuses.Select(x => x.Status))}");
+
+                var isValid = statuses.All(chainStatus => chainStatus.Status == X509ChainStatusFlags.NoError
+                                                          || ignoredStatuses.Contains(chainStatus.Status));
+                if (!isValid)
+                {
+                    logger.LogError(string.Join(Environment.NewLine,
+                        statuses.Select(s => $"{s.Status} - {s.StatusInformation}")));
+                }
+
+                return isValid;
             };
         }
 

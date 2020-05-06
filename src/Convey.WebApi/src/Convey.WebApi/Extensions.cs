@@ -119,7 +119,11 @@ namespace Convey.WebApi
                     .WithTransientLifetime());
 
             builder.Services.AddTransient<IRequestDispatcher, RequestDispatcher>();
-            builder.AddErrorHandler<EmptyExceptionToResponseMapper>();
+
+            if (builder.Services.All(s => s.ServiceType != typeof(IExceptionToResponseMapper)))
+            {
+                builder.Services.AddTransient<IExceptionToResponseMapper, EmptyExceptionToResponseMapper>();
+            }
 
             return builder;
         }
@@ -134,11 +138,7 @@ namespace Convey.WebApi
         }
 
         public static IApplicationBuilder UseErrorHandler(this IApplicationBuilder builder)
-        {
-            builder.ApplicationServices.GetRequiredService<IExceptionToResponseMapper>();
-            
-            return builder.UseMiddleware<ErrorHandlerMiddleware>();
-        }
+            => builder.UseMiddleware<ErrorHandlerMiddleware>();
 
         public static IApplicationBuilder UseAllForwardedHeaders(this IApplicationBuilder builder)
             => builder.UseForwardedHeaders(new ForwardedHeadersOptions

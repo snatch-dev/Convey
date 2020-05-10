@@ -64,10 +64,7 @@ namespace Convey.Logging
         private static void MapOptions(LoggerOptions loggerOptions, AppOptions appOptions,
             LoggerConfiguration loggerConfiguration, string environmentName)
         {
-            if (!Enum.TryParse<LogEventLevel>(loggerOptions.Level, true, out var level))
-            {
-                level = LogEventLevel.Information;
-            }
+            var level = GetLogEventLevel(loggerOptions.Level);
 
             loggerConfiguration.Enrich.FromLogContext()
                 .MinimumLevel.Is(level)
@@ -79,6 +76,12 @@ namespace Convey.Logging
             foreach (var (key, value) in loggerOptions.Tags ?? new Dictionary<string, object>())
             {
                 loggerConfiguration.Enrich.WithProperty(key, value);
+            }
+
+            foreach (var (key, value) in loggerOptions.MinimumLevelOverrides ?? new Dictionary<string, string>())
+            {
+                var logLevel = GetLogEventLevel(value);
+                loggerConfiguration.MinimumLevel.Override(key, logLevel);
             }
 
             loggerOptions.ExcludePaths?.ToList().ForEach(p => loggerConfiguration.Filter
@@ -97,6 +100,7 @@ namespace Convey.Logging
             var fileOptions = options.File ?? new FileOptions();
             var elkOptions = options.Elk ?? new ElkOptions();
             var seqOptions = options.Seq ?? new SeqOptions();
+
             if (consoleOptions.Enabled)
             {
                 loggerConfiguration.WriteTo.Console();
@@ -135,5 +139,10 @@ namespace Convey.Logging
                 loggerConfiguration.WriteTo.Seq(seqOptions.Url, apiKey: seqOptions.ApiKey);
             }
         }
+
+        private static LogEventLevel GetLogEventLevel(string level)
+            => Enum.TryParse<LogEventLevel>(level, true, out var logLevel) 
+                ? logLevel
+                : LogEventLevel.Information;
     }
 }

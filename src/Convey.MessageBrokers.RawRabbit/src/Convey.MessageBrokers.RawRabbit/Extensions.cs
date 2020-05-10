@@ -227,9 +227,9 @@ namespace Convey.MessageBrokers.RawRabbit
 
                     try
                     {
-                        _logger.LogTrace($"Processing a unique message with id: {messageId}...");
+                        _logger.LogTrace($"Processing a unique message with id: '{messageId}'...");
                         await Next.InvokeAsync(context, token);
-                        _logger.LogTrace($"Processed a unique message with id: {messageId}.");
+                        _logger.LogTrace($"Processed a unique message with id: '{messageId}'.");
                     }
                     catch
                     {

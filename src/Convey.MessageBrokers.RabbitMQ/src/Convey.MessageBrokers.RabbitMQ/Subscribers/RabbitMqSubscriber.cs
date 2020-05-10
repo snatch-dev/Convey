@@ -62,7 +62,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
             if (_loggerEnabled)
             {
-                info = $"[queue: '{conventions.Queue}', routing key: '{conventions.RoutingKey}', " +
+                info = $" [queue: '{conventions.Queue}', routing key: '{conventions.RoutingKey}', " +
                        $"exchange: '{conventions.Exchange}']";
             }
 
@@ -71,7 +71,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 if (_loggerEnabled)
                 {
                     _logger.LogInformation($"Declaring a queue: '{conventions.Queue}' with routing key: " +
-                                           $"'{conventions.RoutingKey}' for exchange: '{conventions.Exchange}'.");
+                                           $"'{conventions.RoutingKey}' for an exchange: '{conventions.Exchange}'.");
                 }
 
                 _channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
@@ -91,7 +91,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     if (_loggerEnabled)
                     {
                         _logger.LogInformation($"Received a message with id: '{messageId}', " +
-                                               $"correlation id: '{correlationId}', timestamp: {timestamp} {info}.");
+                                               $"correlation id: '{correlationId}', timestamp: {timestamp}{info}.");
                     }
 
                     var payload = Encoding.UTF8.GetString(args.Body.Span);
@@ -138,7 +138,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             object messageContext, BasicDeliverEventArgs args, Func<IServiceProvider, TMessage, object, Task> handle)
         {
             var currentRetry = 0;
-            var messageName = message.GetType().Name;
+            var messageName = message.GetType().Name.Underscore();
             var retryPolicy = Policy
                 .Handle<Exception>()
                 .WaitAndRetryAsync(_retries, i => TimeSpan.FromSeconds(_retryInterval));
@@ -193,7 +193,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         return;
                     }
 
-                    var rejectedEventName = rejectedEvent.GetType().Name;
+                    var rejectedEventName = rejectedEvent.GetType().Name.Underscore();
                     await _publisher.PublishAsync(rejectedEvent, correlationId: correlationId,
                         messageContext: messageContext);
                     if (_loggerEnabled)

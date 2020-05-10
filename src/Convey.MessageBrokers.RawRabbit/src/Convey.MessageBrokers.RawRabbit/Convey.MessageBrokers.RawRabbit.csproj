@@ -23,7 +23,7 @@
     <PackageReference Include="RawRabbit" Version="2.0.0-rc5" />
     <PackageReference Include="RawRabbit.DependencyInjection.ServiceCollection" Version="2.0.0-rc5" />
     <PackageReference Include="RawRabbit.Enrichers.Attributes" Version="2.0.0-rc5" />
-    <PackageReference Include="Polly" Version="7.2.0" />
+    <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="RawRabbit.Enrichers.Polly" Version="2.0.0-rc5" />
     <PackageReference Include="RawRabbit.Enrichers.MessageContext" Version="2.0.0-rc5" />
     <PackageReference Include="RawRabbit.Enrichers.MessageContext.Subscribe" Version="2.0.0-rc5" />

@@ -26,16 +26,14 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             _contextEnabled = options.Context?.Enabled == true;
             _channel = connection.CreateModel();
             _loggerEnabled = options.Logger?.Enabled ?? false;
-            _spanContextHeader = string.IsNullOrWhiteSpace(options.SpanContextHeader)
-                ? "span_context"
-                : options.SpanContextHeader;
+            _spanContextHeader = options.GetSpanContextHeader();
         }
 
         public void Send(object message, IConventions conventions, string messageId = null, string correlationId = null,
             string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
         {
-            var json = _serializer.Serialize(message);
-            var body = Encoding.UTF8.GetBytes(json);
+            var payload = _serializer.Serialize(message);
+            var body = Encoding.UTF8.GetBytes(payload);
             var properties = _channel.CreateBasicProperties();
             properties.MessageId = string.IsNullOrWhiteSpace(messageId)
                 ? Guid.NewGuid().ToString("N")

@@ -50,11 +50,10 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
                 throw new ArgumentException("Message id to be processed cannot be empty.", nameof(messageId));
             }
 
-            var outboxMessagesSet = _dbContext.Set<OutboxMessage>();
             var inboxMessagesSet = _dbContext.Set<InboxMessage>();
 
             _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
-            if (await outboxMessagesSet.AnyAsync(m => m.Id == messageId))
+            if (await inboxMessagesSet.AnyAsync(m => m.Id == messageId))
             {
                 _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
                 return;

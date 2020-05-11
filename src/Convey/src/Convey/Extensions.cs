@@ -28,7 +28,7 @@ namespace Convey
             {
                 return builder;
             }
-            
+
             var version = options.DisplayVersion ? $" {options.Version}" : string.Empty;
             Console.WriteLine(Figgle.FiggleFonts.Doom.Render($"{options.Name}{version}"));
 
@@ -75,6 +75,7 @@ namespace Convey
         }
 
         public static string Underscore(this string value)
-            => string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString()));
+            => string.Concat(value.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString()))
+                .ToLowerInvariant();
     }
 }

@@ -11,7 +11,7 @@ namespace Convey.Auth.Services
     {
         private readonly IMemoryCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtOptions _jwtOptions;
+        private readonly TimeSpan _expires;
 
         public InMemoryAccessTokenService(IMemoryCache cache,
             IHttpContextAccessor httpContextAccessor,
@@ -19,14 +19,14 @@ namespace Convey.Auth.Services
         {
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
-            _jwtOptions = jwtOptions;
+            _expires = jwtOptions.Expiry ?? TimeSpan.FromMinutes(jwtOptions.ExpiryMinutes);
         }
 
-        public async Task<bool> IsCurrentActiveToken()
-            => await IsActiveAsync(GetCurrentAsync());
+        public Task<bool> IsCurrentActiveToken()
+            => IsActiveAsync(GetCurrentAsync());
 
-        public async Task DeactivateCurrentAsync()
-            => await DeactivateAsync(GetCurrentAsync());
+        public Task DeactivateCurrentAsync()
+            => DeactivateAsync(GetCurrentAsync());
 
         public Task<bool> IsActiveAsync(string token)
             => Task.FromResult(string.IsNullOrWhiteSpace(_cache.Get<string>(GetKey(token))));
@@ -35,8 +35,7 @@ namespace Convey.Auth.Services
         {
             _cache.Set(GetKey(token), "revoked", new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow =
-                    TimeSpan.FromMinutes(_jwtOptions.ExpiryMinutes)
+                AbsoluteExpirationRelativeToNow = _expires
             });
 
             return Task.CompletedTask;

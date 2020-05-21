@@ -1,3 +1,5 @@
+using System;
+
 namespace Convey.Auth.Builders
 {
     internal sealed class JwtOptionsBuilder : IJwtOptionsBuilder
@@ -16,6 +18,12 @@ namespace Convey.Auth.Builders
             return this;
         }
 
+        public IJwtOptionsBuilder WithExpiry(TimeSpan expiry)
+        {
+            _options.Expiry = expiry;
+            return this;
+        }
+        
         public IJwtOptionsBuilder WithExpiryMinutes(int expiryMinutes)
         {
             _options.ExpiryMinutes = expiryMinutes;

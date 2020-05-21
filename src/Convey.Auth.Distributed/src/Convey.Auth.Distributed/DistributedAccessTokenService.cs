@@ -11,35 +11,31 @@ namespace Convey.Auth.Distributed
     {
         private readonly IDistributedCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtOptions _jwtOptions;
+        private readonly TimeSpan _expires;
 
-        public DistributedAccessTokenService(IDistributedCache cache,
-            IHttpContextAccessor httpContextAccessor,
+        public DistributedAccessTokenService(IDistributedCache cache, IHttpContextAccessor httpContextAccessor,
             JwtOptions jwtOptions)
         {
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
-            _jwtOptions = jwtOptions;
+            _expires = jwtOptions.Expiry ?? TimeSpan.FromMinutes(jwtOptions.ExpiryMinutes);
         }
 
-        public async Task<bool> IsCurrentActiveToken()
-            => await IsActiveAsync(GetCurrentAsync());
+        public Task<bool> IsCurrentActiveToken()
+            => IsActiveAsync(GetCurrentAsync());
 
-        public async Task DeactivateCurrentAsync()
-            => await DeactivateAsync(GetCurrentAsync());
+        public Task DeactivateCurrentAsync()
+            => DeactivateAsync(GetCurrentAsync());
 
         public async Task<bool> IsActiveAsync(string token)
             => string.IsNullOrWhiteSpace(await _cache.GetStringAsync(GetKey(token)));
 
-        public async Task DeactivateAsync(string token)
-        {
-            await _cache.SetStringAsync(GetKey(token),
+        public Task DeactivateAsync(string token)
+            => _cache.SetStringAsync(GetKey(token),
                 "revoked", new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow =
-                        TimeSpan.FromMinutes(_jwtOptions.ExpiryMinutes)
+                    AbsoluteExpirationRelativeToNow = _expires
                 });
-        }
 
         private string GetCurrentAsync()
         {
@@ -51,7 +47,6 @@ namespace Convey.Auth.Distributed
                 : authorizationHeader.Single().Split(' ').Last();
         }
 
-        private static string GetKey(string token)
-            => $"blacklisted-tokens:{token}";
+        private static string GetKey(string token) => $"blacklisted-tokens:{token}";
     }
 }

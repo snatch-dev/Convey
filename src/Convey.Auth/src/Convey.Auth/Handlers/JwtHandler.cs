@@ -12,6 +12,7 @@ namespace Convey.Auth.Handlers
     {
         private static readonly IDictionary<string, IEnumerable<string>> EmptyClaims =
             new Dictionary<string, IEnumerable<string>>();
+
         private static readonly ISet<string> DefaultClaims = new HashSet<string>
         {
             JwtRegisteredClaimNames.Sub,
@@ -83,7 +84,10 @@ namespace Convey.Auth.Handlers
                 jwtClaims.AddRange(customClaims);
             }
 
-            var expires = now.AddMinutes(_options.ExpiryMinutes);
+            var expires = _options.Expiry.HasValue
+                ? now.AddMilliseconds(_options.Expiry.Value.TotalMilliseconds)
+                : now.AddMinutes(_options.ExpiryMinutes);
+
             var jwt = new JwtSecurityToken(
                 _issuer,
                 claims: jwtClaims,
@@ -91,6 +95,7 @@ namespace Convey.Auth.Handlers
                 expires: expires,
                 signingCredentials: _signingCredentials
             );
+
             var token = new JwtSecurityTokenHandler().WriteToken(jwt);
 
             return new JsonWebToken

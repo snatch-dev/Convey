@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Convey.Logging.Options;
 using Convey.Types;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.Elasticsearch;
@@ -16,11 +22,14 @@ namespace Convey.Logging
     {
         private const string LoggerSectionName = "logger";
         private const string AppSectionName = "app";
+        internal static LoggingLevelSwitch LoggingLevelSwitch = new LoggingLevelSwitch();
 
         public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
             Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
-            => hostBuilder.UseSerilog((context, loggerConfiguration) =>
+            => hostBuilder
+                .ConfigureServices(services => services.AddSingleton<ILoggingService, LoggingService>())
+                .UseSerilog((context, loggerConfiguration) =>
             {
                 if (string.IsNullOrWhiteSpace(loggerSectionName))
                 {
@@ -42,32 +51,39 @@ namespace Convey.Logging
         public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder,
             Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
-            => webHostBuilder.UseSerilog((context, loggerConfiguration) =>
-            {
-                if (string.IsNullOrWhiteSpace(loggerSectionName))
+            => webHostBuilder
+                .ConfigureServices(services => services.AddSingleton<ILoggingService, LoggingService>())
+                .UseSerilog((context, loggerConfiguration) =>
                 {
-                    loggerSectionName = LoggerSectionName;
-                }
+                    if (string.IsNullOrWhiteSpace(loggerSectionName))
+                    {
+                        loggerSectionName = LoggerSectionName;
+                    }
 
-                if (string.IsNullOrWhiteSpace(appSectionName))
-                {
-                    appSectionName = AppSectionName;
-                }
+                    if (string.IsNullOrWhiteSpace(appSectionName))
+                    {
+                        appSectionName = AppSectionName;
+                    }
 
-                var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
-                var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
+                    var loggerOptions = context.Configuration.GetOptions<LoggerOptions>(loggerSectionName);
+                    var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
 
-                MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
-                configure?.Invoke(loggerConfiguration);
-            });
+                    MapOptions(loggerOptions, appOptions, loggerConfiguration,
+                        context.HostingEnvironment.EnvironmentName);
+                    configure?.Invoke(loggerConfiguration);
+                });
+
+        public static IEndpointConventionBuilder MapLogLevelHandler(this IEndpointRouteBuilder builder, 
+            string endpointRoute = "~/logging/level")
+            => builder.MapPost(endpointRoute, LevelSwitch);
 
         private static void MapOptions(LoggerOptions loggerOptions, AppOptions appOptions,
             LoggerConfiguration loggerConfiguration, string environmentName)
         {
-            var level = GetLogEventLevel(loggerOptions.Level);
+            LoggingLevelSwitch.MinimumLevel = GetLogEventLevel(loggerOptions.Level);
 
             loggerConfiguration.Enrich.FromLogContext()
-                .MinimumLevel.Is(level)
+                .MinimumLevel.ControlledBy(LoggingLevelSwitch)
                 .Enrich.WithProperty("Environment", environmentName)
                 .Enrich.WithProperty("Application", appOptions.Service)
                 .Enrich.WithProperty("Instance", appOptions.Instance)
@@ -90,10 +106,10 @@ namespace Convey.Logging
             loggerOptions.ExcludeProperties?.ToList().ForEach(p => loggerConfiguration.Filter
                 .ByExcluding(Matching.WithProperty(p)));
 
-            Configure(loggerConfiguration, level, loggerOptions);
+            Configure(loggerConfiguration, loggerOptions);
         }
 
-        private static void Configure(LoggerConfiguration loggerConfiguration, LogEventLevel level,
+        private static void Configure(LoggerConfiguration loggerConfiguration,
             LoggerOptions options)
         {
             var consoleOptions = options.Console ?? new ConsoleOptions();
@@ -121,7 +137,6 @@ namespace Convey.Logging
             {
                 loggerConfiguration.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elkOptions.Url))
                 {
-                    MinimumLogEventLevel = level,
                     AutoRegisterTemplate = true,
                     AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6,
                     IndexFormat = string.IsNullOrWhiteSpace(elkOptions.IndexFormat)
@@ -131,7 +146,7 @@ namespace Convey.Logging
                         elkOptions.BasicAuthEnabled
                             ? connectionConfiguration.BasicAuthentication(elkOptions.Username, elkOptions.Password)
                             : connectionConfiguration
-                });
+                }).MinimumLevel.ControlledBy(LoggingLevelSwitch);
             }
 
             if (seqOptions.Enabled)
@@ -140,9 +155,34 @@ namespace Convey.Logging
             }
         }
 
-        private static LogEventLevel GetLogEventLevel(string level)
+        internal static LogEventLevel GetLogEventLevel(string level)
             => Enum.TryParse<LogEventLevel>(level, true, out var logLevel) 
                 ? logLevel
                 : LogEventLevel.Information;
+
+        private static async Task LevelSwitch(HttpContext context)
+        {
+            var service = context.RequestServices.GetService<ILoggingService>();
+
+            if (service is null)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsync("ILoggingService is not registered. Add UseLogging() to your Program.cs.");
+                return;
+            }
+
+            var level = context.Request.Query["level"].ToString();
+
+            if (string.IsNullOrEmpty(level))
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsync("Invalid value for logging level.");
+                return;
+            }
+
+            service.SetLoggingLevel(level);
+
+            context.Response.StatusCode = StatusCodes.Status200OK;
+        }
     }
 }

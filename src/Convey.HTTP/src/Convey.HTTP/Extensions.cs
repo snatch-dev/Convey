@@ -7,8 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 
-[assembly:InternalsVisibleTo("Convey.Discovery.Consul")]
-[assembly:InternalsVisibleTo("Convey.LoadBalancing.Fabio")]
 namespace Convey.HTTP
 {
     public static class Extensions
@@ -51,7 +49,7 @@ namespace Convey.HTTP
         }
 
         [Description("This is a hack related to HttpClient issue: https://github.com/aspnet/AspNetCore/issues/13346")]
-        internal static void RemoveHttpClient(this IConveyBuilder builder)
+        public static void RemoveHttpClient(this IConveyBuilder builder)
         {
             var registryType = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
                 .SingleOrDefault(t => t.Name == "HttpClientMappingRegistry");

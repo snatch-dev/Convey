@@ -67,7 +67,11 @@ namespace Convey.Docs.Swagger
             var routePrefix = string.IsNullOrWhiteSpace(options.RoutePrefix) ? "swagger" : options.RoutePrefix;
 
             builder.UseStaticFiles()
-                .UseSwagger(c => c.RouteTemplate = routePrefix + "/{documentName}/swagger.json");
+                .UseSwagger(c => 
+                {
+                    c.RouteTemplate = routePrefix + "/{documentName}/swagger.json";
+                    c.SerializeAsV2 = options.SerializeAsOpenApiV2;
+                });
 
             return options.ReDocEnabled
                 ? builder.UseReDoc(c =>

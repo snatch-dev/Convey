@@ -9,6 +9,7 @@ namespace Convey.Docs.Swagger
         ISwaggerOptionsBuilder WithVersion(string version);
         ISwaggerOptionsBuilder WithRoutePrefix(string routePrefix);
         ISwaggerOptionsBuilder IncludeSecurity(bool includeSecurity);
+        ISwaggerOptionsBuilder SerializeAsOpenApiV2(bool serializeAsOpenApiV2);
         SwaggerOptions Build();
     }
 }

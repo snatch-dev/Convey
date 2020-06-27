@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Convey.MessageBrokers.Outbox.EF</Description>
+    <Description>Convey.MessageBrokers.Outbox.EntityFramework</Description>
     <Authors>DevMentors.io</Authors>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <Title>Convey.MessageBrokers.Outbox.EF</Title>
-    <PackageId>Convey.MessageBrokers.Outbox.EF</PackageId>
-    <PackageTags>Convey.MessageBrokers.Outbox.EF</PackageTags>
+    <Title>Convey.MessageBrokers.Outbox.EntityFrameworkF</Title>
+    <PackageId>Convey.MessageBrokers.Outbox.EntityFramework</PackageId>
+    <PackageTags>Convey.MessageBrokers.Outbox.EntityFramework</PackageTags>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 

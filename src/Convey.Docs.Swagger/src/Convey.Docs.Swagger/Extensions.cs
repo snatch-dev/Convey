@@ -17,12 +17,12 @@ namespace Convey.Docs.Swagger
             {
                 sectionName = SectionName;
             }
-            
+
             var options = builder.GetOptions<SwaggerOptions>(sectionName);
             return builder.AddSwaggerDocs(options);
         }
-        
-        public static IConveyBuilder AddSwaggerDocs(this IConveyBuilder builder, 
+
+        public static IConveyBuilder AddSwaggerDocs(this IConveyBuilder builder,
             Func<ISwaggerOptionsBuilder, ISwaggerOptionsBuilder> buildOptions)
         {
             var options = buildOptions(new SwaggerOptionsBuilder()).Build();
@@ -39,7 +39,7 @@ namespace Convey.Docs.Swagger
             builder.Services.AddSingleton(options);
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc(options.Name, new OpenApiInfo{Title = options.Title, Version = options.Version});
+                c.SwaggerDoc(options.Name, new OpenApiInfo { Title = options.Title, Version = options.Version });
                 if (options.IncludeSecurity)
                 {
                     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -64,10 +64,10 @@ namespace Convey.Docs.Swagger
                 return builder;
             }
 
-            var routePrefix = string.IsNullOrWhiteSpace(options.RoutePrefix) ? "swagger" : options.RoutePrefix;
+            var routePrefix = string.IsNullOrWhiteSpace(options.RoutePrefix) ? string.Empty : options.RoutePrefix;
 
             builder.UseStaticFiles()
-                .UseSwagger(c => c.RouteTemplate = routePrefix + "/{documentName}/swagger.json");
+                .UseSwagger(c => { c.RouteTemplate = string.Concat(routePrefix, "/{documentName}/swagger.json"); });
 
             return options.ReDocEnabled
                 ? builder.UseReDoc(c =>
@@ -77,9 +77,20 @@ namespace Convey.Docs.Swagger
                 })
                 : builder.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint($"/{routePrefix}/{options.Name}/swagger.json", options.Title);
                     c.RoutePrefix = routePrefix;
+                    c.SwaggerEndpoint($"/{routePrefix}/{options.Name}/swagger.json".FormatEmptyRoutePrefix(),
+                        options.Title);
                 });
+        }
+
+        /// <summary>
+        /// Replaces leading double forward slash caused by an empty route prefix
+        /// </summary>
+        /// <param name="route"></param>
+        /// <returns></returns>
+        private static string FormatEmptyRoutePrefix(this string route)
+        {
+            return route.Replace("//","/");
         }
     }
 }

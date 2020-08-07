@@ -191,10 +191,22 @@ namespace Convey.HTTP
             }
         }
 
-        protected static StringContent GetJsonPayload(object data)
-            => data is null
-                ? EmptyJson
-                : new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, ApplicationJsonContentType);
+        protected StringContent GetJsonPayload(object data)
+        {
+            if (data is null)
+            {
+                return EmptyJson;
+            }
+
+            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8,
+                ApplicationJsonContentType);
+            if (_options.RemoveCharsetFromContentType)
+            {
+                content.Headers.ContentType.CharSet = null;
+            }
+
+            return content;
+        }
 
         protected static T DeserializeJsonFromStream<T>(Stream stream)
         {

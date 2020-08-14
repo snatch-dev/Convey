@@ -39,55 +39,55 @@ namespace Convey.HTTP
         public virtual Task<HttpResponseMessage> PostAsync(string uri, object data = null)
             => SendAsync(uri, Method.Post, GetJsonPayload(data));
 
-        public Task<HttpResponseMessage> PostAsync(string uri, HttpContent content = null)
+        public Task<HttpResponseMessage> PostAsync(string uri, HttpContent content)
             => SendAsync(uri, Method.Post, content);
 
         public virtual Task<T> PostAsync<T>(string uri, object data = null)
             => SendAsync<T>(uri, Method.Post, GetJsonPayload(data));
 
-        public Task<T> PostAsync<T>(string uri, HttpContent content = null)
+        public Task<T> PostAsync<T>(string uri, HttpContent content)
             => SendAsync<T>(uri, Method.Post, content);
 
         public Task<HttpResult<T>> PostResultAsync<T>(string uri, object data = null)
             => SendResultAsync<T>(uri, Method.Post, GetJsonPayload(data));
 
-        public Task<HttpResult<T>> PostResultAsync<T>(string uri, HttpContent content = null)
+        public Task<HttpResult<T>> PostResultAsync<T>(string uri, HttpContent content)
             => SendResultAsync<T>(uri, Method.Post, content);
 
         public virtual Task<HttpResponseMessage> PutAsync(string uri, object data = null)
             => SendAsync(uri, Method.Put, GetJsonPayload(data));
 
-        public Task<HttpResponseMessage> PutAsync(string uri, HttpContent content = null)
+        public Task<HttpResponseMessage> PutAsync(string uri, HttpContent content)
             => SendAsync(uri, Method.Put, content);
 
         public virtual Task<T> PutAsync<T>(string uri, object data = null)
             => SendAsync<T>(uri, Method.Put, GetJsonPayload(data));
 
-        public Task<T> PutAsync<T>(string uri, HttpContent content = null)
+        public Task<T> PutAsync<T>(string uri, HttpContent content)
             => SendAsync<T>(uri, Method.Put, content);
 
         public Task<HttpResult<T>> PutResultAsync<T>(string uri, object data = null)
             => SendResultAsync<T>(uri, Method.Put, GetJsonPayload(data));
 
-        public Task<HttpResult<T>> PutResultAsync<T>(string uri, HttpContent content = null)
+        public Task<HttpResult<T>> PutResultAsync<T>(string uri, HttpContent content)
             => SendResultAsync<T>(uri, Method.Put, content);
 
         public Task<HttpResponseMessage> PatchAsync(string uri, object data = null)
             => SendAsync(uri, Method.Patch, GetJsonPayload(data));
 
-        public Task<HttpResponseMessage> PatchAsync(string uri, HttpContent content = null)
+        public Task<HttpResponseMessage> PatchAsync(string uri, HttpContent content)
             => SendAsync(uri, Method.Patch, content);
 
         public Task<T> PatchAsync<T>(string uri, object data = null)
             => SendAsync<T>(uri, Method.Patch, GetJsonPayload(data));
 
-        public Task<T> PatchAsync<T>(string uri, HttpContent content = null)
+        public Task<T> PatchAsync<T>(string uri, HttpContent content)
             => SendAsync<T>(uri, Method.Patch, content);
 
         public Task<HttpResult<T>> PatchResultAsync<T>(string uri, object data = null)
             => SendResultAsync<T>(uri, Method. Patch, GetJsonPayload(data));
 
-        public Task<HttpResult<T>> PatchResultAsync<T>(string uri, HttpContent content = null)
+        public Task<HttpResult<T>> PatchResultAsync<T>(string uri, HttpContent content)
             => SendResultAsync<T>(uri, Method. Patch, content);
 
         public virtual Task<HttpResponseMessage> DeleteAsync(string uri)

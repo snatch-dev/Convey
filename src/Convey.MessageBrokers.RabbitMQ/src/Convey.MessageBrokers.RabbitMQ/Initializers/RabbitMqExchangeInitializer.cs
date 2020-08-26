@@ -42,6 +42,12 @@ namespace Convey.MessageBrokers.RabbitMQ.Initializers
                     Log(_options.Exchange.Name, _options.Exchange.Type);
                     channel.ExchangeDeclare(_options.Exchange.Name, _options.Exchange.Type, _options.Exchange.Durable,
                         _options.Exchange.AutoDelete);
+
+                    if (_options.DeadLetter?.Declare == true)
+                    {
+                        channel.ExchangeDeclare($"{_options.Exchange.Name}{_options.DeadLetter.Prefix}", ExchangeType.Fanout, _options.Exchange.Durable,
+                            _options.Exchange.AutoDelete);
+                    }
                 }
 
                 foreach (var exchange in exchanges)

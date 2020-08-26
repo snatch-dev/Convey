@@ -29,6 +29,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public LoggerOptions Logger { get; set; }
         public SslOptions Ssl { get; set; }
         public QueueOptions Queue { get; set; }
+        public DeadLetterOptions DeadLetter { get; set; }
         public QosOptions Qos { get; set; }
         public string SpanContextHeader { get; set; }
 
@@ -59,6 +60,16 @@ namespace Convey.MessageBrokers.RabbitMQ
         public class QueueOptions
         {
             public string Template { get; set; }
+            public bool Declare { get; set; }
+            public bool Durable { get; set; }
+            public bool Exclusive { get; set; }
+            public bool AutoDelete { get; set; }
+        }
+
+        public class DeadLetterOptions
+        {
+            public bool Enabled { get; set; }
+            public string Prefix { get; set; }
             public bool Declare { get; set; }
             public bool Durable { get; set; }
             public bool Exclusive { get; set; }

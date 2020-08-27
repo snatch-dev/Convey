@@ -15,7 +15,7 @@ namespace Convey.Logging.CQRS
     {
         public static IConveyBuilder AddCommandHandlersLogging(this IConveyBuilder builder, Assembly assembly = null)
             => builder.AddHandlerLogging(typeof(ICommandHandler<>), typeof(CommandHandlerLoggingDecorator<>), assembly);
-        
+
         public static IConveyBuilder AddEventHandlersLogging(this IConveyBuilder builder, Assembly assembly = null)
             => builder.AddHandlerLogging(typeof(IEventHandler<>), typeof(EventHandlerLoggingDecorator<>), assembly);
 
@@ -23,24 +23,24 @@ namespace Convey.Logging.CQRS
             Type decoratorType, Assembly assembly = null)
         {
             assembly ??= Assembly.GetCallingAssembly();
-            
+
             var handlers = assembly
                 .GetTypes()
                 .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerType))
                 .ToList();
-
+            
             handlers.ForEach(ch => GetExtensionMethods()
-                .FirstOrDefault(mi => !mi.IsGenericMethod && mi.Name == "Decorate")?
+                .FirstOrDefault(mi => !mi.IsGenericMethod && mi.Name == "TryDecorate")?
                 .Invoke(builder.Services, new object[]
                 {
-                    builder.Services, 
-                    ch.GetInterfaces().FirstOrDefault(), 
+                    builder.Services,
+                    ch.GetInterfaces().FirstOrDefault(),
                     decoratorType.MakeGenericType(ch.GetInterfaces().FirstOrDefault()?.GenericTypeArguments.First())
                 }));
-            
+
             return builder;
         }
-        
+
         private static IEnumerable<MethodInfo> GetExtensionMethods()
         {
             var types = typeof(ReplacementBehavior).Assembly.GetTypes();

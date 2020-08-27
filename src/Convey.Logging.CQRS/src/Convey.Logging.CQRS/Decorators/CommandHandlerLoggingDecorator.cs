@@ -1,25 +1,28 @@
 using System;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
+using Convey.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SmartFormat;
 
 namespace Convey.Logging.CQRS.Decorators
 {
-    internal sealed class CommandHandlerLoggingDecorator<TCommand> : ICommandHandler<TCommand> 
+    [DecoratorAttribute]
+    internal sealed class CommandHandlerLoggingDecorator<TCommand> : ICommandHandler<TCommand>
         where TCommand : class, ICommand
     {
         private readonly ICommandHandler<TCommand> _handler;
         private readonly ILogger<TCommand> _logger;
         private readonly IMessageToLogTemplateMapper _mapper;
 
-        public CommandHandlerLoggingDecorator(ICommandHandler<TCommand> handler, ILogger<TCommand> logger, 
+        public CommandHandlerLoggingDecorator(ICommandHandler<TCommand> handler, ILogger<TCommand> logger,
             IServiceProvider serviceProvider)
         {
             _handler = handler;
             _logger = logger;
-            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ?? new EmptyMessageToLogTemplateMapper();
+            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ??
+                      new EmptyMessageToLogTemplateMapper();
         }
 
         public async Task HandleAsync(TCommand command)
@@ -41,7 +44,7 @@ namespace Convey.Logging.CQRS.Decorators
             catch (Exception ex)
             {
                 var exceptionTemplate = template.GetExceptionTemplate(ex);
-                
+
                 Log(command, exceptionTemplate, isError: true);
                 throw;
             }
@@ -49,7 +52,7 @@ namespace Convey.Logging.CQRS.Decorators
 
         private void Log(TCommand command, string message, bool isError = false)
         {
-            if(string.IsNullOrEmpty(message))
+            if (string.IsNullOrEmpty(message))
             {
                 return;
             }

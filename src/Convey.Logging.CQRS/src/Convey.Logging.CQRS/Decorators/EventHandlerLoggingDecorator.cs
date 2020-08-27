@@ -1,25 +1,27 @@
 using System;
 using System.Threading.Tasks;
 using Convey.CQRS.Events;
+using Convey.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SmartFormat;
 
 namespace Convey.Logging.CQRS.Decorators
 {
-    internal sealed class EventHandlerLoggingDecorator<TEvent> : IEventHandler<TEvent> 
-        where TEvent : class, IEvent
+    [DecoratorAttribute]
+    internal sealed class EventHandlerLoggingDecorator<TEvent> : IEventHandler<TEvent> where TEvent : class, IEvent
     {
         private readonly IEventHandler<TEvent> _handler;
         private readonly ILogger<TEvent> _logger;
         private readonly IMessageToLogTemplateMapper _mapper;
 
-        public EventHandlerLoggingDecorator(IEventHandler<TEvent> handler, ILogger<TEvent> logger, 
+        public EventHandlerLoggingDecorator(IEventHandler<TEvent> handler, ILogger<TEvent> logger,
             IServiceProvider serviceProvider)
         {
             _handler = handler;
             _logger = logger;
-            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ?? new EmptyMessageToLogTemplateMapper();
+            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ??
+                      new EmptyMessageToLogTemplateMapper();
         }
 
         public async Task HandleAsync(TEvent @event)
@@ -41,7 +43,7 @@ namespace Convey.Logging.CQRS.Decorators
             catch (Exception ex)
             {
                 var exceptionTemplate = template.GetExceptionTemplate(ex);
-                
+
                 Log(@event, exceptionTemplate, isError: true);
                 throw;
             }
@@ -49,7 +51,7 @@ namespace Convey.Logging.CQRS.Decorators
 
         private void Log(TEvent @event, string message, bool isError = false)
         {
-            if(string.IsNullOrEmpty(message))
+            if (string.IsNullOrEmpty(message))
             {
                 return;
             }

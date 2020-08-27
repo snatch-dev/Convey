@@ -111,5 +111,9 @@ namespace Convey.MessageBrokers.RawRabbit.Subscribers
         {
             public object Map(Exception exception, object message) => null;
         }
+
+        public void Dispose()
+        {
+        }
     }
 }

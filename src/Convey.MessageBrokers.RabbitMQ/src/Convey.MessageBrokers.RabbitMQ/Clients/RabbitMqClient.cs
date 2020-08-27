@@ -9,22 +9,22 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
     internal sealed class RabbitMqClient : IRabbitMqClient
     {
         private const string EmptyContext = "{}";
+        private readonly IConnection _connection;
         private readonly IContextProvider _contextProvider;
         private readonly IRabbitMqSerializer _serializer;
         private readonly ILogger<RabbitMqClient> _logger;
         private readonly bool _contextEnabled;
-        private readonly IModel _channel;
         private readonly bool _loggerEnabled;
         private readonly string _spanContextHeader;
 
         public RabbitMqClient(IConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
             RabbitMqOptions options, ILogger<RabbitMqClient> logger)
         {
+            _connection = connection;
             _contextProvider = contextProvider;
             _serializer = serializer;
             _logger = logger;
             _contextEnabled = options.Context?.Enabled == true;
-            _channel = connection.CreateModel();
             _loggerEnabled = options.Logger?.Enabled ?? false;
             _spanContextHeader = options.GetSpanContextHeader();
         }
@@ -32,9 +32,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         public void Send(object message, IConventions conventions, string messageId = null, string correlationId = null,
             string spanContext = null, object messageContext = null, IDictionary<string, object> headers = null)
         {
+            using var channel = _connection.CreateModel();
             var payload = _serializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(payload);
-            var properties = _channel.CreateBasicProperties();
+            var properties = channel.CreateBasicProperties();
             properties.MessageId = string.IsNullOrWhiteSpace(messageId)
                 ? Guid.NewGuid().ToString("N")
                 : messageId;
@@ -62,7 +63,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                     {
                         continue;
                     }
-                    
+
                     properties.Headers.TryAdd(key, value);
                 }
             }
@@ -74,7 +75,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                                  $"[id: '{properties.MessageId}', correlation id: '{properties.CorrelationId}']");
             }
 
-            _channel.BasicPublish(conventions.Exchange, conventions.RoutingKey, properties, body);
+            channel.BasicPublish(conventions.Exchange, conventions.RoutingKey, properties, body);
         }
 
         private void IncludeMessageContext(object context, IBasicProperties properties)

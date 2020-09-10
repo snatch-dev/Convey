@@ -13,11 +13,6 @@ namespace Convey.HTTP
 {
     public class ConveyHttpClient : IHttpClient
     {
-        private const string ApplicationJsonContentType = "application/json";
-
-        private static readonly StringContent EmptyJson =
-            new StringContent("{}", Encoding.UTF8, ApplicationJsonContentType);
-
         private static readonly JsonSerializer JsonSerializer = new JsonSerializer
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -42,32 +37,59 @@ namespace Convey.HTTP
             => SendResultAsync<T>(uri, Method.Get);
 
         public virtual Task<HttpResponseMessage> PostAsync(string uri, object data = null)
-            => SendAsync(uri, Method.Post, data);
+            => SendAsync(uri, Method.Post, GetJsonPayload(data));
+
+        public Task<HttpResponseMessage> PostAsync(string uri, HttpContent content)
+            => SendAsync(uri, Method.Post, content);
 
         public virtual Task<T> PostAsync<T>(string uri, object data = null)
-            => SendAsync<T>(uri, Method.Post, data);
+            => SendAsync<T>(uri, Method.Post, GetJsonPayload(data));
+
+        public Task<T> PostAsync<T>(string uri, HttpContent content)
+            => SendAsync<T>(uri, Method.Post, content);
 
         public Task<HttpResult<T>> PostResultAsync<T>(string uri, object data = null)
-            => SendResultAsync<T>(uri, Method.Post, data);
+            => SendResultAsync<T>(uri, Method.Post, GetJsonPayload(data));
+
+        public Task<HttpResult<T>> PostResultAsync<T>(string uri, HttpContent content)
+            => SendResultAsync<T>(uri, Method.Post, content);
 
         public virtual Task<HttpResponseMessage> PutAsync(string uri, object data = null)
-            => SendAsync(uri, Method.Put, data);
+            => SendAsync(uri, Method.Put, GetJsonPayload(data));
+
+        public Task<HttpResponseMessage> PutAsync(string uri, HttpContent content)
+            => SendAsync(uri, Method.Put, content);
 
         public virtual Task<T> PutAsync<T>(string uri, object data = null)
-            => SendAsync<T>(uri, Method.Put, data);
+            => SendAsync<T>(uri, Method.Put, GetJsonPayload(data));
+
+        public Task<T> PutAsync<T>(string uri, HttpContent content)
+            => SendAsync<T>(uri, Method.Put, content);
 
         public Task<HttpResult<T>> PutResultAsync<T>(string uri, object data = null)
-            => SendResultAsync<T>(uri, Method.Put, data);
+            => SendResultAsync<T>(uri, Method.Put, GetJsonPayload(data));
+
+        public Task<HttpResult<T>> PutResultAsync<T>(string uri, HttpContent content)
+            => SendResultAsync<T>(uri, Method.Put, content);
 
         public Task<HttpResponseMessage> PatchAsync(string uri, object data = null)
-            => SendAsync(uri, Method.Patch, data);
+            => SendAsync(uri, Method.Patch, GetJsonPayload(data));
+
+        public Task<HttpResponseMessage> PatchAsync(string uri, HttpContent content)
+            => SendAsync(uri, Method.Patch, content);
 
         public Task<T> PatchAsync<T>(string uri, object data = null)
-            => SendAsync<T>(uri, Method.Patch, data);
+            => SendAsync<T>(uri, Method.Patch, GetJsonPayload(data));
+
+        public Task<T> PatchAsync<T>(string uri, HttpContent content)
+            => SendAsync<T>(uri, Method.Patch, content);
 
         public Task<HttpResult<T>> PatchResultAsync<T>(string uri, object data = null)
-            => SendResultAsync<T>(uri, Method. Patch, data);
-        
+            => SendResultAsync<T>(uri, Method. Patch, GetJsonPayload(data));
+
+        public Task<HttpResult<T>> PatchResultAsync<T>(string uri, HttpContent content)
+            => SendResultAsync<T>(uri, Method. Patch, content);
+
         public virtual Task<HttpResponseMessage> DeleteAsync(string uri)
             => SendAsync(uri, Method.Delete);
 
@@ -135,9 +157,9 @@ namespace Convey.HTTP
 
         public void SetHeaders(Action<HttpRequestHeaders> headers) => headers?.Invoke(_client.DefaultRequestHeaders);
         
-        protected virtual async Task<T> SendAsync<T>(string uri, Method method, object data = null)
+        protected virtual async Task<T> SendAsync<T>(string uri, Method method, HttpContent content = null)
         {
-            var response = await SendAsync(uri, method, data);
+            var response = await SendAsync(uri, method, content);
             if (!response.IsSuccessStatusCode)
             {
                 return default;
@@ -148,9 +170,9 @@ namespace Convey.HTTP
             return DeserializeJsonFromStream<T>(stream);
         }
         
-        protected virtual async Task<HttpResult<T>> SendResultAsync<T>(string uri, Method method, object data = null)
+        protected virtual async Task<HttpResult<T>> SendResultAsync<T>(string uri, Method method, HttpContent content = null)
         {
-            var response = await SendAsync(uri, method, data);
+            var response = await SendAsync(uri, method, content);
             if (!response.IsSuccessStatusCode)
             {
                 return new HttpResult<T>(default, response);
@@ -162,28 +184,28 @@ namespace Convey.HTTP
             return new HttpResult<T>(result, response);
         }
 
-        protected virtual Task<HttpResponseMessage> SendAsync(string uri, Method method, object data = null)
+        protected virtual Task<HttpResponseMessage> SendAsync(string uri, Method method, HttpContent content = null)
             => Policy.Handle<Exception>()
                 .WaitAndRetryAsync(_options.Retries, r => TimeSpan.FromSeconds(Math.Pow(2, r)))
                 .ExecuteAsync(() =>
                 {
                     var requestUri = uri.StartsWith("http") ? uri : $"http://{uri}";
                     
-                    return GetResponseAsync(requestUri, method, data);
+                    return GetResponseAsync(requestUri, method, content);
                 });
 
-        protected virtual Task<HttpResponseMessage> GetResponseAsync(string uri, Method method, object data = null)
+        protected virtual Task<HttpResponseMessage> GetResponseAsync(string uri, Method method, HttpContent content = null)
         {
             switch (method)
             {
                 case Method.Get:
                     return _client.GetAsync(uri);
                 case Method.Post:
-                    return _client.PostAsync(uri, GetJsonPayload(data));
+                    return _client.PostAsync(uri, content);
                 case Method.Put:
-                    return _client.PutAsync(uri, GetJsonPayload(data));
+                    return _client.PutAsync(uri, content);
                 case Method.Patch:
-                    return _client.PatchAsync(uri, GetJsonPayload(data));
+                    return _client.PatchAsync(uri, content);
                 case Method.Delete:
                     return _client.DeleteAsync(uri);
                 default:
@@ -191,10 +213,21 @@ namespace Convey.HTTP
             }
         }
 
-        protected static StringContent GetJsonPayload(object data)
-            => data is null
-                ? EmptyJson
-                : new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, ApplicationJsonContentType);
+        protected StringContent GetJsonPayload(object data)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            if (_options.RemoveCharsetFromContentType)
+            {
+                content.Headers.ContentType.CharSet = null;
+            }
+
+            return content;
+        }
 
         protected static T DeserializeJsonFromStream<T>(Stream stream)
         {

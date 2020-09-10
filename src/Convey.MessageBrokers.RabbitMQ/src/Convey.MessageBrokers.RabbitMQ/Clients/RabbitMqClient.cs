@@ -16,6 +16,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         private readonly IModel _channel;
         private readonly bool _loggerEnabled;
         private readonly string _spanContextHeader;
+        private readonly bool _persistMessages;
 
         public RabbitMqClient(IConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
             RabbitMqOptions options, ILogger<RabbitMqClient> logger)
@@ -27,6 +28,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             _channel = connection.CreateModel();
             _loggerEnabled = options.Logger?.Enabled ?? false;
             _spanContextHeader = options.GetSpanContextHeader();
+            _persistMessages = options?.MessagesPersisted ?? false;
         }
 
         public void Send(object message, IConventions conventions, string messageId = null, string correlationId = null,
@@ -35,6 +37,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             var payload = _serializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(payload);
             var properties = _channel.CreateBasicProperties();
+            properties.Persistent = _persistMessages;
             properties.MessageId = string.IsNullOrWhiteSpace(messageId)
                 ? Guid.NewGuid().ToString("N")
                 : messageId;

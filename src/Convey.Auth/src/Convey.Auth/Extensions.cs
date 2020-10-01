@@ -80,7 +80,8 @@ namespace Convey.Auth
                     certificate = hasPassword
                         ? new X509Certificate2(options.Certificate.Location, password)
                         : new X509Certificate2(options.Certificate.Location);
-                    Console.WriteLine($"Loaded X.509 certificate from location: '{options.Certificate.Location}'.");
+                    var keyType = certificate.HasPrivateKey ? "with private key" : "with public key only";
+                    Console.WriteLine($"Loaded X.509 certificate from location: '{options.Certificate.Location}' {keyType}.");
                 }
                 
                 if (!string.IsNullOrWhiteSpace(options.Certificate.RawData))
@@ -89,7 +90,8 @@ namespace Convey.Auth
                     certificate = hasPassword
                         ? new X509Certificate2(rawData, password)
                         : new X509Certificate2(rawData);
-                    Console.WriteLine("Loaded X.509 certificate from raw data.");
+                    var keyType = certificate.HasPrivateKey ? "with private key" : "with public key only";
+                    Console.WriteLine($"Loaded X.509 certificate from raw data {keyType}.");
                 }
 
                 if (certificate is {})
@@ -101,11 +103,12 @@ namespace Convey.Auth
 
                     hasCertificate = true;
                     tokenValidationParameters.IssuerSigningKey = new X509SecurityKey(certificate);
-                    Console.WriteLine("Using X.509 certificate for issuing tokens.");
+                    var actionType = certificate.HasPrivateKey ? "issuing" : "validating";
+                    Console.WriteLine($"Using X.509 certificate for {actionType} tokens.");
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(options.IssuerSigningKey))
+            if (!string.IsNullOrWhiteSpace(options.IssuerSigningKey) && !hasCertificate)
             {
                 if (string.IsNullOrWhiteSpace(options.Algorithm) || hasCertificate)
                 {

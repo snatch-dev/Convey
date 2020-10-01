@@ -35,28 +35,26 @@ namespace Convey.MessageBrokers.RabbitMQ.Initializers
                 .Distinct()
                 .ToList();
 
-            using (var channel = _connection.CreateModel())
+            using var channel = _connection.CreateModel();
+            if (_options.Exchange?.Declare == true)
             {
-                if (_options.Exchange?.Declare == true)
-                {
-                    Log(_options.Exchange.Name, _options.Exchange.Type);
-                    channel.ExchangeDeclare(_options.Exchange.Name, _options.Exchange.Type, _options.Exchange.Durable,
-                        _options.Exchange.AutoDelete);
-                }
-
-                foreach (var exchange in exchanges)
-                {
-                    if (exchange.Equals(_options.Exchange?.Name, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    Log(exchange, DefaultType);
-                    channel.ExchangeDeclare(exchange, DefaultType, true);
-                }
-
-                channel.Close();
+                Log(_options.Exchange.Name, _options.Exchange.Type);
+                channel.ExchangeDeclare(_options.Exchange.Name, _options.Exchange.Type, _options.Exchange.Durable,
+                    _options.Exchange.AutoDelete);
             }
+
+            foreach (var exchange in exchanges)
+            {
+                if (exchange.Equals(_options.Exchange?.Name, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                Log(exchange, DefaultType);
+                channel.ExchangeDeclare(exchange, DefaultType, true);
+            }
+
+            channel.Close();
 
             return Task.CompletedTask;
         }

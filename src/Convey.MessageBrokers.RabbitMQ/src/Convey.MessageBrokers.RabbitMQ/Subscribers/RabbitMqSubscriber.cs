@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
@@ -12,6 +13,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 {
     internal sealed class RabbitMqSubscriber : IBusSubscriber
     {
+        private static readonly ConcurrentDictionary<string, ChannelInfo> Channels = new ConcurrentDictionary<string, ChannelInfo>();
         private static readonly EmptyExceptionToMessageMapper ExceptionMapper = new EmptyExceptionToMessageMapper();
         private readonly IServiceProvider _serviceProvider;
         private readonly IBusPublisher _publisher;
@@ -23,15 +25,15 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly IExceptionToMessageMapper _exceptionToMessageMapper;
         private readonly int _retries;
         private readonly int _retryInterval;
-        private readonly IModel _channel;
         private readonly bool _loggerEnabled;
         private readonly RabbitMqOptions _options;
         private readonly RabbitMqOptions.QosOptions _qosOptions;
+        private readonly IConnection _connection;
 
         public RabbitMqSubscriber(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _channel = _serviceProvider.GetRequiredService<IConnection>().CreateModel();
+            _connection = _serviceProvider.GetRequiredService<IConnection>();
             _publisher = _serviceProvider.GetRequiredService<IBusPublisher>();
             _rabbitMqSerializer = _serviceProvider.GetRequiredService<IRabbitMqSerializer>();
             _conventionsProvider = _serviceProvider.GetRequiredService<IConventionsProvider>();
@@ -54,12 +56,24 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             where T : class
         {
             var conventions = _conventionsProvider.Get<T>();
+            var channelKey = $"{conventions.Exchange}:{conventions.Queue}:{conventions.RoutingKey}";
+            if (Channels.ContainsKey(channelKey))
+            {
+                return this;
+            }
+            
+            var channel = _connection.CreateModel();
+            if (!Channels.TryAdd(channelKey, new ChannelInfo(channel, conventions)))
+            {
+                return this;
+            }
+            
+            _logger.LogTrace($"Created a channel: {channel.ChannelNumber}");
             var declare = _options.Queue?.Declare ?? true;
             var durable = _options.Queue?.Durable ?? true;
             var exclusive = _options.Queue?.Exclusive ?? false;
             var autoDelete = _options.Queue?.AutoDelete ?? false;
             var info = string.Empty;
-
             if (_loggerEnabled)
             {
                 info = $" [queue: '{conventions.Queue}', routing key: '{conventions.RoutingKey}', " +
@@ -74,13 +88,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                            $"'{conventions.RoutingKey}' for an exchange: '{conventions.Exchange}'.");
                 }
 
-                _channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
+                channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
             }
 
-            _channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
-            _channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
+            channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
+            channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
 
-            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (model, args) =>
             {
                 try
@@ -99,19 +113,19 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     var correlationContext = BuildCorrelationContext(args);
 
                     Task Next(object m, object ctx, BasicDeliverEventArgs a)
-                        => TryHandleAsync((T) m, messageId, correlationId, ctx, a, handle);
+                        => TryHandleAsync(channel, (T) m, messageId, correlationId, ctx, a, handle);
 
                     await _pluginsExecutor.ExecuteAsync(Next, message, correlationContext, args);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, ex.Message);
-                    _channel.BasicAck(args.DeliveryTag, false);
+                    channel.BasicAck(args.DeliveryTag, false);
                     throw;
                 }
             };
 
-            _channel.BasicConsume(conventions.Queue, false, consumer);
+            channel.BasicConsume(conventions.Queue, false, consumer);
 
             return this;
         }
@@ -134,7 +148,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             return correlationContext;
         }
 
-        private async Task TryHandleAsync<TMessage>(TMessage message, string messageId, string correlationId,
+        private async Task TryHandleAsync<TMessage>(IModel channel, TMessage message, string messageId, string correlationId,
             object messageContext, BasicDeliverEventArgs args, Func<IServiceProvider, TMessage, object, Task> handle)
         {
             var currentRetry = 0;
@@ -159,7 +173,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     }
 
                     await handle(_serviceProvider, message, messageContext);
-                    _channel.BasicAck(args.DeliveryTag, false);
+                    channel.BasicAck(args.DeliveryTag, false);
 
                     if (_loggerEnabled)
                     {
@@ -189,7 +203,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                             throw new Exception(errorMessage, ex);
                         }
 
-                        _channel.BasicAck(args.DeliveryTag, false);
+                        channel.BasicAck(args.DeliveryTag, false);
                         return;
                     }
 
@@ -206,7 +220,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                      $"with correlation id: '{correlationId}' failed and rejected event: " +
                                      $"'{rejectedEventName}' was published.", ex);
 
-                    _channel.BasicAck(args.DeliveryTag, false);
+                    channel.BasicAck(args.DeliveryTag, false);
                 }
             });
         }
@@ -214,6 +228,34 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private class EmptyExceptionToMessageMapper : IExceptionToMessageMapper
         {
             public object Map(Exception exception, object message) => null;
+        }
+
+        public void Dispose()
+        {
+            foreach (var (key, channel) in Channels)
+            {
+                channel?.Dispose();
+                Channels.TryRemove(key, out _);
+            }
+            
+            _connection?.Dispose();
+        }
+
+        private class ChannelInfo : IDisposable
+        {
+            public IModel Channel { get; }
+            public IConventions Conventions { get; }
+
+            public ChannelInfo(IModel channel, IConventions conventions)
+            {
+                Channel = channel;
+                Conventions = conventions;
+            }
+
+            public void Dispose()
+            {
+                Channel?.Dispose();
+            }
         }
     }
 }

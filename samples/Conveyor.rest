@@ -23,7 +23,7 @@ Content-Type: application/json
   "customerId": "{{customerId}}"
 }
 
-@orderLocation = {{create_order.response.headers.location}}
 
 ###
+@orderLocation = {{create_order.response.headers.location}}
 GET {{orders}}/{{orderLocation}}

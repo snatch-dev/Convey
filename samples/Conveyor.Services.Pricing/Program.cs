@@ -3,7 +3,7 @@ using Convey;
 using Convey.Discovery.Consul;
 using Convey.LoadBalancing.Fabio;
 using Convey.Logging;
-using Convey.Metrics.AppMetrics;
+using Convey.Metrics.Prometheus;
 using Convey.Tracing.Jaeger;
 using Convey.WebApi;
 using Convey.WebApi.Security;
@@ -33,14 +33,14 @@ namespace Conveyor.Services.Pricing
                         .AddConsul()
                         .AddFabio()
                         .AddJaeger()
-                        .AddMetrics()
+                        .AddPrometheus()
                         .AddWebApi()
                         .Build())
                     .Configure(app => app
                         .UseConvey()
+                        .UsePrometheus()
                         .UseErrorHandler()
                         .UseJaeger()
-                        .UseMetrics()
                         .UseCertificateAuthentication()
                         .UseAuthentication()
                         .UseAuthorization()

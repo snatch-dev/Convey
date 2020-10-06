@@ -13,7 +13,7 @@ using Convey.MessageBrokers.CQRS;
 using Convey.MessageBrokers.Outbox;
 using Convey.MessageBrokers.Outbox.Mongo;
 using Convey.MessageBrokers.RabbitMQ;
-using Convey.Metrics.AppMetrics;
+using Convey.Metrics.Prometheus;
 using Convey.Persistence.MongoDB;
 using Convey.Persistence.Redis;
 using Convey.Secrets.Vault;
@@ -59,10 +59,10 @@ namespace Conveyor.Services.Orders
                         .AddInMemoryCommandDispatcher()
                         .AddInMemoryEventDispatcher()
                         .AddInMemoryQueryDispatcher()
+                        .AddPrometheus()
                         .AddRedis()
                         .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
                         .AddMessageOutbox(o => o.AddMongo())
-                        .AddMetrics()
                         .AddWebApi()
                         .AddSwaggerDocs()
                         .AddWebApiSwaggerDocs()
@@ -70,6 +70,7 @@ namespace Conveyor.Services.Orders
                     .Configure(app => app
                         .UseConvey()
                         .UseErrorHandler()
+                        .UsePrometheus()
                         .UseRouting()
                         .UseCertificateAuthentication()
                         .UseEndpoints(r => r.MapControllers())
@@ -80,7 +81,6 @@ namespace Conveyor.Services.Orders
                                 .Post<CreateOrder>("orders",
                                     afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
                         .UseJaeger()
-                        .UseMetrics()
                         .UseSwaggerDocs()
                         .UseRabbitMq()
                         .SubscribeEvent<DeliveryStarted>())

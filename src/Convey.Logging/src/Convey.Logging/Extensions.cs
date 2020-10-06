@@ -17,10 +17,10 @@ namespace Convey.Logging
         private const string LoggerSectionName = "logger";
         private const string AppSectionName = "app";
 
-        public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
+        public static IHostBuilder UseLogging(this IHostBuilder builder,
             Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
-            => hostBuilder.UseSerilog((context, loggerConfiguration) =>
+            => builder.UseSerilog((context, loggerConfiguration) =>
             {
                 if (string.IsNullOrWhiteSpace(loggerSectionName))
                 {

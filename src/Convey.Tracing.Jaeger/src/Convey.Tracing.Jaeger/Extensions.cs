@@ -74,9 +74,10 @@ namespace Convey.Tracing.Jaeger
             builder.Services.AddSingleton<ITracer>(sp =>
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-
+                var maxPacketSize = options.MaxPacketSize <= 0 ? 65000 : options.MaxPacketSize;
+                
                 var reporter = new RemoteReporter.Builder()
-                    .WithSender(new UdpSender(options.UdpHost, options.UdpPort, options.MaxPacketSize))
+                    .WithSender(new UdpSender(options.UdpHost, options.UdpPort, maxPacketSize))
                     .WithLoggerFactory(loggerFactory)
                     .Build();
 

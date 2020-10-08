@@ -21,10 +21,19 @@ namespace Convey.HTTP
         private readonly HttpClient _client;
         private readonly HttpClientOptions _options;
 
-        public ConveyHttpClient(HttpClient client, HttpClientOptions options)
+        public ConveyHttpClient(HttpClient client, HttpClientOptions options,
+            ICorrelationContextFactory correlationContextFactory)
         {
             _client = client;
             _options = options;
+            if (string.IsNullOrWhiteSpace(_options.CorrelationContextHeader))
+            {
+                return;
+            }
+
+            var correlationContext = correlationContextFactory.Create();
+            _client.DefaultRequestHeaders.TryAddWithoutValidation(_options.CorrelationContextHeader,
+                correlationContext);
         }
 
         public virtual Task<HttpResponseMessage> GetAsync(string uri)

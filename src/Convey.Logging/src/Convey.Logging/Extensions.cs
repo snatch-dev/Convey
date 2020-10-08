@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Convey.Logging.Options;
 using Convey.Types;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -16,7 +18,7 @@ namespace Convey.Logging
     {
         private const string LoggerSectionName = "logger";
         private const string AppSectionName = "app";
-
+        
         public static IHostBuilder UseLogging(this IHostBuilder builder,
             Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
@@ -144,5 +146,19 @@ namespace Convey.Logging
             => Enum.TryParse<LogEventLevel>(level, true, out var logLevel) 
                 ? logLevel
                 : LogEventLevel.Information;
+
+        public static IConveyBuilder AddCorrelationContextLogging(this IConveyBuilder builder)
+        {
+            builder.Services.AddTransient<CorrelationContextLoggingMiddleware>();
+            
+            return builder;
+        }
+        
+        public static IApplicationBuilder UserCorrelationContextLogging(this IApplicationBuilder app)
+        {
+            app.UseMiddleware<CorrelationContextLoggingMiddleware>();
+            
+            return app;
+        }
     }
 }

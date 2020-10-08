@@ -2,7 +2,7 @@ using System;
 
 namespace Convey
 {
-    public class ServiceId : IServiceId
+    internal class ServiceId : IServiceId
     {
         public string Id { get; } = $"{Guid.NewGuid():N}";
     }

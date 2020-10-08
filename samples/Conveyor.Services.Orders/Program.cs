@@ -48,6 +48,7 @@ namespace Conveyor.Services.Orders
                         .AddErrorHandler<ExceptionToResponseMapper>()
                         .AddServices()
                         .AddHttpClient()
+                        .AddCorrelationContextLogging()
                         .AddConsul()
                         .AddFabio()
                         .AddJaeger()
@@ -69,6 +70,7 @@ namespace Conveyor.Services.Orders
                         .Build())
                     .Configure(app => app
                         .UseConvey()
+                        .UserCorrelationContextLogging()
                         .UseErrorHandler()
                         .UsePrometheus()
                         .UseRouting()

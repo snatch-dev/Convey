@@ -14,18 +14,19 @@ namespace Convey.HTTP
         private const string RegistryName = "http.client";
 
         public static IConveyBuilder AddHttpClient(this IConveyBuilder builder, string clientName = "convey",
-           IEnumerable<string> maskedRequestUrlParts = null, string sectionName = SectionName)
+            IEnumerable<string> maskedRequestUrlParts = null, string sectionName = SectionName,
+            Action<IHttpClientBuilder> httpClientBuilder = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
                 sectionName = SectionName;
             }
-            
+
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;
             }
-            
+
             if (string.IsNullOrWhiteSpace(clientName))
             {
                 throw new ArgumentException("HTTP client name cannot be empty.", nameof(clientName));
@@ -36,12 +37,16 @@ namespace Convey.HTTP
             {
                 options.RequestMasking.UrlParts = maskedRequestUrlParts;
             }
-            
+
+            builder.Services.AddSingleton<ICorrelationContextFactory, EmptyCorrelationContextFactory>();
             builder.Services.AddSingleton(options);
-            builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>(clientName);
+            var clientBuilder = builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>(clientName);
+            httpClientBuilder?.Invoke(clientBuilder);
+
             if (options.RequestMasking?.Enabled == true)
             {
-                builder.Services.Replace(ServiceDescriptor.Singleton<IHttpMessageHandlerBuilderFilter, ConveyHttpLoggingFilter>());
+                builder.Services.Replace(ServiceDescriptor
+                    .Singleton<IHttpMessageHandlerBuilderFilter, ConveyHttpLoggingFilter>());
             }
 
             return builder;

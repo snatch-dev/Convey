@@ -10,6 +10,7 @@ namespace Convey.HTTP
         public RequestMaskingOptions RequestMasking { get; set; }
         public bool RemoveCharsetFromContentType { get; set; }
         public string CorrelationContextHeader { get; set; }
+        public string CorrelationIdHeader { get; set; }
 
         public class RequestMaskingOptions
         {

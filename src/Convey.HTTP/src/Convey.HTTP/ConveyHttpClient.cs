@@ -22,18 +22,23 @@ namespace Convey.HTTP
         private readonly HttpClientOptions _options;
 
         public ConveyHttpClient(HttpClient client, HttpClientOptions options,
-            ICorrelationContextFactory correlationContextFactory)
+            ICorrelationContextFactory correlationContextFactory, ICorrelationIdFactory correlationIdFactory)
         {
             _client = client;
             _options = options;
-            if (string.IsNullOrWhiteSpace(_options.CorrelationContextHeader))
+            if (!string.IsNullOrWhiteSpace(_options.CorrelationContextHeader))
             {
-                return;
+                var correlationContext = correlationContextFactory.Create();
+                _client.DefaultRequestHeaders.TryAddWithoutValidation(_options.CorrelationContextHeader,
+                    correlationContext);
             }
 
-            var correlationContext = correlationContextFactory.Create();
-            _client.DefaultRequestHeaders.TryAddWithoutValidation(_options.CorrelationContextHeader,
-                correlationContext);
+            if (!string.IsNullOrWhiteSpace(_options.CorrelationIdHeader))
+            {
+                var correlationId = correlationIdFactory.Create();
+                _client.DefaultRequestHeaders.TryAddWithoutValidation(_options.CorrelationIdHeader,
+                    correlationId);
+            }
         }
 
         public virtual Task<HttpResponseMessage> GetAsync(string uri)

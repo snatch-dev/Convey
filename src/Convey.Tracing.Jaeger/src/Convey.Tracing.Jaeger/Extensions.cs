@@ -21,7 +21,8 @@ namespace Convey.Tracing.Jaeger
         private const string SectionName = "jaeger";
         private const string RegistryName = "tracing.jaeger";
 
-        public static IConveyBuilder AddJaeger(this IConveyBuilder builder, string sectionName = SectionName)
+        public static IConveyBuilder AddJaeger(this IConveyBuilder builder, string sectionName = SectionName,
+            Action<IOpenTracingBuilder> openTracingBuilder = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
@@ -29,17 +30,20 @@ namespace Convey.Tracing.Jaeger
             }
 
             var options = builder.GetOptions<JaegerOptions>(sectionName);
-            return builder.AddJaeger(options);
+            return builder.AddJaeger(options, sectionName, openTracingBuilder);
         }
 
         public static IConveyBuilder AddJaeger(this IConveyBuilder builder,
-            Func<IJaegerOptionsBuilder, IJaegerOptionsBuilder> buildOptions)
+            Func<IJaegerOptionsBuilder, IJaegerOptionsBuilder> buildOptions,
+            string sectionName = SectionName,
+            Action<IOpenTracingBuilder> openTracingBuilder = null)
         {
             var options = buildOptions(new JaegerOptionsBuilder()).Build();
-            return builder.AddJaeger(options);
+            return builder.AddJaeger(options, sectionName, openTracingBuilder);
         }
 
-        public static IConveyBuilder AddJaeger(this IConveyBuilder builder, JaegerOptions options)
+        public static IConveyBuilder AddJaeger(this IConveyBuilder builder, JaegerOptions options,
+            string sectionName = SectionName, Action<IOpenTracingBuilder> openTracingBuilder = null)
         {
             if (Interlocked.Exchange(ref _initialized, 1) == 1)
             {
@@ -70,12 +74,13 @@ namespace Convey.Tracing.Jaeger
                 });
             }
 
-            builder.Services.AddOpenTracing();
+            builder.Services.AddOpenTracing(x => openTracingBuilder?.Invoke(x));
+
             builder.Services.AddSingleton<ITracer>(sp =>
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                 var maxPacketSize = options.MaxPacketSize <= 0 ? 65000 : options.MaxPacketSize;
-                
+
                 var reporter = new RemoteReporter.Builder()
                     .WithSender(new UdpSender(options.UdpHost, options.UdpPort, maxPacketSize))
                     .WithLoggerFactory(loggerFactory)

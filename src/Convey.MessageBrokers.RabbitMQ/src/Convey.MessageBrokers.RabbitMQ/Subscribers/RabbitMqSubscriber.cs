@@ -202,8 +202,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         {
                             throw new Exception(errorMessage, ex);
                         }
-
-                        channel.BasicAck(args.DeliveryTag, false);
+                        
+                        channel.BasicReject(args.DeliveryTag, false);
                         return;
                     }
 

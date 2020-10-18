@@ -30,6 +30,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public SslOptions Ssl { get; set; }
         public QueueOptions Queue { get; set; }
         public QosOptions Qos { get; set; }
+        public DlxOptions Dlx { get; set; }
         public string SpanContextHeader { get; set; }
 
         public string GetSpanContextHeader()
@@ -79,6 +80,17 @@ namespace Convey.MessageBrokers.RabbitMQ
             public uint PrefetchSize { get; set; }
             public ushort PrefetchCount { get; set; }
             public bool Global { get; set; }
+        }
+
+        public class DlxOptions
+        {
+            public bool Enabled { get; set; }
+            public bool Global { get; set; }
+            public string ExchangeName { get; set; }
+            public string ExchangeType { get; set; }
+            public string QueueName { get; set; }
+            public string RoutingKey { get; set; }
+            public int Ttl { get; set; }
         }
     }
 }

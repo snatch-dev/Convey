@@ -80,7 +80,7 @@ namespace Convey.Tracing.Jaeger
             builder.Services.AddSingleton<ITracer>(sp =>
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-                var maxPacketSize = options.MaxPacketSize <= 0 ? 65000 : options.MaxPacketSize;
+                var maxPacketSize = options.MaxPacketSize <= 0 ? 64967 : options.MaxPacketSize;
                 var senderType = string.IsNullOrWhiteSpace(options.Sender) ? "udp" : options.Sender?.ToLowerInvariant();
                 ISender sender = senderType switch
                 {

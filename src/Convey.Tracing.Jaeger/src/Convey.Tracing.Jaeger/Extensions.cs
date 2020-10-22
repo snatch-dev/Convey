@@ -5,6 +5,7 @@ using Convey.Tracing.Jaeger.Tracers;
 using Jaeger;
 using Jaeger.Reporters;
 using Jaeger.Samplers;
+using Jaeger.Senders;
 using Jaeger.Senders.Thrift;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -80,9 +81,16 @@ namespace Convey.Tracing.Jaeger
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
                 var maxPacketSize = options.MaxPacketSize <= 0 ? 65000 : options.MaxPacketSize;
-
+                var senderType = string.IsNullOrWhiteSpace(options.Sender) ? "udp" : options.Sender?.ToLowerInvariant();
+                ISender sender = senderType switch
+                {
+                    "http" => BuildHttpSender(options.HttpSender),
+                    "udp" => new UdpSender(options.UdpHost, options.UdpPort, maxPacketSize),
+                    _ => throw new Exception($"Invalid Jaeger sender type: '{senderType}'.")
+                };
+                
                 var reporter = new RemoteReporter.Builder()
-                    .WithSender(new UdpSender(options.UdpHost, options.UdpPort, maxPacketSize))
+                    .WithSender(sender)
                     .WithLoggerFactory(loggerFactory)
                     .Build();
 
@@ -100,6 +108,42 @@ namespace Convey.Tracing.Jaeger
             });
 
             return builder;
+        }
+
+        private static HttpSender BuildHttpSender(JaegerOptions.HttpSenderOptions options)
+        {
+            if (options is null)
+            {
+                throw new Exception("Missing Jaeger HTTP sender options.");
+            }
+
+            if (string.IsNullOrWhiteSpace(options.Endpoint))
+            {
+                throw new Exception("Missing Jaeger HTTP sender endpoint.");
+            }
+            
+            var builder = new HttpSender.Builder(options.Endpoint);
+            if (options.MaxPacketSize > 0)
+            {
+                builder = builder.WithMaxPacketSize(options.MaxPacketSize);
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.AuthToken))
+            {
+                builder = builder.WithAuth(options.AuthToken);
+            }
+            
+            if (!string.IsNullOrWhiteSpace(options.Username) && !string.IsNullOrWhiteSpace(options.Password))
+            {
+                builder = builder.WithAuth(options.Username, options.Password);
+            }
+            
+            if (!string.IsNullOrWhiteSpace(options.UserAgent))
+            {
+                builder = builder.WithUserAgent(options.Username);
+            }
+
+            return builder.Build();
         }
 
         public static IApplicationBuilder UseJaeger(this IApplicationBuilder app)

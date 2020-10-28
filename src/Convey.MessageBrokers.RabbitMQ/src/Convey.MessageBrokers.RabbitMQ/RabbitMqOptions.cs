@@ -32,6 +32,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public QosOptions Qos { get; set; }
         public DlxOptions Dlx { get; set; }
         public string SpanContextHeader { get; set; }
+        public int MaxProducerChannels { get; set; }
 
         public string GetSpanContextHeader()
             => string.IsNullOrWhiteSpace(SpanContextHeader) ? "span_context" : SpanContextHeader;

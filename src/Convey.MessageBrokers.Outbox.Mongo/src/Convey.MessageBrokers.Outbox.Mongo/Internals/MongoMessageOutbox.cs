@@ -28,6 +28,7 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
         private readonly IMongoRepository<InboxMessage, string> _inboxRepository;
         private readonly IMongoRepository<OutboxMessage, string> _outboxRepository;
         private readonly ILogger<MongoMessageOutbox> _logger;
+        private readonly bool _transactionsEnabled;
 
         public bool Enabled { get; }
 
@@ -40,6 +41,7 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
             _inboxRepository = inboxRepository;
             _outboxRepository = outboxRepository;
             _logger = logger;
+            _transactionsEnabled = !options.DisableTransactions;
             Enabled = options.Enabled;
         }
 
@@ -63,8 +65,12 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
                 return;
             }
 
-            using var session = await _sessionFactory.CreateAsync();
-            session.StartTransaction();
+            IClientSessionHandle session = null;
+            if (_transactionsEnabled)
+            {
+                session = await _sessionFactory.CreateAsync();
+                session.StartTransaction();
+            }
 
             try
             {
@@ -75,14 +81,27 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
                     Id = messageId,
                     ProcessedAt = DateTime.UtcNow
                 });
-                await session.CommitTransactionAsync();
+
+                if (session is {})
+                {
+                    await session.CommitTransactionAsync();
+                }
+
                 _logger.LogTrace($"Processed a message with id: '{messageId}'.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"There was an error when processing a message with id: '{messageId}'.");
-                await session.AbortTransactionAsync();
+                if (session is {})
+                {
+                    await session.AbortTransactionAsync();
+                }
+                
                 throw;
+            }
+            finally
+            {
+                session?.Dispose();
             }
         }
 

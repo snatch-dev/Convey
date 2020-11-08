@@ -6,7 +6,7 @@ using Convey.LoadBalancing.Fabio;
 using Convey.Logging;
 using Convey.MessageBrokers.CQRS;
 using Convey.MessageBrokers.RabbitMQ;
-using Convey.Metrics.AppMetrics;
+using Convey.Metrics.Prometheus;
 using Convey.Persistence.Redis;
 using Convey.Tracing.Jaeger;
 using Convey.Tracing.Jaeger.RabbitMQ;
@@ -35,17 +35,17 @@ namespace Conveyor.Services.Deliveries
                         .AddEventHandlers()
                         .AddRedis()
                         .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
-                        .AddMetrics()
+                        .AddPrometheus()
                         .AddWebApi()
                         .Build())
                     .Configure(app => app
                         .UseConvey()
+                        .UsePrometheus()
                         .UseErrorHandler()
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Deliveries Service"))
                             .Get("ping", ctx => ctx.Response.WriteAsync("pong")))
                         .UseJaeger()
-                        .UseMetrics()
                         .UseRabbitMq()
                         .SubscribeEvent<OrderCreated>())
                     .UseLogging();

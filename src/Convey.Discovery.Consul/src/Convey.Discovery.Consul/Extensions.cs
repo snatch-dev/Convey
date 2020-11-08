@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Convey.Discovery.Consul.Builders;
 using Convey.Discovery.Consul.Http;
 using Convey.Discovery.Consul.MessageHandlers;
@@ -94,7 +95,11 @@ namespace Convey.Discovery.Consul
             }
 
             builder.Services.AddHttpClient<IConsulService, ConsulService>(c => c.BaseAddress = new Uri(options.Url));
-            builder.Services.AddHostedService<ConsulHostedService>();
+
+            if (builder.Services.All(x => x.ServiceType != typeof(ConsulHostedService)))
+            {
+                builder.Services.AddHostedService<ConsulHostedService>();
+            }
 
             var serviceId = string.Empty;
             using (var serviceProvider = builder.Services.BuildServiceProvider())

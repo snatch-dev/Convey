@@ -27,11 +27,7 @@ namespace Convey.MessageBrokers.CQRS
             => busSubscriber.Subscribe<T>(async (serviceProvider, @event, _) =>
             {
                 using var scope = serviceProvider.CreateScope();
-                var handlers = scope.ServiceProvider.GetServices<IEventHandler<T>>();
-                foreach (var handler in handlers)
-                {
-                    await handler.HandleAsync(@event);
-                }
+                await scope.ServiceProvider.GetRequiredService<IEventHandler<T>>().HandleAsync(@event);
             });
 
         public static IConveyBuilder AddServiceBusCommandDispatcher(this IConveyBuilder builder)

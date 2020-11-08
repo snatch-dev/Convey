@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\src\Convey.MessageBrokers.CQRS\src\Convey.MessageBrokers.CQRS\Convey.MessageBrokers.CQRS.csproj" />
     <ProjectReference Include="..\..\src\Convey.MessageBrokers.RabbitMQ\src\Convey.MessageBrokers.RabbitMQ\Convey.MessageBrokers.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\Convey.Metrics.AppMetrics\src\Convey.Metrics.AppMetrics\Convey.Metrics.AppMetrics.csproj" />
+    <ProjectReference Include="..\..\src\Convey.Metrics.Prometheus\src\Convey.Metrics.Prometheus\Convey.Metrics.Prometheus.csproj" />
     <ProjectReference Include="..\..\src\Convey.Persistence.Redis\src\Convey.Persistence.Redis\Convey.Persistence.Redis.csproj" />
     <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger.RabbitMQ\src\Convey.Tracing.Jaeger.RabbitMQ\Convey.Tracing.Jaeger.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />

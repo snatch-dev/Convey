@@ -61,26 +61,26 @@ namespace Convey.LoadBalancing.Fabio
                 builder.Services.AddTransient<FabioMessageHandler>();
                 builder.Services.AddHttpClient<IFabioHttpClient, FabioHttpClient>("fabio-http")
                     .AddHttpMessageHandler<FabioMessageHandler>();
+
+
                 builder.RemoveHttpClient();
                 builder.Services.AddHttpClient<IHttpClient, FabioHttpClient>("fabio")
                     .AddHttpMessageHandler<FabioMessageHandler>();
             }
 
-            using (var serviceProvider = builder.Services.BuildServiceProvider())
+            using var serviceProvider = builder.Services.BuildServiceProvider();
+            var registration = serviceProvider.GetService<ServiceRegistration>();
+            var tags = GetFabioTags(registration.Name, fabioOptions.Service);
+            if (registration.Tags is null)
             {
-                var registration = serviceProvider.GetService<ServiceRegistration>();
-                var tags = GetFabioTags(registration.Name, fabioOptions.Service);
-                if (registration.Tags is null)
-                {
-                    registration.Tags = tags;
-                }
-                else
-                {
-                    registration.Tags.AddRange(tags);
-                }
-
-                builder.Services.UpdateConsulRegistration(registration);
+                registration.Tags = tags;
             }
+            else
+            {
+                registration.Tags.AddRange(tags);
+            }
+
+            builder.Services.UpdateConsulRegistration(registration);
 
             return builder;
         }

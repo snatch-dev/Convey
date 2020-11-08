@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Description>Convey.Metrics.Prometheus</Description>
+        <Authors>DevMentors.io</Authors>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>Latest</LangVersion>
+        <AssemblyName>Convey.Metrics.Prometheus</AssemblyName>
+        <Title>Convey.Metrics.Prometheus</Title>
+        <PackageId>Convey.Metrics.Prometheus</PackageId>
+        <PackageTags>Convey.Metrics.Prometheus</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="prometheus-net" Version="3.6.0" />
+      <PackageReference Include="prometheus-net.AspNetCore" Version="3.6.0" />
+      <PackageReference Include="prometheus-net.AspNetCore.Grpc" Version="3.6.0" />
+      <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="3.6.0" />
+      <PackageReference Include="prometheus-net.DotNetRuntime" Version="3.4.0" />
+      <PackageReference Include="prometheus-net.SystemMetrics" Version="1.0.1" />
+    </ItemGroup>
+
+</Project>

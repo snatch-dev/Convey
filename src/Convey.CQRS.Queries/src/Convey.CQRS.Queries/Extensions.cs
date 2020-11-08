@@ -1,5 +1,6 @@
 using System;
 using Convey.CQRS.Queries.Dispatchers;
+using Convey.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Convey.CQRS.Queries
@@ -10,7 +11,8 @@ namespace Convey.CQRS.Queries
         {
             builder.Services.Scan(s =>
                 s.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(c => c.AssignableTo(typeof(IQueryHandler<,>)))
+                    .AddClasses(c => c.AssignableTo(typeof(IQueryHandler<,>))
+                        .WithoutAttribute(typeof(DecoratorAttribute)))
                     .AsImplementedInterfaces()
                     .WithTransientLifetime());
 

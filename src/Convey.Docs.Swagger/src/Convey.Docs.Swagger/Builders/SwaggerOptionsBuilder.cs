@@ -3,7 +3,7 @@ namespace Convey.Docs.Swagger.Builders
     internal sealed class SwaggerOptionsBuilder : ISwaggerOptionsBuilder
     {
         private readonly SwaggerOptions _options = new SwaggerOptions();
-        
+
         public ISwaggerOptionsBuilder Enable(bool enabled)
         {
             _options.Enabled = enabled;
@@ -43,6 +43,12 @@ namespace Convey.Docs.Swagger.Builders
         public ISwaggerOptionsBuilder IncludeSecurity(bool includeSecurity)
         {
             _options.IncludeSecurity = includeSecurity;
+            return this;
+        }
+
+        public ISwaggerOptionsBuilder SerializeAsOpenApiV2(bool serializeAsOpenApiV2)
+        {
+            _options.SerializeAsOpenApiV2 = serializeAsOpenApiV2;
             return this;
         }
 

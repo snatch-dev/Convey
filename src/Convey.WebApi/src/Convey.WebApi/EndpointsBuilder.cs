@@ -158,7 +158,7 @@ namespace Convey.WebApi
         }
 
         private static async Task BuildRequestContext<T>(HttpContext httpContext,
-            Func<T, HttpContext, Task> context = null, Action<IEndpointConventionBuilder> endpoint = null)
+            Func<T, HttpContext, Task> context = null)
             where T : class
         {
             var request = await httpContext.ReadJsonAsync<T>();
@@ -171,7 +171,7 @@ namespace Convey.WebApi
         }
 
         private static async Task BuildQueryContext<T>(HttpContext httpContext,
-            Func<T, HttpContext, Task> context = null, Action<IEndpointConventionBuilder> endpoint = null)
+            Func<T, HttpContext, Task> context = null)
             where T : class
         {
             var request = httpContext.ReadQuery<T>();

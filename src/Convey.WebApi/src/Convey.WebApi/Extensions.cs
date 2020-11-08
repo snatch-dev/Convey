@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Convey.Types;
 using Convey.WebApi.Exceptions;
 using Convey.WebApi.Formatters;
 using Convey.WebApi.Requests;
@@ -108,7 +109,8 @@ namespace Convey.WebApi
 
             builder.Services.Scan(s =>
                 s.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
-                    .AddClasses(c => c.AssignableTo(typeof(IRequestHandler<,>)))
+                    .AddClasses(c => c.AssignableTo(typeof(IRequestHandler<,>))
+                        .WithoutAttribute(typeof(DecoratorAttribute)))
                     .AsImplementedInterfaces()
                     .WithTransientLifetime());
 

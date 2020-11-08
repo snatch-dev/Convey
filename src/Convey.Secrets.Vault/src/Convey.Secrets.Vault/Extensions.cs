@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
@@ -22,41 +23,23 @@ namespace Convey.Secrets.Vault
         private static readonly ILeaseService LeaseService = new LeaseService();
         private static readonly ICertificatesService CertificatesService = new CertificatesService();
 
+        public static IHostBuilder UseVault(this IHostBuilder builder, string keyValuePath = null,
+            string sectionName = SectionName)
+            => builder.ConfigureServices(services => services.AddVault(sectionName))
+                .ConfigureAppConfiguration((ctx, cfg) =>
+                {
+                    var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
+                    if (!options.Enabled)
+                    {
+                        return;
+                    }
+
+                    cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
+                });
+        
         public static IWebHostBuilder UseVault(this IWebHostBuilder builder, string keyValuePath = null,
             string sectionName = SectionName)
-            => builder.ConfigureServices(services =>
-                {
-                    if (string.IsNullOrWhiteSpace(sectionName))
-                    {
-                        sectionName = SectionName;
-                    }
-
-                    IConfiguration configuration;
-                    using (var serviceProvider = services.BuildServiceProvider())
-                    {
-                        configuration = serviceProvider.GetService<IConfiguration>();
-                    }
-
-                    var options = configuration.GetOptions<VaultOptions>(sectionName);
-                    VerifyOptions(options);
-                    services.AddSingleton(options);
-                    services.AddTransient<IKeyValueSecrets, KeyValueSecrets>();
-                    var (client, settings) = GetClientAndSettings(options);
-                    services.AddSingleton(settings);
-                    services.AddSingleton(client);
-                    services.AddSingleton(LeaseService);
-                    services.AddSingleton(CertificatesService);
-                    services.AddHostedService<VaultHostedService>();
-                    if (options.Pki is {})
-                    {
-                        services.AddSingleton<ICertificatesIssuer, CertificatesIssuer>();
-                    }
-                    else
-                    {
-                        services.AddSingleton<ICertificatesIssuer, EmptyCertificatesIssuer>();
-                    }
-                    
-                })
+            => builder.ConfigureServices(services => services.AddVault(sectionName))
                 .ConfigureAppConfiguration((ctx, cfg) =>
                 {
                     var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
@@ -68,6 +51,42 @@ namespace Convey.Secrets.Vault
                     cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
                 });
 
+        private static IServiceCollection AddVault(this IServiceCollection services, string sectionName)
+        {
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                sectionName = SectionName;
+            }
+
+            IConfiguration configuration;
+            using (var serviceProvider = services.BuildServiceProvider())
+            {
+                configuration = serviceProvider.GetService<IConfiguration>();
+            }
+
+            var options = configuration.GetOptions<VaultOptions>(sectionName);
+            VerifyOptions(options);
+            services.AddSingleton(options);
+            services.AddTransient<IKeyValueSecrets, KeyValueSecrets>();
+            var (client, settings) = GetClientAndSettings(options);
+            services.AddSingleton(settings);
+            services.AddSingleton(client);
+            services.AddSingleton(LeaseService);
+            services.AddSingleton(CertificatesService);
+            services.AddHostedService<VaultHostedService>();
+            if (options.Pki is {})
+            {
+                services.AddSingleton<ICertificatesIssuer, CertificatesIssuer>();
+            }
+            else
+            {
+                services.AddSingleton<ICertificatesIssuer, EmptyCertificatesIssuer>();
+            }
+
+            return services;
+        }
+        
+        
         private static void VerifyOptions(VaultOptions options)
         {
             if (options.Kv is null)

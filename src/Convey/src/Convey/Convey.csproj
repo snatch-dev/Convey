@@ -12,8 +12,8 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Figgle" Version="0.3.0" />
-    <PackageReference Include="Scrutor" Version="3.2.1" />
+    <PackageReference Include="Figgle" Version="0.4.0" />
+    <PackageReference Include="Scrutor" Version="3.2.2" />
   </ItemGroup>
 
   <ItemGroup>

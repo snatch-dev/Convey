@@ -21,24 +21,36 @@ namespace Convey.Persistence.MongoDB
             {
                 page = 1;
             }
+
             if (resultsPerPage <= 0)
             {
                 resultsPerPage = 10;
             }
+
             var isEmpty = await collection.AnyAsync() == false;
             if (isEmpty)
             {
                 return PagedResult<T>.Empty;
             }
+
             var totalResults = await collection.CountAsync();
-            var totalPages = (int)Math.Ceiling((decimal)totalResults / resultsPerPage);
+            var totalPages = (int) Math.Ceiling((decimal) totalResults / resultsPerPage);
 
-            List<T> data = null;
+            List<T> data;
+            if (string.IsNullOrWhiteSpace(orderBy))
+            {
+                data = await collection.Limit(page, resultsPerPage).ToListAsync();
+                return PagedResult<T>.Create(data, page, resultsPerPage, totalPages, totalResults);
+            }
 
-            if (sortOrder.ToLower() == "asc")
+            if (sortOrder?.ToLowerInvariant() == "asc")
+            {
                 data = await collection.OrderBy(ToLambda<T>(orderBy)).Limit(page, resultsPerPage).ToListAsync();
+            }
             else
+            {
                 data = await collection.OrderByDescending(ToLambda<T>(orderBy)).Limit(page, resultsPerPage).ToListAsync();
+            }
 
             return PagedResult<T>.Create(data, page, resultsPerPage, totalPages, totalResults);
         }

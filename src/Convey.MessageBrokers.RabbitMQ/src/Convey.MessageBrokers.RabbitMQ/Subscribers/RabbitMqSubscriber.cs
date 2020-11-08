@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
@@ -92,6 +93,39 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             }
 
             channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
+            channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
+                if (!_options.DeadLetter.Enabled)
+                {
+                    channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
+                }
+                else
+                {
+                    if (_loggerEnabled)
+                    {
+                        _logger.LogInformation($"Declaring a dead letter.");
+                    }
+
+                    channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete,
+                        arguments: new Dictionary<string, object>()
+                         {
+                            { "x-dead-letter-exchange", $"{conventions.Queue}{_options.DeadLetter.Prefix}" }
+                         });
+
+                    channel.QueueDeclare(
+                        queue: $"{conventions.Queue}{_options.DeadLetter.Prefix}",
+                        durable: _options.DeadLetter.Durable,
+                        exclusive: _options.DeadLetter.Exclusive,
+                        autoDelete: _options.DeadLetter.AutoDelete
+                    );
+                }
+
+            channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
+
+            if (_options.DeadLetter.Enabled)
+            {
+                channel.QueueBind(queue: $"{conventions.Queue}{_options.DeadLetter.Prefix}", exchange: $"{_options.Exchange.Name}{_options.DeadLetter.Prefix}", routingKey: string.Empty);
+            }
+
             channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
@@ -202,8 +236,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         {
                             throw new Exception(errorMessage, ex);
                         }
-                        
-                        channel.BasicReject(args.DeliveryTag, false);
+
+                        channel.BasicNack(args.DeliveryTag, false, false);
                         return;
                     }
 

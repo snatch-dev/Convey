@@ -30,8 +30,8 @@ namespace Convey.MessageBrokers.RabbitMQ
         public LoggerOptions Logger { get; set; }
         public SslOptions Ssl { get; set; }
         public QueueOptions Queue { get; set; }
+        public DeadLetterOptions DeadLetter { get; set; }
         public QosOptions Qos { get; set; }
-        public DlxOptions Dlx { get; set; }
         public string SpanContextHeader { get; set; }
         public int MaxProducerChannels { get; set; }
 
@@ -68,6 +68,16 @@ namespace Convey.MessageBrokers.RabbitMQ
             public bool AutoDelete { get; set; }
         }
 
+        public class DeadLetterOptions
+        {
+            public bool Enabled { get; set; }
+            public string Prefix { get; set; }
+            public bool Declare { get; set; }
+            public bool Durable { get; set; }
+            public bool Exclusive { get; set; }
+            public bool AutoDelete { get; set; }
+        }
+
         public class SslOptions
         {
             public bool Enabled { get; set; }
@@ -82,17 +92,6 @@ namespace Convey.MessageBrokers.RabbitMQ
             public uint PrefetchSize { get; set; }
             public ushort PrefetchCount { get; set; }
             public bool Global { get; set; }
-        }
-
-        public class DlxOptions
-        {
-            public bool Enabled { get; set; }
-            public bool Global { get; set; }
-            public string ExchangeName { get; set; }
-            public string ExchangeType { get; set; }
-            public string QueueName { get; set; }
-            public string RoutingKey { get; set; }
-            public int Ttl { get; set; }
         }
     }
 }

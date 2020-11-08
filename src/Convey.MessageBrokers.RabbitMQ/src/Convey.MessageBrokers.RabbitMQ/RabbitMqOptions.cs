@@ -24,6 +24,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public string ConventionsCasing { get; set; }
         public int Retries { get; set; }
         public int RetryInterval { get; set; }
+        public bool MessagesPersisted { get; set; }
         public ContextOptions Context { get; set; }
         public ExchangeOptions Exchange { get; set; }
         public LoggerOptions Logger { get; set; }

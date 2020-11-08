@@ -19,6 +19,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         private readonly bool _contextEnabled;
         private readonly bool _loggerEnabled;
         private readonly string _spanContextHeader;
+        private readonly bool _persistMessages;
         private int _channelsCount;
         private readonly ConcurrentDictionary<int, IModel> _channels = new ConcurrentDictionary<int, IModel>();
         private int _maxChannels;
@@ -33,6 +34,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             _contextEnabled = options.Context?.Enabled == true;
             _loggerEnabled = options.Logger?.Enabled ?? false;
             _spanContextHeader = options.GetSpanContextHeader();
+            _persistMessages = options?.MessagesPersisted ?? false;
             _maxChannels = options.MaxProducerChannels <= 0 ? 1000 : options.MaxProducerChannels;
         }
 
@@ -65,6 +67,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
             var payload = _serializer.Serialize(message);
             var body = Encoding.UTF8.GetBytes(payload);
             var properties = channel.CreateBasicProperties();
+            properties.Persistent = _persistMessages;
             properties.MessageId = string.IsNullOrWhiteSpace(messageId)
                 ? Guid.NewGuid().ToString("N")
                 : messageId;

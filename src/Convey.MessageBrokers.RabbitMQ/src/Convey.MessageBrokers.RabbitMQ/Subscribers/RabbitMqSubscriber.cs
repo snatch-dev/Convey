@@ -94,39 +94,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
             channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
             channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
-                if (!_options.DeadLetter.Enabled)
-                {
-                    channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
-                }
-                else
-                {
-                    if (_loggerEnabled)
-                    {
-                        _logger.LogInformation($"Declaring a dead letter.");
-                    }
-
-                    channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete,
-                        arguments: new Dictionary<string, object>()
-                         {
-                            { "x-dead-letter-exchange", $"{conventions.Queue}{_options.DeadLetter.Prefix}" }
-                         });
-
-                    channel.QueueDeclare(
-                        queue: $"{conventions.Queue}{_options.DeadLetter.Prefix}",
-                        durable: _options.DeadLetter.Durable,
-                        exclusive: _options.DeadLetter.Exclusive,
-                        autoDelete: _options.DeadLetter.AutoDelete
-                    );
-                }
-
-            channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
-
-            if (_options.DeadLetter.Enabled)
+            if (_options.DeadLetter?.Enabled is true)
             {
-                channel.QueueBind(queue: $"{conventions.Queue}{_options.DeadLetter.Prefix}", exchange: $"{_options.Exchange.Name}{_options.DeadLetter.Prefix}", routingKey: string.Empty);
+                _logger.LogInformation($"Declaring a queue: '{conventions.Queue}' with routing key: ");
+                                       channel.QueueBind($"{conventions.Queue}{_options.DeadLetter.Prefix}", $"{_options.Exchange.Name}{_options.DeadLetter.Prefix}", string.Empty);
             }
-
-            channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (model, args) =>

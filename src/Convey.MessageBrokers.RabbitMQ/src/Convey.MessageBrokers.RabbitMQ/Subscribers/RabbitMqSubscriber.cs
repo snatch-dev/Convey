@@ -96,8 +96,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
             if (_options.DeadLetter?.Enabled is true)
             {
-                _logger.LogInformation($"Declaring a queue: '{conventions.Queue}' with routing key: ");
-                                       channel.QueueBind($"{conventions.Queue}{_options.DeadLetter.Prefix}", $"{_options.Exchange.Name}{_options.DeadLetter.Prefix}", string.Empty);
+                var deadLetterQueue = $"{conventions.Queue}{_options.DeadLetter.Prefix}";
+                var deadLetterExchange = $"{_options.Exchange.Name}{_options.DeadLetter.Prefix}";
+                _logger.LogInformation($"Declaring a dead letter queue: '{deadLetterQueue}' " +
+                                       $"for an exchange: '{deadLetterExchange}'.");
+                channel.QueueBind(deadLetterQueue, deadLetterExchange, string.Empty);
             }
 
             var consumer = new AsyncEventingBasicConsumer(channel);

@@ -30,6 +30,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly RabbitMqOptions _options;
         private readonly RabbitMqOptions.QosOptions _qosOptions;
         private readonly IConnection _connection;
+        private readonly bool _requeueFailedMessages;
 
         public RabbitMqSubscriber(IServiceProvider serviceProvider)
         {
@@ -39,14 +40,15 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             _rabbitMqSerializer = _serviceProvider.GetRequiredService<IRabbitMqSerializer>();
             _conventionsProvider = _serviceProvider.GetRequiredService<IConventionsProvider>();
             _contextProvider = _serviceProvider.GetRequiredService<IContextProvider>();
-            _logger = _serviceProvider.GetService<ILogger<RabbitMqSubscriber>>();
+            _logger = _serviceProvider.GetRequiredService<ILogger<RabbitMqSubscriber>>();
             _exceptionToMessageMapper = _serviceProvider.GetService<IExceptionToMessageMapper>() ?? ExceptionMapper;
-            _pluginsExecutor = _serviceProvider.GetService<IRabbitMqPluginsExecutor>();
-            _options = _serviceProvider.GetService<RabbitMqOptions>();
+            _pluginsExecutor = _serviceProvider.GetRequiredService<IRabbitMqPluginsExecutor>();
+            _options = _serviceProvider.GetRequiredService<RabbitMqOptions>();
             _loggerEnabled = _options.Logger?.Enabled ?? false;
             _retries = _options.Retries >= 0 ? _options.Retries : 3;
             _retryInterval = _options.RetryInterval > 0 ? _options.RetryInterval : 2;
-            _qosOptions = _options?.Qos ?? new RabbitMqOptions.QosOptions();
+            _qosOptions = _options.Qos ?? new RabbitMqOptions.QosOptions();
+            _requeueFailedMessages = _options.RequeueFailedMessages;
             if (_qosOptions.PrefetchCount < 1)
             {
                 _qosOptions.PrefetchCount = 1;
@@ -81,6 +83,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                        $"exchange: '{conventions.Exchange}']";
             }
 
+            var deadLetterEnabled = _options.DeadLetter?.Enabled is true;
+            var deadLetterExchange = deadLetterEnabled?  $"{_options.DeadLetter.Prefix}{_options.Exchange.Name}": string.Empty;
+            var deadLetterQueue = deadLetterEnabled ? $"{_options.DeadLetter.Prefix}{conventions.Queue}" : string.Empty;
             if (declare)
             {
                 if (_loggerEnabled)
@@ -89,18 +94,35 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                            $"'{conventions.RoutingKey}' for an exchange: '{conventions.Exchange}'.");
                 }
 
-                channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete);
+                var queueArguments = deadLetterEnabled
+                    ? new Dictionary<string, object>()
+                    {
+                        {"x-dead-letter-exchange", deadLetterExchange},
+                        {"x-dead-letter-routing-key", deadLetterQueue},
+                    }
+                    : new Dictionary<string, object>();
+                channel.QueueDeclare(conventions.Queue, durable, exclusive, autoDelete, queueArguments);
             }
 
             channel.QueueBind(conventions.Queue, conventions.Exchange, conventions.RoutingKey);
             channel.BasicQos(_qosOptions.PrefetchSize, _qosOptions.PrefetchCount, _qosOptions.Global);
             if (_options.DeadLetter?.Enabled is true)
             {
-                var deadLetterQueue = $"{conventions.Queue}{_options.DeadLetter.Prefix}";
-                var deadLetterExchange = $"{_options.Exchange.Name}{_options.DeadLetter.Prefix}";
-                _logger.LogInformation($"Declaring a dead letter queue: '{deadLetterQueue}' " +
-                                       $"for an exchange: '{deadLetterExchange}'.");
-                channel.QueueBind(deadLetterQueue, deadLetterExchange, string.Empty);
+                if (_options.DeadLetter.Declare)
+                {
+                    var ttl = _options.DeadLetter.Ttl <= 0 ? 86400 : _options.DeadLetter.Ttl;
+                    _logger.LogInformation($"Declaring a dead letter queue: '{deadLetterQueue}' " +
+                                           $"for an exchange: '{deadLetterExchange}', message TTL: {ttl} seconds.");
+                    channel.QueueDeclare(deadLetterQueue, _options.DeadLetter.Durable, _options.DeadLetter.Exclusive,
+                        _options.DeadLetter.AutoDelete, new Dictionary<string, object>
+                        {
+                            {"x-dead-letter-exchange", conventions.Exchange},
+                            {"x-dead-letter-routing-key", conventions.Queue},
+                            {"x-message-ttl", ttl},
+                        });
+                }
+                
+                channel.QueueBind(deadLetterQueue, deadLetterExchange, deadLetterQueue);
             }
 
             var consumer = new AsyncEventingBasicConsumer(channel);
@@ -206,13 +228,15 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         {
                             _logger.LogError(errorMessage);
                         }
-
+                        
                         if (currentRetry - 1 < _retries)
                         {
                             throw new Exception(errorMessage, ex);
                         }
 
-                        channel.BasicNack(args.DeliveryTag, false, false);
+                        _logger.LogError($"Handling a message: '{messageName}' [id: '{messageId}'] " +
+                                         $"with correlation id: '{correlationId}' failed.");
+                        channel.BasicNack(args.DeliveryTag, false, _requeueFailedMessages);
                         return;
                     }
 

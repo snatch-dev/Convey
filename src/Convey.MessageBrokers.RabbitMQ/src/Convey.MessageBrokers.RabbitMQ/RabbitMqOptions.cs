@@ -34,6 +34,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public QosOptions Qos { get; set; }
         public string SpanContextHeader { get; set; }
         public int MaxProducerChannels { get; set; }
+        public bool RequeueFailedMessages { get; set; }
 
         public string GetSpanContextHeader()
             => string.IsNullOrWhiteSpace(SpanContextHeader) ? "span_context" : SpanContextHeader;
@@ -76,6 +77,7 @@ namespace Convey.MessageBrokers.RabbitMQ
             public bool Durable { get; set; }
             public bool Exclusive { get; set; }
             public bool AutoDelete { get; set; }
+            public int Ttl { get; set; }
         }
 
         public class SslOptions

@@ -22,7 +22,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         private readonly bool _persistMessages;
         private int _channelsCount;
         private readonly ConcurrentDictionary<int, IModel> _channels = new ConcurrentDictionary<int, IModel>();
-        private int _maxChannels;
+        private readonly int _maxChannels;
 
         public RabbitMqClient(IConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
             RabbitMqOptions options, ILogger<RabbitMqClient> logger)
@@ -55,13 +55,19 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                     
                     channel = _connection.CreateModel();
                     _channels.TryAdd(threadId, channel);
-                    _logger.LogTrace($"Created a channel for thread: {threadId}, total channels: {_channelsCount}/{_maxChannels}");
                     _channelsCount++;
+                    if (_loggerEnabled)
+                    {
+                        _logger.LogTrace($"Created a channel for thread: {threadId}, total channels: {_channelsCount}/{_maxChannels}");
+                    }
                 }
             }
             else
             {
-                _logger.LogTrace($"Reused a channel for thread: {threadId}, total channels: {_channelsCount}/{_maxChannels}");
+                if (_loggerEnabled)
+                {
+                    _logger.LogTrace($"Reused a channel for thread: {threadId}, total channels: {_channelsCount}/{_maxChannels}");
+                }
             }
             
             var payload = _serializer.Serialize(message);

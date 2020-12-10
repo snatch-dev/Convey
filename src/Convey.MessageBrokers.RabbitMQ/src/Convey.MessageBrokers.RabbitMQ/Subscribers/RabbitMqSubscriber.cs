@@ -68,6 +68,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             var channel = _connection.CreateModel();
             if (!Channels.TryAdd(channelKey, new ChannelInfo(channel, conventions)))
             {
+                channel.Dispose();
                 return this;
             }
             
@@ -84,8 +85,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             }
 
             var deadLetterEnabled = _options.DeadLetter?.Enabled is true;
-            var deadLetterExchange = deadLetterEnabled?  $"{_options.DeadLetter.Prefix}{_options.Exchange.Name}": string.Empty;
-            var deadLetterQueue = deadLetterEnabled ? $"{_options.DeadLetter.Prefix}{conventions.Queue}" : string.Empty;
+            var deadLetterExchange = deadLetterEnabled?  $"{_options.DeadLetter.Prefix}{_options.Exchange.Name}{_options.DeadLetter.Suffix}": string.Empty;
+            var deadLetterQueue = deadLetterEnabled ? $"{_options.DeadLetter.Prefix}{conventions.Queue}{_options.DeadLetter.Suffix}" : string.Empty;
             if (declare)
             {
                 if (_loggerEnabled)

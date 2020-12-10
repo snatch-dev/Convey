@@ -22,19 +22,30 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
 
         public string GetRoutingKey(Type type)
         {
+            var routingKey = type.Name;
+            if (_options.Conventions?.MessageAttribute?.IgnoreRoutingKey is true)
+            {
+                return WithCasing(routingKey);;
+            }
+            
             var attribute = GeAttribute(type);
-            var routingKey = string.IsNullOrWhiteSpace(attribute?.RoutingKey) ? type.Name : attribute.RoutingKey;
+            routingKey = string.IsNullOrWhiteSpace(attribute?.RoutingKey) ? routingKey : attribute.RoutingKey;
 
             return WithCasing(routingKey);
         }
 
         public string GetExchange(Type type)
         {
+            var exchange = string.IsNullOrWhiteSpace(_options.Exchange?.Name)
+                ? type.Assembly.GetName().Name
+                : _options.Exchange.Name;
+            if (_options.Conventions?.MessageAttribute?.IgnoreExchange is true)
+            {
+                return WithCasing(exchange);;
+            }
+
             var attribute = GeAttribute(type);
-            var exchange = string.IsNullOrWhiteSpace(attribute?.Exchange)
-                ? string.IsNullOrWhiteSpace(_options.Exchange?.Name) ? type.Assembly.GetName().Name :
-                _options.Exchange.Name
-                : attribute.Exchange;
+            exchange = string.IsNullOrWhiteSpace(attribute?.Exchange) ? exchange : attribute.Exchange;
 
             return WithCasing(exchange);
         }
@@ -42,17 +53,20 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
         public string GetQueue(Type type)
         {
             var attribute = GeAttribute(type);
-            if (!string.IsNullOrWhiteSpace(attribute?.Queue))
+            var ignoreQueue = _options.Conventions?.MessageAttribute?.IgnoreQueue;
+            if ((ignoreQueue is null || ignoreQueue == false) && !string.IsNullOrWhiteSpace(attribute?.Queue))
             {
                 return WithCasing(attribute.Queue);
             }
 
+            var ignoreExchange = _options.Conventions?.MessageAttribute?.IgnoreExchange;
             var assembly = type.Assembly.GetName().Name;
             var message = type.Name;
-            var exchange = string.IsNullOrWhiteSpace(attribute?.Exchange)
+            var exchange = ignoreExchange is true
                 ? _options.Exchange?.Name
-                : attribute.Exchange;
-
+                : string.IsNullOrWhiteSpace(attribute?.Exchange)
+                    ? _options.Exchange?.Name
+                    : attribute.Exchange;
             var queue = _queueTemplate.Replace("{{assembly}}", assembly)
                 .Replace("{{exchange}}", exchange)
                 .Replace("{{message}}", message);

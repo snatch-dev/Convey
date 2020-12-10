@@ -32,6 +32,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public QueueOptions Queue { get; set; }
         public DeadLetterOptions DeadLetter { get; set; }
         public QosOptions Qos { get; set; }
+        public ConventionsOptions Conventions { get; set; }
         public string SpanContextHeader { get; set; }
         public int MaxProducerChannels { get; set; }
         public bool RequeueFailedMessages { get; set; }
@@ -73,6 +74,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         {
             public bool Enabled { get; set; }
             public string Prefix { get; set; }
+            public string Suffix { get; set; }
             public bool Declare { get; set; }
             public bool Durable { get; set; }
             public bool Exclusive { get; set; }
@@ -94,6 +96,18 @@ namespace Convey.MessageBrokers.RabbitMQ
             public uint PrefetchSize { get; set; }
             public ushort PrefetchCount { get; set; }
             public bool Global { get; set; }
+        }
+
+        public class ConventionsOptions
+        {
+            public MessageAttributeOptions MessageAttribute { get; set; }
+            
+            public class MessageAttributeOptions
+            {
+                public bool IgnoreExchange { get; set; }
+                public bool IgnoreRoutingKey { get; set; }
+                public bool IgnoreQueue { get; set; }
+            }
         }
     }
 }

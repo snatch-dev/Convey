@@ -42,9 +42,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Initializers
                 channel.ExchangeDeclare(_options.Exchange.Name, _options.Exchange.Type, _options.Exchange.Durable,
                     _options.Exchange.AutoDelete);
 
-                if (_options.DeadLetter?.Declare is true)
+                if (_options.DeadLetter?.Enabled is true && _options.DeadLetter?.Declare is true)
                 {
-                    channel.ExchangeDeclare($"{_options.DeadLetter.Prefix}{_options.Exchange.Name}",
+                    channel.ExchangeDeclare($"{_options.DeadLetter.Prefix}{_options.Exchange.Name}{_options.DeadLetter.Suffix}",
                         ExchangeType.Direct, _options.Exchange.Durable, _options.Exchange.AutoDelete);
                 }
             }

@@ -111,18 +111,26 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             {
                 if (_options.DeadLetter.Declare)
                 {
-                    var ttl = _options.DeadLetter.Ttl <= 0 ? 86400 : _options.DeadLetter.Ttl;
+                    var ttl = _options.DeadLetter.Ttl.HasValue
+                        ? _options.DeadLetter.Ttl <= 0 ? 86400000 : _options.DeadLetter.Ttl
+                        : null;
+                    var deadLetterArgs = new Dictionary<string, object>
+                    {
+                        {"x-dead-letter-exchange", conventions.Exchange},
+                        {"x-dead-letter-routing-key", conventions.Queue},
+                    };
+                    if (ttl.HasValue)
+                    {
+                        deadLetterArgs["x-message-ttl"] = ttl.Value;
+                    }
+
                     _logger.LogInformation($"Declaring a dead letter queue: '{deadLetterQueue}' " +
-                                           $"for an exchange: '{deadLetterExchange}', message TTL: {ttl} seconds.");
+                                           $"for an exchange: '{deadLetterExchange}'{(ttl.HasValue ? $", message TTL: {ttl} ms." : ".")}");
+
                     channel.QueueDeclare(deadLetterQueue, _options.DeadLetter.Durable, _options.DeadLetter.Exclusive,
-                        _options.DeadLetter.AutoDelete, new Dictionary<string, object>
-                        {
-                            {"x-dead-letter-exchange", conventions.Exchange},
-                            {"x-dead-letter-routing-key", conventions.Queue},
-                            {"x-message-ttl", ttl},
-                        });
+                        _options.DeadLetter.AutoDelete, deadLetterArgs);
                 }
-                
+
                 channel.QueueBind(deadLetterQueue, deadLetterExchange, deadLetterQueue);
             }
 

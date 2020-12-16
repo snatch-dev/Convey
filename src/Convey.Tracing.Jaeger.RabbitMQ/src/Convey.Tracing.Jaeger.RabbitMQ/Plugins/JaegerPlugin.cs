@@ -26,7 +26,8 @@ namespace Convey.Tracing.Jaeger.RabbitMQ.Plugins
             var messageName = message.GetType().Name.Underscore();
             var messageId = args.BasicProperties.MessageId;
             var spanContext = string.Empty;
-            if (args.BasicProperties.Headers.TryGetValue(_spanContextHeader, out var spanContextHeader) &&
+            if (args.BasicProperties.Headers is { } &&
+                args.BasicProperties.Headers.TryGetValue(_spanContextHeader, out var spanContextHeader) &&
                 spanContextHeader is byte[] spanContextBytes)
             {
                 spanContext = Encoding.UTF8.GetString(spanContextBytes);

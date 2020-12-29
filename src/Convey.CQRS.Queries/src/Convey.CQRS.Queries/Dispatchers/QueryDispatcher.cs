@@ -16,8 +16,10 @@ namespace Convey.CQRS.Queries.Dispatchers
         {
             using var scope = _serviceFactory.CreateScope();
             var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
-            dynamic handler = scope.ServiceProvider.GetRequiredService(handlerType);
-            return await handler.HandleAsync((dynamic) query);
+            var handler = scope.ServiceProvider.GetRequiredService(handlerType);
+            return await (Task<TResult>) handlerType
+                .GetMethod(nameof(IQueryHandler<IQuery<TResult>, TResult>.HandleAsync))?
+                .Invoke(handler, new object?[] {query});
         }
 
         public async Task<TResult> QueryAsync<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>

@@ -10,35 +10,27 @@ namespace Convey.Persistence.Redis
 {
     public static class DistributedCacheExtensions
     {
-        public static void Set<T>(this IDistributedCache cache, string key, T value)
+        public static void Set<T>(this IDistributedCache cache, string key, T value, DistributedCacheEntryOptions options = null)
         {
             var serializedValue = JsonSerializer.Serialize(value);
             var valueBytes = Encoding.UTF8.GetBytes(serializedValue);
 
-            cache.Set(key, valueBytes);
+            if (options == null)
+                cache.Set(key, valueBytes);
+            else
+                cache.Set(key, valueBytes, options);
         }
-        public static void Set<T>(this IDistributedCache cache, string key, T value, DistributedCacheEntryOptions options)
+        public static Task SetAsync<T>(this IDistributedCache cache, string key, T value, DistributedCacheEntryOptions options = null, CancellationToken token = default)
         {
             var serializedValue = JsonSerializer.Serialize(value);
             var valueBytes = Encoding.UTF8.GetBytes(serializedValue);
 
-            cache.Set(key, valueBytes, options);
+            if (options == null)
+                return cache.SetAsync(key, valueBytes, token);
+            else
+                return cache.SetAsync(key, valueBytes, options, token);
         }
 
-        public static Task SetAsync<T>(this IDistributedCache cache, string key, T value, CancellationToken token = default)
-        {
-            var serializedValue = JsonSerializer.Serialize(value);
-            var valueBytes = Encoding.UTF8.GetBytes(serializedValue);
-
-            return cache.SetAsync(key, valueBytes, token);
-        }
-        public static Task SetAsync<T>(this IDistributedCache cache, string key, T value, DistributedCacheEntryOptions options, CancellationToken token = default)
-        {
-            var serializedValue = JsonSerializer.Serialize(value);
-            var valueBytes = Encoding.UTF8.GetBytes(serializedValue);
-
-            return cache.SetAsync(key, valueBytes, options, token);
-        }
 
         public static T Get<T>(this IDistributedCache cache, string key)
         {

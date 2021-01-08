@@ -6,6 +6,7 @@ using Convey.Auth.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -36,6 +37,7 @@ namespace Convey.Auth
                 return builder;
             }
 
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton<IJwtHandler, JwtHandler>();
             builder.Services.AddSingleton<IAccessTokenService, InMemoryAccessTokenService>();
             builder.Services.AddTransient<AccessTokenValidatorMiddleware>();

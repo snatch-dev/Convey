@@ -5,18 +5,22 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Convey.Persistence.OpenStack.OCS.Http;
 using Convey.Persistence.OpenStack.OCS.OcsTypes;
 using Convey.Persistence.OpenStack.OCS.OcsTypes.Definition;
 using Convey.Persistence.OpenStack.OCS.OpenStack.Responses;
 using Convey.Persistence.OpenStack.OCS.RequestHandler;
-using Newtonsoft.Json;
 
 namespace Convey.Persistence.OpenStack.OCS.Client
 {
     internal class OcsClient : IOcsClient
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
         private readonly IRequestHandler _requestHandler;
         private readonly OcsOptions _ocsOptions;
        
@@ -81,7 +85,7 @@ namespace Convey.Persistence.OpenStack.OCS.Client
                 return new OperationResult<List<OcsObjectMetadata>>(validationResult);
             }
 
-            var openStackResponse = JsonConvert.DeserializeObject<List<ObjectMetadata>>(await result.Content.ReadAsStringAsync());
+            var openStackResponse = JsonSerializer.Deserialize<List<ObjectMetadata>>(await result.Content.ReadAsStringAsync(), SerializerOptions);
             return new OperationResult<List<OcsObjectMetadata>>(validationResult, ObjectMapper.Map(openStackResponse).ToList());
         }
 

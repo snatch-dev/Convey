@@ -4,18 +4,18 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Polly;
 
 namespace Convey.HTTP
 {
     public class ConveyHttpClient : IHttpClient
     {
-        private static readonly JsonSerializer JsonSerializer = new JsonSerializer
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true
         };
 
         private readonly HttpClient _client;
@@ -131,7 +131,7 @@ namespace Convey.HTTP
 
                     var stream = await response.Content.ReadAsStreamAsync();
 
-                    return DeserializeJsonFromStream<T>(stream);
+                    return await DeserializeJsonFromStream<T>(stream);
                 });
 
         public Task<HttpResult<T>> SendResultAsync<T>(HttpRequestMessage request)
@@ -146,7 +146,7 @@ namespace Convey.HTTP
                     }
 
                     var stream = await response.Content.ReadAsStreamAsync();
-                    var result = DeserializeJsonFromStream<T>(stream);
+                    var result = await DeserializeJsonFromStream<T>(stream);
 
                     return new HttpResult<T>(result, response);
                 });
@@ -181,7 +181,7 @@ namespace Convey.HTTP
 
             var stream = await response.Content.ReadAsStreamAsync();
 
-            return DeserializeJsonFromStream<T>(stream);
+            return await DeserializeJsonFromStream<T>(stream);
         }
         
         protected virtual async Task<HttpResult<T>> SendResultAsync<T>(string uri, Method method, HttpContent content = null)
@@ -193,7 +193,7 @@ namespace Convey.HTTP
             }
 
             var stream = await response.Content.ReadAsStreamAsync();
-            var result = DeserializeJsonFromStream<T>(stream);
+            var result = await DeserializeJsonFromStream<T>(stream);
             
             return new HttpResult<T>(result, response);
         }
@@ -208,24 +208,17 @@ namespace Convey.HTTP
                     return GetResponseAsync(requestUri, method, content);
                 });
 
-        protected virtual Task<HttpResponseMessage> GetResponseAsync(string uri, Method method, HttpContent content = null)
-        {
-            switch (method)
+        protected virtual Task<HttpResponseMessage> GetResponseAsync(string uri, Method method,
+            HttpContent content = null)
+            => method switch
             {
-                case Method.Get:
-                    return _client.GetAsync(uri);
-                case Method.Post:
-                    return _client.PostAsync(uri, content);
-                case Method.Put:
-                    return _client.PutAsync(uri, content);
-                case Method.Patch:
-                    return _client.PatchAsync(uri, content);
-                case Method.Delete:
-                    return _client.DeleteAsync(uri);
-                default:
-                    throw new InvalidOperationException($"Unsupported HTTP method: {method}");
-            }
-        }
+                Method.Get => _client.GetAsync(uri),
+                Method.Post => _client.PostAsync(uri, content),
+                Method.Put => _client.PutAsync(uri, content),
+                Method.Patch => _client.PatchAsync(uri, content),
+                Method.Delete => _client.DeleteAsync(uri),
+                _ => throw new InvalidOperationException($"Unsupported HTTP method: {method}")
+            };
 
         protected StringContent GetJsonPayload(object data)
         {
@@ -234,8 +227,8 @@ namespace Convey.HTTP
                 return null;
             }
 
-            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
-            if (_options.RemoveCharsetFromContentType)
+            var content = new StringContent(JsonSerializer.Serialize(data, SerializerOptions), Encoding.UTF8, "application/json");
+            if (_options.RemoveCharsetFromContentType && content.Headers.ContentType is not null)
             {
                 content.Headers.ContentType.CharSet = null;
             }
@@ -243,17 +236,14 @@ namespace Convey.HTTP
             return content;
         }
 
-        protected static T DeserializeJsonFromStream<T>(Stream stream)
+        protected static async Task<T> DeserializeJsonFromStream<T>(Stream stream)
         {
             if (stream is null || stream.CanRead is false)
             {
                 return default;
             }
 
-            using var streamReader = new StreamReader(stream);
-            using var jsonTextReader = new JsonTextReader(streamReader);
-            
-            return JsonSerializer.Deserialize<T>(jsonTextReader);
+            return await JsonSerializer.DeserializeAsync<T>(stream);
         }
 
         protected enum Method

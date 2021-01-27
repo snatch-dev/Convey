@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.WebApi</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.WebApi</AssemblyName>
     <Title>Convey.WebApi</Title>

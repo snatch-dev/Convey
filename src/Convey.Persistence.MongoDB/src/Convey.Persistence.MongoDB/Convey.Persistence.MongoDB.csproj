@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Persistence.MongoDB</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Persistence.MongoDB</AssemblyName>
     <Title>Convey.Persistence.MongoDB</Title>
@@ -17,6 +17,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.11.2" />
+    <PackageReference Include="MongoDB.Driver" Version="2.11.6" />
   </ItemGroup>
 </Project>

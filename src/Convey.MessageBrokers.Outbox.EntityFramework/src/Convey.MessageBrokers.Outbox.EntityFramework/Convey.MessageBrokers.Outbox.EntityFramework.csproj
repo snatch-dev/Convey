@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.MessageBrokers.Outbox.EntityFramework</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <Title>Convey.MessageBrokers.Outbox.EntityFrameworkF</Title>
     <PackageId>Convey.MessageBrokers.Outbox.EntityFramework</PackageId>
@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
   </ItemGroup>
 
 </Project>

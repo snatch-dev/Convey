@@ -1,9 +1,8 @@
 using System;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace Convey.Security.Internals
 {
@@ -20,11 +19,9 @@ namespace Convey.Security.Internals
             {
                 throw new ArgumentNullException(nameof(certificate), "Certificate cannot be null.");
             }
-            
-            var binaryFormatter = new BinaryFormatter();
-            using var memoryStream = new MemoryStream();
-            binaryFormatter.Serialize(memoryStream, data);
-            var signature = Sign(memoryStream.ToArray(), certificate);
+
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(data);
+            var signature = Sign(bytes, certificate);
 
             return BitConverter.ToString(signature).Replace("-", string.Empty);
         }
@@ -35,22 +32,20 @@ namespace Convey.Security.Internals
             {
                 throw new ArgumentNullException(nameof(data), "Data to be verified cannot be null.");
             }
-            
+
             if (certificate is null)
             {
                 throw new ArgumentNullException(nameof(certificate), "Certificate cannot be null.");
             }
-            
+
             if (string.IsNullOrWhiteSpace(signature))
             {
                 throw new ArgumentException("Signature cannot be empty.", nameof(signature));
             }
-            
-            var binaryFormatter = new BinaryFormatter();
-            using var memoryStream = new MemoryStream();
-            binaryFormatter.Serialize(memoryStream, data);
 
-            return Verify(memoryStream.ToArray(), certificate, ToByteArray(signature), throwException);
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(data);
+
+            return Verify(bytes, certificate, ToByteArray(signature), throwException);
         }
 
         public byte[] Sign(byte[] data, X509Certificate2 certificate)
@@ -59,14 +54,18 @@ namespace Convey.Security.Internals
             {
                 throw new ArgumentNullException(nameof(data), "Data to be signed cannot be null.");
             }
-            
+
             if (certificate is null)
             {
                 throw new ArgumentNullException(nameof(certificate), "Certificate cannot be null.");
             }
-            
+
             using var rsa = certificate.GetRSAPrivateKey();
-            
+            if (rsa is null)
+            {
+                throw new InvalidOperationException("RSA private key couldn't be loaded.");
+            }
+
             return rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         }
 
@@ -90,6 +89,10 @@ namespace Convey.Security.Internals
             try
             {
                 using var rsa = certificate.GetRSAPublicKey();
+                if (rsa is null)
+                {
+                    throw new InvalidOperationException("RSA public key couldn't be loaded.");
+                }
                 
                 return rsa.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             }

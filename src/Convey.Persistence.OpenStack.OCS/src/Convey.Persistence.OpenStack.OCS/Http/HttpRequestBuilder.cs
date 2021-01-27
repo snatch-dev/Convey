@@ -4,13 +4,16 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
 
 namespace Convey.Persistence.OpenStack.OCS.Http
 {
     internal class HttpRequestBuilder : IHttpRequestBuilder
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
         private readonly HttpRequestMessage _httpRequestMessage;
 
         public HttpRequestBuilder()
@@ -49,11 +52,12 @@ namespace Convey.Persistence.OpenStack.OCS.Http
 
         public IHttpRequestBuilder WithJsonContent(object contentObject, bool camelCasePropertyNames = true)
         {
-            var settings = new JsonSerializerSettings
+            var serializerOptions = new JsonSerializerOptions();
+            if (camelCasePropertyNames)
             {
-                ContractResolver = camelCasePropertyNames ? new CamelCasePropertyNamesContractResolver() : new DefaultContractResolver()
-            };
-            var content = JsonConvert.SerializeObject(contentObject, Formatting.None, settings);
+                serializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            }
+            var content = JsonSerializer.Serialize(contentObject, serializerOptions);
 
             _httpRequestMessage.Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json);
             return this;

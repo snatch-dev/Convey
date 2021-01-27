@@ -1,4 +1,5 @@
-using Newtonsoft.Json;
+
+using System.Text.Json.Serialization;
 
 namespace Convey.CQRS.Events
 {

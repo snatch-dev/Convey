@@ -5,5 +5,6 @@ namespace Convey.Logging.Options
         public bool Enabled { get; set; }
         public string Path { get; set; }
         public string Interval { get; set; }
+        public string OutputTemplate { get; set; }
     }
 }

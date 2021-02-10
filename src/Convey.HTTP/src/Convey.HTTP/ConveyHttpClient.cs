@@ -243,7 +243,7 @@ namespace Convey.HTTP
                 return default;
             }
 
-            return await JsonSerializer.DeserializeAsync<T>(stream);
+            return await JsonSerializer.DeserializeAsync<T>(stream, SerializerOptions);
         }
 
         protected enum Method

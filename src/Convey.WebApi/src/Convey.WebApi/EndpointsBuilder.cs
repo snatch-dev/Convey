@@ -207,7 +207,7 @@ namespace Convey.WebApi
 
         private void AddEndpointDefinition(string method, string path, Type input, Type output)
         {
-            if (_definitions.Exists(d => d.Path == path))
+            if (_definitions.Exists(d => d.Path == path && d.Method == method))
             {
                 return;
             }
@@ -222,7 +222,7 @@ namespace Convey.WebApi
                     {
                         In = method == HttpMethods.Get ? "query" : "body",
                         Name = input?.Name,
-                        Type = input?.Name,
+                        Type = input,
                         Example = input is null
                             ? null
                             : FormatterServices.GetUninitializedObject(input).SetDefaultInstanceProperties()
@@ -233,7 +233,7 @@ namespace Convey.WebApi
                     new WebApiEndpointResponse
                     {
                         StatusCode = method == HttpMethods.Get ? 200 : 202,
-                        Type = output?.Name,
+                        Type = output,
                         Example = output is null
                             ? null
                             : FormatterServices.GetUninitializedObject(output).SetDefaultInstanceProperties()

@@ -49,15 +49,22 @@ namespace Convey.WebApi.Swagger.Filters
                 {
                     if (parameter.In is InBody)
                     {
-                        operation.Parameters.Add(new OpenApiParameter
+                        operation.RequestBody = new OpenApiRequestBody()
                         {
-                            Name = parameter.Name,
-                            Schema = new OpenApiSchema
+                            Content = new Dictionary<string, OpenApiMediaType>()
                             {
-                                Type = parameter.Type,
-                                Example = new OpenApiString(JsonConvert.SerializeObject(parameter.Example))
+                                {
+                                    "application/json", new OpenApiMediaType()
+                                    {
+                                        Schema = new OpenApiSchema
+                                        {
+                                            Type = parameter.Type,
+                                            Example = new OpenApiString(JsonConvert.SerializeObject(parameter.Example, Formatting.Indented))
+                                        }
+                                    }
+                                }
                             }
-                        });
+                        };
                     }
                     else if (parameter.In is InQuery)
                     {

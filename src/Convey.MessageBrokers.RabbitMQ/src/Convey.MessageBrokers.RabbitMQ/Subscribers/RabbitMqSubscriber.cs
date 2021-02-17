@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +15,15 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 {
     internal sealed class RabbitMqSubscriber : IBusSubscriber
     {
-        private static readonly ConcurrentDictionary<string, ChannelInfo> Channels = new ConcurrentDictionary<string, ChannelInfo>();
-        private static readonly EmptyExceptionToMessageMapper ExceptionMapper = new EmptyExceptionToMessageMapper();
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+        
+        private static readonly ConcurrentDictionary<string, ChannelInfo> Channels = new();
+        private static readonly EmptyExceptionToMessageMapper ExceptionMapper = new();
         private readonly IServiceProvider _serviceProvider;
         private readonly IBusPublisher _publisher;
         private readonly IRabbitMqSerializer _rabbitMqSerializer;
@@ -52,6 +60,14 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             if (_qosOptions.PrefetchCount < 1)
             {
                 _qosOptions.PrefetchCount = 1;
+            }
+
+            if (_options.LogConnectionStatus && _loggerEnabled)
+            {
+                _connection.CallbackException += ConnectionOnCallbackException;
+                _connection.ConnectionShutdown += ConnectionOnConnectionShutdown;
+                _connection.ConnectionBlocked += ConnectionOnConnectionBlocked;
+                _connection.ConnectionUnblocked += ConnectionOnConnectionUnblocked;
             }
         }
 
@@ -173,7 +189,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private object BuildCorrelationContext(BasicDeliverEventArgs args)
         {
             using var scope = _serviceProvider.CreateScope();
-            var messagePropertiesAccessor = scope.ServiceProvider.GetService<IMessagePropertiesAccessor>();
+            var messagePropertiesAccessor = scope.ServiceProvider.GetRequiredService<IMessagePropertiesAccessor>();
             messagePropertiesAccessor.MessageProperties = new MessageProperties
             {
                 MessageId = args.BasicProperties.MessageId,
@@ -181,7 +197,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 Timestamp = args.BasicProperties.Timestamp.UnixTime,
                 Headers = args.BasicProperties.Headers
             };
-            var correlationContextAccessor = scope.ServiceProvider.GetService<ICorrelationContextAccessor>();
+            var correlationContextAccessor = scope.ServiceProvider.GetRequiredService<ICorrelationContextAccessor>();
             var correlationContext = _contextProvider.Get(args.BasicProperties.Headers);
             correlationContextAccessor.CorrelationContext = correlationContext;
 
@@ -280,7 +296,45 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 Channels.TryRemove(key, out _);
             }
             
+            if (_options.LogConnectionStatus && _loggerEnabled)
+            {
+                _connection.CallbackException -= ConnectionOnCallbackException;
+                _connection.ConnectionShutdown -= ConnectionOnConnectionShutdown;
+                _connection.ConnectionBlocked -= ConnectionOnConnectionBlocked;
+                _connection.ConnectionUnblocked -= ConnectionOnConnectionUnblocked;
+            }
+            
             _connection?.Dispose();
+        }
+        
+        private void ConnectionOnCallbackException(object sender, CallbackExceptionEventArgs eventArgs)
+        {
+            _logger.LogError("RabbitMQ callback exception occured.");
+            if (eventArgs.Exception is not null)
+            {
+                _logger.LogError(eventArgs.Exception, eventArgs.Exception.Message);
+            }
+
+            if (eventArgs.Detail is not null)
+            {
+                _logger.LogError(JsonSerializer.Serialize(eventArgs.Detail, SerializerOptions));
+            }
+        }
+
+        private void ConnectionOnConnectionShutdown(object sender, ShutdownEventArgs eventArgs)
+        {
+            _logger.LogError($"RabbitMQ connection shutdown occured. Initiator: '{eventArgs.Initiator}', " +
+                             $"reply code: '{eventArgs.ReplyCode}', text: '{eventArgs.ReplyText}'.");
+        }
+        
+        private void ConnectionOnConnectionBlocked(object sender, ConnectionBlockedEventArgs eventArgs)
+        {
+            _logger.LogError($"RabbitMQ connection has been blocked. {eventArgs.Reason}");
+        }
+        
+        private void ConnectionOnConnectionUnblocked(object sender, EventArgs eventArgs)
+        {
+            _logger.LogInformation($"RabbitMQ connection has been unblocked.");
         }
 
         private class ChannelInfo : IDisposable

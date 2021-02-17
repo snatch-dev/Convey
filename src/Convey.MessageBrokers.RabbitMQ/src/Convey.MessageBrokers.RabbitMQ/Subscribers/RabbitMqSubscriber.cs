@@ -62,7 +62,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 _qosOptions.PrefetchCount = 1;
             }
 
-            if (_options.LogConnectionStatus && _loggerEnabled)
+            if (_loggerEnabled && _options.Logger?.LogConnectionStatus is true)
             {
                 _connection.CallbackException += ConnectionOnCallbackException;
                 _connection.ConnectionShutdown += ConnectionOnConnectionShutdown;
@@ -296,7 +296,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 Channels.TryRemove(key, out _);
             }
             
-            if (_options.LogConnectionStatus && _loggerEnabled)
+            if (_loggerEnabled && _options.Logger?.LogConnectionStatus is true)
             {
                 _connection.CallbackException -= ConnectionOnCallbackException;
                 _connection.ConnectionShutdown -= ConnectionOnConnectionShutdown;

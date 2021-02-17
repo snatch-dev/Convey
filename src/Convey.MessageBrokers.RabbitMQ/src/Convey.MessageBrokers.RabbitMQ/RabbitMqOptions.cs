@@ -36,7 +36,6 @@ namespace Convey.MessageBrokers.RabbitMQ
         public string SpanContextHeader { get; set; }
         public int MaxProducerChannels { get; set; }
         public bool RequeueFailedMessages { get; set; }
-        public bool LogConnectionStatus { get; set; }
 
         public string GetSpanContextHeader()
             => string.IsNullOrWhiteSpace(SpanContextHeader) ? "span_context" : SpanContextHeader;
@@ -45,6 +44,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         {
             public bool Enabled { get; set; }
             public string Level { get; set; }
+            public bool LogConnectionStatus { get; set; }
         }
 
         public class ContextOptions

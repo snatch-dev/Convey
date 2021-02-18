@@ -12,13 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Open.Serialization.Json.Newtonsoft" Version="2.3.1" />
     <PackageReference Include="Open.Serialization.Json.System" Version="2.3.1" />
     <PackageReference Include="Open.Serialization.Json.Utf8Json" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\ConveyForked\src\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>
 
 </Project>

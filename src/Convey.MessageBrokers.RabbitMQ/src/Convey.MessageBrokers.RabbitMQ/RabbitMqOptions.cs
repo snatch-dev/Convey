@@ -18,6 +18,7 @@ namespace Convey.MessageBrokers.RabbitMQ
         public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
         public TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
+        public TimeSpan? MessageProcessingTimeout { get; set; }
         public ushort RequestedChannelMax { get; set; }
         public uint RequestedFrameMax { get; set; }
         public bool UseBackgroundThreadsForIO { get; set; }

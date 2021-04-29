@@ -228,7 +228,20 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         _logger.LogInformation(preLogMessage);
                     }
 
-                    await handle(_serviceProvider, message, messageContext);
+                    if (_options.MessageProcessingTimeout.HasValue)
+                    {
+                        var task =  handle(_serviceProvider, message, messageContext);
+                        var result = await Task.WhenAny(task, Task.Delay(_options.MessageProcessingTimeout.Value));
+                        if (result != task)
+                        {
+                            throw new RabbitMqMessageProcessingTimeoutException(messageId, correlationId);
+                        }
+                    }
+                    else
+                    {
+                        await handle(_serviceProvider, message, messageContext);
+                    }
+                    
                     channel.BasicAck(args.DeliveryTag, false);
 
                     if (_loggerEnabled)
@@ -240,8 +253,14 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 }
                 catch (Exception ex)
                 {
-                    currentRetry++;
                     _logger.LogError(ex, ex.Message);
+                    if (ex is RabbitMqMessageProcessingTimeoutException)
+                    {
+                        channel.BasicNack(args.DeliveryTag, false, _requeueFailedMessages);
+                        return;
+                    }
+                    
+                    currentRetry++;
                     var rejectedEvent = _exceptionToMessageMapper.Map(ex, message);
                     if (rejectedEvent is null)
                     {

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Convey.WebApi.Swagger.Filters
@@ -55,7 +55,7 @@ namespace Convey.WebApi.Swagger.Filters
                             Schema = new OpenApiSchema
                             {
                                 Type = parameter.Type,
-                                Example = new OpenApiString(JsonConvert.SerializeObject(parameter.Example))
+                                Example = new OpenApiString(JsonSerializer.Serialize(parameter.Example))
                             }
                         });
                     }
@@ -67,7 +67,7 @@ namespace Convey.WebApi.Swagger.Filters
                             Schema = new OpenApiSchema
                             {
                                 Type = parameter.Type,
-                                Example = new OpenApiString(JsonConvert.SerializeObject(parameter.Example))
+                                Example = new OpenApiString(JsonSerializer.Serialize(parameter.Example))
                             }
                         });
                     }
@@ -84,7 +84,7 @@ namespace Convey.WebApi.Swagger.Filters
                                     Schema = new OpenApiSchema
                                     {
                                         Type = response.Type,
-                                        Example = new OpenApiString(JsonConvert.SerializeObject(response.Example))
+                                        Example = new OpenApiString(JsonSerializer.Serialize(response.Example))
                                     }
                                 }
                             }

@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.CQRS.Events;
 using Convey.WebApi.Helpers;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 
 namespace Convey.WebApi.CQRS.Middlewares
 {
@@ -22,15 +21,26 @@ namespace Convey.WebApi.CQRS.Middlewares
         private readonly string _endpoint;
         private readonly bool _attributeRequired;
 
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static JsonSerializerOptions _serializerOptions;
+        private static JsonSerializerOptions SerializerOptions
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            Converters = new List<JsonConverter>
+            get
             {
-                new StringEnumConverter(new CamelCaseNamingStrategy())
-            },
-            Formatting = Formatting.Indented
-        };
+                if (_serializerOptions == null)
+                {
+                    _serializerOptions =
+                        new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            WriteIndented = true
+                        };
+
+                    _serializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: JsonNamingPolicy.CamelCase));
+                }
+
+                return _serializerOptions;
+            }
+        }
 
         private static readonly ContractTypes Contracts = new ContractTypes();
         private static int _initialized;
@@ -102,7 +112,7 @@ namespace Convey.WebApi.CQRS.Middlewares
                 Contracts.Events[name] = instance;
             }
 
-            _serializedContracts = JsonConvert.SerializeObject(Contracts, SerializerSettings);
+            _serializedContracts = JsonSerializer.Serialize(Contracts, SerializerOptions);
         }
 
         private class ContractTypes

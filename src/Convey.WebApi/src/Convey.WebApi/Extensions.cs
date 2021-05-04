@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Convey.Types;
@@ -19,9 +21,6 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using Open.Serialization.Json;
 
 namespace Convey.WebApi
@@ -45,7 +44,7 @@ namespace Convey.WebApi
             {
                 app.UseAuthorization();
             }
-            
+
             middleware?.Invoke(app);
 
             app.UseEndpoints(router => build(new EndpointsBuilder(router, definitions)));
@@ -53,7 +52,7 @@ namespace Convey.WebApi
             return app;
         }
 
-        [Description("By default Newtonsoft JSON serializer is being used and it sets Kestrel's and IIS ServerOptions AllowSynchronousIO = true")]
+        [Description("By default System JSON serializer is being used. If Newtonsoft JSON serializer is used then it sets Kestrel's and IIS ServerOptions AllowSynchronousIO = true")]
         public static IConveyBuilder AddWebApi(this IConveyBuilder builder, Action<IMvcCoreBuilder> configureMvc = null,
             IJsonSerializer jsonSerializer = null, string sectionName = SectionName)
         {
@@ -61,7 +60,7 @@ namespace Convey.WebApi
             {
                 sectionName = SectionName;
             }
-            
+
             if (!builder.TryRegister(RegistryName))
             {
                 return builder;
@@ -69,11 +68,15 @@ namespace Convey.WebApi
 
             if (jsonSerializer is null)
             {
-                var factory = new Open.Serialization.Json.Newtonsoft.JsonSerializerFactory(new JsonSerializerSettings
+                var jsonSerializerOptions = new JsonSerializerOptions
                 {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    Converters = {new StringEnumConverter(true)}
-                });
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+
+                jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: JsonNamingPolicy.CamelCase));
+
+                var factory = new Open.Serialization.Json.System.JsonSerializerFactory(jsonSerializerOptions);
+
                 jsonSerializer = factory.GetSerializer();
             }
 
@@ -82,7 +85,7 @@ namespace Convey.WebApi
                 builder.Services.Configure<KestrelServerOptions>(o => o.AllowSynchronousIO = true);
                 builder.Services.Configure<IISServerOptions>(o => o.AllowSynchronousIO = true);
             }
-            
+
             builder.Services.AddSingleton(jsonSerializer);
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton(new WebApiEndpointDefinitions());
@@ -225,7 +228,7 @@ namespace Convey.WebApi
             response.StatusCode = (int) HttpStatusCode.NoContent;
             return Task.CompletedTask;
         }
-        
+
         public static Task MovedPermanently(this HttpResponse response, string url)
         {
             response.StatusCode = (int) HttpStatusCode.MovedPermanently;
@@ -233,10 +236,10 @@ namespace Convey.WebApi
             {
                 response.Headers.Add(LocationHeader, url);
             }
-            
+
             return Task.CompletedTask;
         }
-        
+
         public static Task Redirect(this HttpResponse response, string url)
         {
             response.StatusCode = (int) HttpStatusCode.PermanentRedirect;
@@ -244,7 +247,7 @@ namespace Convey.WebApi
             {
                 response.Headers.Add(LocationHeader, url);
             }
-            
+
             return Task.CompletedTask;
         }
 
@@ -253,13 +256,13 @@ namespace Convey.WebApi
             response.StatusCode = (int) HttpStatusCode.BadRequest;
             return Task.CompletedTask;
         }
-        
+
         public static Task Unauthorized(this HttpResponse response)
         {
             response.StatusCode = (int) HttpStatusCode.Unauthorized;
             return Task.CompletedTask;
         }
-        
+
         public static Task Forbidden(this HttpResponse response)
         {
             response.StatusCode = (int) HttpStatusCode.Forbidden;
@@ -312,7 +315,7 @@ namespace Convey.WebApi
                         {
                             continue;
                         }
-                        
+
                         var fieldValue = TypeDescriptor.GetConverter(field.FieldType)
                             .ConvertFromInvariantString(value.ToString());
                         field.SetValue(payload, fieldValue);
@@ -403,7 +406,7 @@ namespace Convey.WebApi
 
             return (T) TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(data);
         }
-        
+
         private class EmptyExceptionToResponseMapper : IExceptionToResponseMapper
         {
             public ExceptionResponse Map(Exception exception) => null;

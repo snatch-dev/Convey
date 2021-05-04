@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using VaultSharp;
 
 namespace Convey.Secrets.Vault.Internals
@@ -24,7 +24,7 @@ namespace Convey.Secrets.Vault.Internals
             => await GetAsync(_options.Key);
 
         public async Task<T> GetAsync<T>(string path)
-            => JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(await GetAsync(path)));
+            => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(await GetAsync(path)));
 
         public async Task<IDictionary<string, object>> GetAsync(string path)
         {

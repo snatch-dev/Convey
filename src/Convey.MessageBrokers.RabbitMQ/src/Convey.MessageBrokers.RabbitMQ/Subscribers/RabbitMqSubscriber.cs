@@ -177,6 +177,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                 {
                     _logger.LogError(ex, ex.Message);
                     channel.BasicReject(args.DeliveryTag, false);
+                    await Task.Yield();
                     throw;
                 }
             };
@@ -243,6 +244,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     }
                     
                     channel.BasicAck(args.DeliveryTag, false);
+                    await Task.Yield();
 
                     if (_loggerEnabled)
                     {
@@ -257,6 +259,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     if (ex is RabbitMqMessageProcessingTimeoutException)
                     {
                         channel.BasicNack(args.DeliveryTag, false, _requeueFailedMessages);
+                        await Task.Yield();
                         return;
                     }
                     
@@ -281,6 +284,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                         _logger.LogError($"Handling a message: '{messageName}' [id: '{messageId}'] " +
                                          $"with correlation id: '{correlationId}' failed.");
                         channel.BasicNack(args.DeliveryTag, false, _requeueFailedMessages);
+                        await Task.Yield();
                         return;
                     }
 
@@ -298,6 +302,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                                      $"'{rejectedEventName}' was published.", ex);
 
                     channel.BasicAck(args.DeliveryTag, false);
+                    await Task.Yield();
                 }
             });
         }

@@ -5,9 +5,9 @@ namespace Convey.LoadBalancing.Fabio.Http
 {
     internal sealed class FabioHttpClient : ConveyHttpClient, IFabioHttpClient
     {
-        public FabioHttpClient(HttpClient client, HttpClientOptions options,
+        public FabioHttpClient(HttpClient client, HttpClientOptions options, IHttpClientSerializer serializer,
             ICorrelationContextFactory correlationContextFactory, ICorrelationIdFactory correlationIdFactory)
-            : base(client, options, correlationContextFactory, correlationIdFactory)
+            : base(client, options, serializer, correlationContextFactory, correlationIdFactory)
         {
         }
     }

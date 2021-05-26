@@ -5,9 +5,9 @@ namespace Convey.Discovery.Consul.Http
 {
     internal sealed class ConsulHttpClient : ConveyHttpClient, IConsulHttpClient
     {
-        public ConsulHttpClient(HttpClient client, HttpClientOptions options,
+        public ConsulHttpClient(HttpClient client, HttpClientOptions options, IHttpClientSerializer serializer,
             ICorrelationContextFactory correlationContextFactory, ICorrelationIdFactory correlationIdFactory)
-            : base(client, options, correlationContextFactory, correlationIdFactory)
+            : base(client, options, serializer, correlationContextFactory, correlationIdFactory)
         {
         }
     }

@@ -41,6 +41,7 @@ namespace Convey.HTTP
             builder.Services.AddSingleton<ICorrelationContextFactory, EmptyCorrelationContextFactory>();
             builder.Services.AddSingleton<ICorrelationIdFactory, EmptyCorrelationIdFactory>();
             builder.Services.AddSingleton(options);
+            builder.Services.AddSingleton<IHttpClientSerializer, SystemTextJsonHttpClientSerializer>();
             var clientBuilder = builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>(clientName);
             httpClientBuilder?.Invoke(clientBuilder);
 

@@ -57,7 +57,7 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IConventionsBuilder, ConventionsBuilder>();
             builder.Services.AddSingleton<IConventionsProvider, ConventionsProvider>();
             builder.Services.AddSingleton<IConventionsRegistry, ConventionsRegistry>();
-            builder.Services.AddSingleton<IRabbitMqSerializer, NewtonsoftJsonRabbitMqSerializer>();
+            builder.Services.AddSingleton<IRabbitMqSerializer, RabbitMqJsonSerializer>();
             builder.Services.AddSingleton<IRabbitMqClient, RabbitMqClient>();
             builder.Services.AddSingleton<IBusPublisher, RabbitMqPublisher>();
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();

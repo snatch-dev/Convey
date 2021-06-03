@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Convey.Secrets.Vault.Internals;
 using Microsoft.AspNetCore.Hosting;
@@ -8,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json.Linq;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
@@ -36,7 +36,7 @@ namespace Convey.Secrets.Vault
 
                     cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
                 });
-        
+
         public static IWebHostBuilder UseVault(this IWebHostBuilder builder, string keyValuePath = null,
             string sectionName = SectionName)
             => builder.ConfigureServices(services => services.AddVault(sectionName))
@@ -85,8 +85,7 @@ namespace Convey.Secrets.Vault
 
             return services;
         }
-        
-        
+
         private static void VerifyOptions(VaultOptions options)
         {
             if (options.Kv is null)
@@ -99,7 +98,7 @@ namespace Convey.Secrets.Vault
                         Path = options.Key
                     };
                 }
-                
+
                 return;
             }
 
@@ -107,7 +106,7 @@ namespace Convey.Secrets.Vault
             {
                 throw new VaultException($"Invalid KV engine version: {options.Kv.EngineVersion} (available: 1 or 2).");
             }
-                
+
             if (options.Kv.EngineVersion == 0)
             {
                 options.Kv.EngineVersion = 2;
@@ -126,7 +125,7 @@ namespace Convey.Secrets.Vault
                 var keyValueSecrets = new KeyValueSecrets(client, options);
                 var secret = await keyValueSecrets.GetAsync(kvPath);
                 var parser = new JsonParser();
-                var data = parser.Parse(JObject.FromObject(secret));
+                var data = parser.Parse(JsonSerializer.Serialize(secret));
                 var source = new MemoryConfigurationSource {InitialData = data};
                 builder.Add(source);
             }
@@ -136,12 +135,12 @@ namespace Convey.Secrets.Vault
                 Console.WriteLine("Initializing Vault PKI.");
                 await SetPkiSecretsAsync(client, options);
             }
-            
+
             if (options.Lease is null || !options.Lease.Any())
             {
                 return;
             }
-            
+
             var configuration = new Dictionary<string, string>();
             foreach (var (key, lease) in options.Lease)
             {

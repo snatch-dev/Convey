@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Serialization.Json.Newtonsoft" Version="2.3.1" />
     <PackageReference Include="Open.Serialization.Json.System" Version="2.3.1" />
     <PackageReference Include="Open.Serialization.Json.Utf8Json" Version="2.3.1" />
   </ItemGroup>

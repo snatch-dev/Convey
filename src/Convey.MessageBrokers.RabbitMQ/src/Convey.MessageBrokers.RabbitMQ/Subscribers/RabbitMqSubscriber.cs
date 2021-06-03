@@ -43,7 +43,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         public RabbitMqSubscriber(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _connection = _serviceProvider.GetRequiredService<IConnection>();
+            _connection = _serviceProvider.GetRequiredService<ConsumerConnection>().Connection;
             _publisher = _serviceProvider.GetRequiredService<IBusPublisher>();
             _rabbitMqSerializer = _serviceProvider.GetRequiredService<IRabbitMqSerializer>();
             _conventionsProvider = _serviceProvider.GetRequiredService<IConventionsProvider>();

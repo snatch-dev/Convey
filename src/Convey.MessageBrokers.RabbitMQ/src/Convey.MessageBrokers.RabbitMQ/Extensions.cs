@@ -95,9 +95,11 @@ namespace Convey.MessageBrokers.RabbitMQ
             connectionFactoryConfigurator?.Invoke(connectionFactory);
 
             logger.LogDebug($"Connecting to RabbitMQ: '{string.Join(", ", options.HostNames)}'...");
-            var connection = connectionFactory.CreateConnection(options.HostNames.ToList(), options.ConnectionName);
+            var consumerConnection = connectionFactory.CreateConnection(options.HostNames.ToList(), $"{options.ConnectionName}_consumer");
+            var producerConnection = connectionFactory.CreateConnection(options.HostNames.ToList(), $"{options.ConnectionName}_producer");
             logger.LogDebug($"Connected to RabbitMQ: '{string.Join(", ", options.HostNames)}'.");
-            builder.Services.AddSingleton(connection);
+            builder.Services.AddSingleton(new ConsumerConnection(consumerConnection));
+            builder.Services.AddSingleton(new ProducerConnection(producerConnection));
 
             ((IRabbitMqPluginsRegistryAccessor) pluginsRegistry).Get().ToList().ForEach(p =>
                 builder.Services.AddTransient(p.PluginType));

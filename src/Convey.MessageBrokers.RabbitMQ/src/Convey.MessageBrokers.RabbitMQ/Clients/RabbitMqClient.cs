@@ -10,7 +10,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
 {
     internal sealed class RabbitMqClient : IRabbitMqClient
     {
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new();
         private const string EmptyContext = "{}";
         private readonly IConnection _connection;
         private readonly IContextProvider _contextProvider;
@@ -21,13 +21,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         private readonly string _spanContextHeader;
         private readonly bool _persistMessages;
         private int _channelsCount;
-        private readonly ConcurrentDictionary<int, IModel> _channels = new ConcurrentDictionary<int, IModel>();
+        private readonly ConcurrentDictionary<int, IModel> _channels = new();
         private readonly int _maxChannels;
 
-        public RabbitMqClient(IConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
+        public RabbitMqClient(ProducerConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
             RabbitMqOptions options, ILogger<RabbitMqClient> logger)
         {
-            _connection = connection;
+            _connection = connection.Connection;
             _contextProvider = contextProvider;
             _serializer = serializer;
             _logger = logger;

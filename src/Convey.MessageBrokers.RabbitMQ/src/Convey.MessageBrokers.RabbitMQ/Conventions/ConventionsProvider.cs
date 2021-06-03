@@ -6,7 +6,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Conventions
     public class ConventionsProvider : IConventionsProvider
     {
         private readonly ConcurrentDictionary<Type, IConventions> _conventions =
-            new ConcurrentDictionary<Type, IConventions>();
+            new();
 
         private readonly IConventionsRegistry _registry;
         private readonly IConventionsBuilder _builder;

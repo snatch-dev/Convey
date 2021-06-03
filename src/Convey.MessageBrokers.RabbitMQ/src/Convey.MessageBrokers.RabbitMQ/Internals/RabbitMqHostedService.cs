@@ -7,11 +7,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
 {
     internal sealed class RabbitMqHostedService : IHostedService
     {
-        private readonly IConnection _connection;
+        private readonly IConnection _consumerConnection;
+        private readonly IConnection _producerConnection;
 
-        public RabbitMqHostedService(IConnection connection)
+        public RabbitMqHostedService(ConsumerConnection consumerConnection, ProducerConnection producerConnection)
         {
-            _connection = connection;
+            _consumerConnection = consumerConnection.Connection;
+            _producerConnection = producerConnection.Connection;
         }
 
         public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -20,7 +22,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
         {
             try
             {
-                _connection.Close();
+                _consumerConnection.Close();
+                _producerConnection.Close();
             }
             catch
             {

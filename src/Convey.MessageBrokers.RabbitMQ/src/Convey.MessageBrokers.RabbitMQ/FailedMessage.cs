@@ -5,12 +5,12 @@ namespace Convey.MessageBrokers.RabbitMQ
         public object Message { get; }
         public bool ShouldRetry { get; }
         
-        public FailedMessage(bool shouldRetry) : this(null, shouldRetry)
+        public FailedMessage(bool shouldRetry = true) : this(null, shouldRetry)
         {
             ShouldRetry = shouldRetry;
         }
 
-        public FailedMessage(object message, bool shouldRetry)
+        public FailedMessage(object message, bool shouldRetry = true)
         {
             Message = message;
             ShouldRetry = shouldRetry;

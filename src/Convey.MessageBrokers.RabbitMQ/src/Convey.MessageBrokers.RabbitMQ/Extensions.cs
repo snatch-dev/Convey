@@ -174,7 +174,13 @@ namespace Convey.MessageBrokers.RabbitMQ
             where T : class, IExceptionToMessageMapper
         {
             builder.Services.AddSingleton<IExceptionToMessageMapper, T>();
-
+            return builder;
+        }
+        
+        public static IConveyBuilder AddExceptionToFailedMessageMapper<T>(this IConveyBuilder builder)
+            where T : class, IExceptionToFailedMessageMapper
+        {
+            builder.Services.AddSingleton<IExceptionToFailedMessageMapper, T>();
             return builder;
         }
 

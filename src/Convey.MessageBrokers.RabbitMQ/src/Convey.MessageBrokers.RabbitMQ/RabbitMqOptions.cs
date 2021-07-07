@@ -46,6 +46,7 @@ namespace Convey.MessageBrokers.RabbitMQ
             public bool Enabled { get; set; }
             public string Level { get; set; }
             public bool LogConnectionStatus { get; set; }
+            public bool LogMessagePayload { get; set; }
         }
 
         public class ContextOptions

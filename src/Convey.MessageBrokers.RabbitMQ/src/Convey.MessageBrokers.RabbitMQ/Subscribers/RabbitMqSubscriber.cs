@@ -37,6 +37,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
         private readonly int _retries;
         private readonly int _retryInterval;
         private readonly bool _loggerEnabled;
+        private readonly bool _logMessagePayload;
         private readonly RabbitMqOptions _options;
         private readonly RabbitMqOptions.QosOptions _qosOptions;
         private readonly IConnection _connection;
@@ -56,6 +57,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             _pluginsExecutor = _serviceProvider.GetRequiredService<IRabbitMqPluginsExecutor>();
             _options = _serviceProvider.GetRequiredService<RabbitMqOptions>();
             _loggerEnabled = _options.Logger?.Enabled ?? false;
+            _logMessagePayload = _options.Logger?.LogMessagePayload ?? false;
             _retries = _options.Retries >= 0 ? _options.Retries : 3;
             _retryInterval = _options.RetryInterval > 0 ? _options.RetryInterval : 2;
             _qosOptions = _options.Qos ?? new RabbitMqOptions.QosOptions();
@@ -96,13 +98,6 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             var durable = _options.Queue?.Durable ?? true;
             var exclusive = _options.Queue?.Exclusive ?? false;
             var autoDelete = _options.Queue?.AutoDelete ?? false;
-            var info = string.Empty;
-            if (_loggerEnabled)
-            {
-                info = $" [queue: '{conventions.Queue}', routing key: '{conventions.RoutingKey}', " +
-                       $"exchange: '{conventions.Exchange}']";
-            }
-
             var deadLetterEnabled = _options.DeadLetter?.Enabled is true;
             var deadLetterExchange = deadLetterEnabled?  $"{_options.DeadLetter.Prefix}{_options.Exchange.Name}{_options.DeadLetter.Suffix}": string.Empty;
             var deadLetterQueue = deadLetterEnabled ? $"{_options.DeadLetter.Prefix}{conventions.Queue}{_options.DeadLetter.Suffix}" : string.Empty;
@@ -161,13 +156,17 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
                     var messageId = args.BasicProperties.MessageId;
                     var correlationId = args.BasicProperties.CorrelationId;
                     var timestamp = args.BasicProperties.Timestamp.UnixTime;
+                    var payload = Encoding.UTF8.GetString(args.Body.Span);
+                    
                     if (_loggerEnabled)
                     {
-                        _logger.LogInformation($"Received a message with id: '{messageId}', " +
-                                               $"correlation id: '{correlationId}', timestamp: {timestamp}{info}.");
+                        var messagePayload = _logMessagePayload ? payload : string.Empty;
+                        _logger.LogInformation("Received a message with id: '{MessageId}', " +
+                                               "correlation id: '{CorrelationId}', timestamp: {Timestamp}, " +
+                                               "queue: {Queue}, routing key: {RoutingKey}, exchange: {Exchange}, payload: {MessagePayload}",
+                            messageId, correlationId, timestamp, conventions.Queue, conventions.RoutingKey, conventions.Exchange, messagePayload);
                     }
 
-                    var payload = Encoding.UTF8.GetString(args.Body.Span);
                     var message = _rabbitMqSerializer.Deserialize<T>(payload);
                     var correlationContext = BuildCorrelationContext(args);
 
@@ -221,15 +220,11 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
             {
                 try
                 {
-                    var retryMessage = string.Empty;
                     if (_loggerEnabled)
                     {
-                        retryMessage = currentRetry == 0
-                            ? string.Empty
-                            : $"Retry: {currentRetry}'.";
-                        var preLogMessage = $"Handling a message: '{messageName}' [id: '{messageId}'] " +
-                                            $"with correlation id: '{correlationId}'. {retryMessage}";
-                        _logger.LogInformation(preLogMessage);
+                        _logger.LogInformation("Handling a message: {MessageName} with id: {MessageId}, " +
+                                               "correlation id: {CorrelationId}, retry: {MessageRetry}",
+                            messageName, messageId, correlationId, currentRetry);
                     }
 
                     if (_options.MessageProcessingTimeout.HasValue)
@@ -251,9 +246,9 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
                     if (_loggerEnabled)
                     {
-                        var postLogMessage = $"Handled a message: '{messageName}' [id: '{messageId}'] " +
-                                             $"with correlation id: '{correlationId}'. {retryMessage}";
-                        _logger.LogInformation(postLogMessage);
+                        _logger.LogInformation("Handled a message: {MessageName} with id: {MessageId}, " +
+                                               "correlation id: {CorrelationId}, retry: {MessageRetry}",
+                            messageName, messageId, correlationId, currentRetry);
                     }
                 }
                 catch (Exception ex)

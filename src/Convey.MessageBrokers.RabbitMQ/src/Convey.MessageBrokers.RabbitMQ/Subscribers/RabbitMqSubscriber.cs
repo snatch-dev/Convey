@@ -292,6 +292,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Subscribers
 
                         channel.BasicAck(args.DeliveryTag, false);
                         await Task.Yield();
+                        return;
                     }
 
                     if (failedMessage is null || failedMessage.ShouldRetry)

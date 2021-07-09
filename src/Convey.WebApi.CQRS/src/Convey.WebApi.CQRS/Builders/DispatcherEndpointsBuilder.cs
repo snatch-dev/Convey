@@ -32,7 +32,7 @@ namespace Convey.WebApi.CQRS.Builders
             Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
             params string[] policies) where TQuery : class, IQuery<TResult>
         {
-            _builder.Get<TQuery>(path, async (query, ctx) =>
+            _builder.Get<TQuery, TResult>(path, async (query, ctx) =>
             {
                 if (beforeDispatch is {})
                 {

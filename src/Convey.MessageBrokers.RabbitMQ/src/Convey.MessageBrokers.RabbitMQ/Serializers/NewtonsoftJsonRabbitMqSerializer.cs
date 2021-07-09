@@ -1,9 +1,10 @@
+using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace Convey.MessageBrokers.RabbitMQ.Serializers
 {
-    internal sealed class NewtonsoftJsonRabbitMqSerializer : IRabbitMqSerializer
+    public sealed class NewtonsoftJsonRabbitMqSerializer : IRabbitMqSerializer
     {
         private readonly JsonSerializerSettings _settings;
 
@@ -21,6 +22,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Serializers
         public string Serialize(object value) => JsonConvert.SerializeObject(value, _settings);
 
         public T Deserialize<T>(string value) => JsonConvert.DeserializeObject<T>(value, _settings);
+
+        public object Deserialize(string value, Type type) => JsonConvert.DeserializeObject(value, type, _settings);
 
         public object Deserialize(string value) => JsonConvert.DeserializeObject(value, _settings);
     }

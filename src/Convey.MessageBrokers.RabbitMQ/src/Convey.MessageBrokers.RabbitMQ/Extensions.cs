@@ -25,7 +25,7 @@ namespace Convey.MessageBrokers.RabbitMQ
 
         public static IConveyBuilder AddRabbitMq(this IConveyBuilder builder, string sectionName = SectionName,
             Func<IRabbitMqPluginsRegistry, IRabbitMqPluginsRegistry> plugins = null,
-            Action<ConnectionFactory> connectionFactoryConfigurator = null)
+            Action<ConnectionFactory> connectionFactoryConfigurator = null, IRabbitMqSerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
@@ -57,13 +57,22 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IConventionsBuilder, ConventionsBuilder>();
             builder.Services.AddSingleton<IConventionsProvider, ConventionsProvider>();
             builder.Services.AddSingleton<IConventionsRegistry, ConventionsRegistry>();
-            builder.Services.AddSingleton<IRabbitMqSerializer, NewtonsoftJsonRabbitMqSerializer>();
             builder.Services.AddSingleton<IRabbitMqClient, RabbitMqClient>();
             builder.Services.AddSingleton<IBusPublisher, RabbitMqPublisher>();
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();
+            builder.Services.AddSingleton<MessageSubscribersChannel>();
             builder.Services.AddTransient<RabbitMqExchangeInitializer>();
             builder.Services.AddHostedService<RabbitMqHostedService>();
             builder.AddInitializer<RabbitMqExchangeInitializer>();
+            
+            if (serializer is not null)
+            {
+                builder.Services.AddSingleton(serializer);
+            }
+            else
+            {
+                builder.Services.AddSingleton<IRabbitMqSerializer, SystemTextJsonJsonRabbitMqSerializer>();
+            }
 
             var pluginsRegistry = new RabbitMqPluginsRegistry();
             builder.Services.AddSingleton<IRabbitMqPluginsRegistryAccessor>(pluginsRegistry);
@@ -185,6 +194,6 @@ namespace Convey.MessageBrokers.RabbitMQ
         }
 
         public static IBusSubscriber UseRabbitMq(this IApplicationBuilder app)
-            => new RabbitMqSubscriber(app.ApplicationServices);
+            => new RabbitMqSubscriber(app.ApplicationServices.GetRequiredService<MessageSubscribersChannel>());
     }
 }

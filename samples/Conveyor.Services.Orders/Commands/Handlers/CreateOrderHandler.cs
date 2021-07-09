@@ -52,7 +52,7 @@ namespace Conveyor.Services.Orders.Commands.Handlers
             var order = new Order(command.OrderId, command.CustomerId, pricingDto.TotalAmount);
             await _repository.AddAsync(order);
             _logger.LogInformation($"Created an order with id: {command.OrderId}, customer: {command.CustomerId}.");
-            var spanContext = _tracer.ActiveSpan.Context.ToString();
+            var spanContext = _tracer.ActiveSpan?.Context.ToString();
             var @event = new OrderCreated(order.Id);
             if (_outbox.Enabled)
             {

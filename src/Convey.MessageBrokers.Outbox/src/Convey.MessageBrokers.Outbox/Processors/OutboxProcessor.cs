@@ -26,7 +26,8 @@ namespace Convey.MessageBrokers.Outbox.Processors
             {
                 throw new Exception($"Invalid outbox interval: {options.IntervalMilliseconds} ms.");
             }
-            
+
+            _type = OutboxType.Sequential;
             if (!string.IsNullOrWhiteSpace(options.Type))
             {
                 if (!Enum.TryParse<OutboxType>(options.Type, true, out var outboxType))
@@ -41,8 +42,7 @@ namespace Convey.MessageBrokers.Outbox.Processors
             _serviceScopeFactory = serviceScopeFactory;
             _publisher = publisher;
             _options = options;
-            _logger = logger;
-            _type = OutboxType.Sequential;
+            _logger = logger;            
             _interval = TimeSpan.FromMilliseconds(options.IntervalMilliseconds);
             if (options.Enabled)
             {

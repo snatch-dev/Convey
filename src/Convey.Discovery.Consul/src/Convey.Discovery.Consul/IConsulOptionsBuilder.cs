@@ -1,3 +1,5 @@
+using System;
+
 namespace Convey.Discovery.Consul
 {
     public interface IConsulOptionsBuilder
@@ -5,11 +7,8 @@ namespace Convey.Discovery.Consul
         IConsulOptionsBuilder Enable(bool enabled);
         IConsulOptionsBuilder WithUrl(string url);
         IConsulOptionsBuilder WithService(string service);
-        IConsulOptionsBuilder WithAddress(string address);
-        IConsulOptionsBuilder WithEnabledPing(bool pingEnabled);
-        IConsulOptionsBuilder WithPingEndpoint(string pingEndpoint);
-        IConsulOptionsBuilder WithPingInterval(string pingInterval);
-        IConsulOptionsBuilder WithRemoteAfterInterval(string remoteAfterInterval);
+        IConsulOptionsBuilder WithAddress(Uri address);
+        IConsulOptionsBuilder WithHealthCheck(Action<IConsulHealthCheckOptionsBuilder> healthCheckBuilder);
         IConsulOptionsBuilder WithSkippingLocalhostDockerDnsReplace(bool skipLocalhostDockerDnsReplace);
         ConsulOptions Build();
     }

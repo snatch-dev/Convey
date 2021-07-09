@@ -1,3 +1,5 @@
+using System;
+
 namespace Convey.Discovery.Consul.Builders
 {
     internal sealed class ConsulOptionsBuilder : IConsulOptionsBuilder
@@ -22,39 +24,24 @@ namespace Convey.Discovery.Consul.Builders
             return this;
         }
 
-        public IConsulOptionsBuilder WithAddress(string address)
+        public IConsulOptionsBuilder WithAddress(Uri address)
         {
-            _options.Address = address;
-            return this;
-        }
-
-        public IConsulOptionsBuilder WithEnabledPing(bool pingEnabled)
-        {
-            _options.PingEnabled = pingEnabled;
-            return this;
-        }
-
-        public IConsulOptionsBuilder WithPingEndpoint(string pingEndpoint)
-        {
-            _options.PingEndpoint = pingEndpoint;
-            return this;
-        }
-
-        public IConsulOptionsBuilder WithPingInterval(string pingInterval)
-        {
-            _options.PingInterval = pingInterval;
-            return this;
-        }
-
-        public IConsulOptionsBuilder WithRemoteAfterInterval(string remoteAfterInterval)
-        {
-            _options.RemoveAfterInterval = remoteAfterInterval;
+            _options.HostName = address.Host;
+            _options.Port = address.Port;
+            _options.Scheme = address.Scheme;
             return this;
         }
 
         public IConsulOptionsBuilder WithSkippingLocalhostDockerDnsReplace(bool skipLocalhostDockerDnsReplace)
         {
             _options.SkipLocalhostDockerDnsReplace = skipLocalhostDockerDnsReplace;
+            return this;
+        }
+
+        public IConsulOptionsBuilder WithHealthCheck(Action<IConsulHealthCheckOptionsBuilder> healthCheckBuilder)
+        {
+            var builder = new ConsulHealthCheckOptionsBuilder(_options.HealthCheck);
+            healthCheckBuilder(builder);
             return this;
         }
 

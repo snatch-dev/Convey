@@ -9,5 +9,8 @@ namespace Convey.Discovery.Consul.Models
         public string Http { get; set; }
         public string Interval { get; set; }
         public string Ttl { get; set; }
+        public string Timeout { get; set; }
+        public bool TLSSkipVerify { get; set; }
+        public string Method { get; set; }
     }
 }

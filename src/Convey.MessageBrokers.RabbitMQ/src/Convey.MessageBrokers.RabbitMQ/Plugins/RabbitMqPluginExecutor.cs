@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -16,7 +17,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Plugins
             _serviceProvider = serviceProvider;
         }
 
-        public async Task ExecuteAsync(Func<object, object, BasicDeliverEventArgs, Task> successor, 
+        public async Task ExecuteAsync(Func<object, object, BasicDeliverEventArgs, Task> successor,
             object message, object correlationContext, BasicDeliverEventArgs args)
         {
             var chains = _registry.Get();
@@ -27,6 +28,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Plugins
                 return;
             }
 
+            var plugins = new LinkedList<IRabbitMqPlugin>();
+
             foreach (var chain in chains)
             {
                 var plugin = _serviceProvider.GetService(chain.PluginType);
@@ -35,22 +38,22 @@ namespace Convey.MessageBrokers.RabbitMQ.Plugins
                 {
                     throw new InvalidOperationException($"RabbitMq plugin of type {chain.PluginType.Name} was not registered");
                 }
-                
-                chain.Plugin = plugin as IRabbitMqPlugin;;
+
+                plugins.AddLast(plugin as IRabbitMqPlugin);
             }
 
-            var current = chains.Last;
+            var current = plugins.Last;
 
             while (current != null)
             {
-                ((IRabbitMqPluginAccessor) current.Value.Plugin).SetSuccessor(current.Next is null
+                ((IRabbitMqPluginAccessor)current.Value).SetSuccessor(current.Next is null
                     ? successor
-                    : current.Next.Value.Plugin.HandleAsync);
+                    : current.Next.Value.HandleAsync);
 
                 current = current.Previous;
             }
 
-            await chains.First.Value.Plugin.HandleAsync(message, correlationContext, args);
+            await plugins.First.Value.HandleAsync(message, correlationContext, args);
         }
     }
 }

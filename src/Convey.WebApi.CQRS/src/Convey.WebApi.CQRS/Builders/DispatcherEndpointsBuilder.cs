@@ -34,7 +34,7 @@ namespace Convey.WebApi.CQRS.Builders
         {
             _builder.Get<TQuery>(path, async (query, ctx) =>
             {
-                if (beforeDispatch is {})
+                if (beforeDispatch is not null)
                 {
                     await beforeDispatch(query, ctx);
                 }
@@ -126,7 +126,7 @@ namespace Convey.WebApi.CQRS.Builders
             Func<T, HttpContext, Task> beforeDispatch = null,
             Func<T, HttpContext, Task> afterDispatch = null) where T : class, ICommand
         {
-            if (beforeDispatch is {})
+            if (beforeDispatch is not null)
             {
                 await beforeDispatch(command, context);
             }

@@ -82,7 +82,7 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
                     ProcessedAt = DateTime.UtcNow
                 });
 
-                if (session is {})
+                if (session is not null)
                 {
                     await session.CommitTransactionAsync();
                 }
@@ -92,7 +92,7 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"There was an error when processing a message with id: '{messageId}'.");
-                if (session is {})
+                if (session is not null)
                 {
                     await session.AbortTransactionAsync();
                 }
@@ -141,14 +141,14 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
             var outboxMessages = await _outboxRepository.FindAsync(om => om.ProcessedAt == null);
             return outboxMessages.Select(om =>
             {
-                if (om.MessageContextType is {})
+                if (om.MessageContextType is not null)
                 {
                     var messageContextType = Type.GetType(om.MessageContextType);
                     om.MessageContext = JsonConvert.DeserializeObject(om.SerializedMessageContext, messageContextType,
                         SerializerSettings);
                 }
 
-                if (om.MessageType is {})
+                if (om.MessageType is not null)
                 {
                     var messageType = Type.GetType(om.MessageType);
                     om.Message = JsonConvert.DeserializeObject(om.SerializedMessage, messageType, SerializerSettings);

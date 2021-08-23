@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SmartFormat.NET" Version="2.5.3" />
+    <PackageReference Include="SmartFormat.NET" Version="2.7.0" />
   </ItemGroup>
 
 </Project>

@@ -138,7 +138,7 @@ namespace Convey.WebApi
         private static void ApplyAuthRolesAndPolicies(IEndpointConventionBuilder builder, bool auth, string roles,
             params string[] policies)
         {
-            if (policies is {} && policies.Any())
+            if (policies is not null && policies.Any())
             {
                 builder.RequireAuthorization(policies);
                 return;

@@ -18,14 +18,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Serializers
             };
         }
         
-        public string Serialize<T>(T value) => JsonSerializer.Serialize(value, _options);
+        public ReadOnlySpan<byte> Serialize(object value) => JsonSerializer.SerializeToUtf8Bytes(value, _options);
 
-        public string Serialize(object value) => JsonSerializer.Serialize(value, _options);
+        public object Deserialize(ReadOnlySpan<byte> value, Type type) => JsonSerializer.Deserialize(value, type, _options);
 
-        public T Deserialize<T>(string value) => JsonSerializer.Deserialize<T>(value, _options);
-
-        public object Deserialize(string value, Type type) => JsonSerializer.Deserialize(value, type, _options);
-
-        public object Deserialize(string value) => JsonSerializer.Deserialize(value, typeof(object), _options);
+        public object Deserialize(ReadOnlySpan<byte> value) => JsonSerializer.Deserialize(value, typeof(object), _options);
     }
 }

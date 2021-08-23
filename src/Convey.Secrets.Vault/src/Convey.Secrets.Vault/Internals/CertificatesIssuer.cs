@@ -22,7 +22,7 @@ namespace Convey.Secrets.Vault.Internals
             _client = client;
             _options = options.Pki;
             _mountPoint = string.IsNullOrWhiteSpace(_options.MountPoint)
-                ? SecretsEngineDefaultPaths.PKI
+                ? SecretsEngineMountPoints.Defaults.PKI
                 : _options.MountPoint;
             _certificateFormat = string.IsNullOrWhiteSpace(_options.CertificateFormat)
                 ? CertificateFormat.pem

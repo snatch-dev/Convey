@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -16,15 +17,15 @@ namespace Convey.MessageBrokers.RabbitMQ.Serializers
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
         }
+
+        public ReadOnlySpan<byte>  Serialize(object value) => Encode(JsonConvert.SerializeObject(value, _settings));
+
+        public object Deserialize(ReadOnlySpan<byte> value, Type type) => JsonConvert.DeserializeObject(Decode(value), type, _settings);
+
+        public object Deserialize(ReadOnlySpan<byte> value) => JsonConvert.DeserializeObject(Decode(value), _settings);
+
+        private static ReadOnlySpan<byte>  Encode(string value) => Encoding.UTF8.GetBytes(value);
         
-        public string Serialize<T>(T value) => JsonConvert.SerializeObject(value, _settings);
-
-        public string Serialize(object value) => JsonConvert.SerializeObject(value, _settings);
-
-        public T Deserialize<T>(string value) => JsonConvert.DeserializeObject<T>(value, _settings);
-
-        public object Deserialize(string value, Type type) => JsonConvert.DeserializeObject(value, type, _settings);
-
-        public object Deserialize(string value) => JsonConvert.DeserializeObject(value, _settings);
+        private static string Decode(ReadOnlySpan<byte> value) => Encoding.UTF8.GetString(value);
     }
 }

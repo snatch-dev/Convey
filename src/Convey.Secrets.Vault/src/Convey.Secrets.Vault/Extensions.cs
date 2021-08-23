@@ -74,7 +74,7 @@ namespace Convey.Secrets.Vault
             services.AddSingleton(LeaseService);
             services.AddSingleton(CertificatesService);
             services.AddHostedService<VaultHostedService>();
-            if (options.Pki is {})
+            if (options.Pki is not null)
             {
                 services.AddSingleton<ICertificatesIssuer, CertificatesIssuer>();
             }
@@ -131,7 +131,7 @@ namespace Convey.Secrets.Vault
                 builder.Add(source);
             }
 
-            if (options.Pki is {} && options.Pki.Enabled)
+            if (options.Pki is not null && options.Pki.Enabled)
             {
                 Console.WriteLine("Initializing Vault PKI.");
                 await SetPkiSecretsAsync(client, options);
@@ -176,7 +176,7 @@ namespace Convey.Secrets.Vault
         private static async Task SetActiveDirectorySecretsAsync(string key, IVaultClient client,
             VaultOptions.LeaseOptions options, IDictionary<string, string> configuration)
         {
-            const string name = SecretsEngineDefaultPaths.ActiveDirectory;
+            const string name = SecretsEngineMountPoints.Defaults.ActiveDirectory;
             var mountPoint = string.IsNullOrWhiteSpace(options.MountPoint) ? name : options.MountPoint;
             var credentials =
                 await client.V1.Secrets.ActiveDirectory.GetCredentialsAsync(options.RoleName, mountPoint);
@@ -192,7 +192,7 @@ namespace Convey.Secrets.Vault
             VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
-            const string name = SecretsEngineDefaultPaths.Azure;
+            const string name = SecretsEngineMountPoints.Defaults.Azure;
             var mountPoint = string.IsNullOrWhiteSpace(options.MountPoint) ? name : options.MountPoint;
             var credentials =
                 await client.V1.Secrets.Azure.GetCredentialsAsync(options.RoleName, mountPoint);
@@ -207,7 +207,7 @@ namespace Convey.Secrets.Vault
             VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
-            const string name = SecretsEngineDefaultPaths.Consul;
+            const string name = SecretsEngineMountPoints.Defaults.Consul;
             var mountPoint = string.IsNullOrWhiteSpace(options.MountPoint) ? name : options.MountPoint;
             var credentials =
                 await client.V1.Secrets.Consul.GetCredentialsAsync(options.RoleName, mountPoint);
@@ -221,7 +221,7 @@ namespace Convey.Secrets.Vault
             VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
-            const string name = SecretsEngineDefaultPaths.Database;
+            const string name = SecretsEngineMountPoints.Defaults.Database;
             var mountPoint = string.IsNullOrWhiteSpace(options.MountPoint) ? name : options.MountPoint;
             var credentials =
                 await client.V1.Secrets.Database.GetCredentialsAsync(options.RoleName, mountPoint);
@@ -243,7 +243,7 @@ namespace Convey.Secrets.Vault
             VaultOptions.LeaseOptions options,
             IDictionary<string, string> configuration)
         {
-            const string name = SecretsEngineDefaultPaths.RabbitMQ;
+            const string name = SecretsEngineMountPoints.Defaults.RabbitMQ;
             var mountPoint = string.IsNullOrWhiteSpace(options.MountPoint) ? name : options.MountPoint;
             var credentials =
                 await client.V1.Secrets.RabbitMQ.GetCredentialsAsync(options.RoleName, mountPoint);

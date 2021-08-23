@@ -6,7 +6,7 @@ namespace Convey.HTTP
     {
         public T Result { get; }
         public HttpResponseMessage Response { get; }
-        public bool HasResult => Result is {};
+        public bool HasResult => Result is not null;
 
         public HttpResult(T result, HttpResponseMessage response)
         {

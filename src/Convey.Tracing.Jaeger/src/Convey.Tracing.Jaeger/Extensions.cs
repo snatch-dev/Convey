@@ -64,7 +64,7 @@ namespace Convey.Tracing.Jaeger
                 return builder;
             }
 
-            if (options.ExcludePaths is {})
+            if (options.ExcludePaths is not null)
             {
                 builder.Services.Configure<AspNetCoreDiagnosticOptions>(o =>
                 {

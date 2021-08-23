@@ -26,7 +26,7 @@ namespace Convey.WebApi.Security
                 return builder;
             }
 
-            if (permissionValidatorType is {})
+            if (permissionValidatorType is not null)
             {
                 builder.Services.AddSingleton(typeof(ICertificatePermissionValidator), permissionValidatorType);
             }

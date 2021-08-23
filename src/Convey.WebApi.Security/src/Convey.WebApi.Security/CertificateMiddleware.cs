@@ -26,7 +26,7 @@ namespace Convey.WebApi.Security
             _logger = logger;
             _options = options.Certificate;
             _allowedHosts = new HashSet<string>(_options.AllowedHosts ?? Array.Empty<string>());
-            _validateAcl = _options.Acl is {} && _options.Acl.Any();
+            _validateAcl = _options.Acl is not null && _options.Acl.Any();
             _skipRevocationCheck = options.Certificate.SkipRevocationCheck;
             if (!_validateAcl)
             {

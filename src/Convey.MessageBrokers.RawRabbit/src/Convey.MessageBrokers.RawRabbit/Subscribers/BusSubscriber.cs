@@ -21,12 +21,12 @@ namespace Convey.MessageBrokers.RawRabbit.Subscribers
 
         public BusSubscriber(IApplicationBuilder app)
         {
-            _logger = app.ApplicationServices.GetService<ILogger<BusSubscriber>>();
-            _serviceProvider = app.ApplicationServices.GetService<IServiceProvider>();
-            _busClient = _serviceProvider.GetService<IBusClient>();
+            _logger = app.ApplicationServices.GetRequiredService<ILogger<BusSubscriber>>();
+            _serviceProvider = app.ApplicationServices.GetRequiredService<IServiceProvider>();
+            _busClient = _serviceProvider.GetRequiredService<IBusClient>();
             _exceptionToMessageMapper = _serviceProvider.GetService<IExceptionToMessageMapper>() ??
                                         new EmptyExceptionToMessageMapper();
-            var options = _serviceProvider.GetService<RabbitMqOptions>();
+            var options = _serviceProvider.GetRequiredService<RabbitMqOptions>();
             _retries = options.Retries >= 0 ? options.Retries : 3;
             _retryInterval = options.RetryInterval > 0 ? options.RetryInterval : 2;
         }
@@ -38,7 +38,7 @@ namespace Convey.MessageBrokers.RawRabbit.Subscribers
             {
                 try
                 {
-                    var accessor = _serviceProvider.GetService<ICorrelationContextAccessor>();
+                    var accessor = _serviceProvider.GetRequiredService<ICorrelationContextAccessor>();
                     accessor.CorrelationContext = correlationContext;
                     var exception = await TryHandleAsync(message, correlationContext, handle);
                     if (exception is null)

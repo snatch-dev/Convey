@@ -33,7 +33,7 @@ namespace Convey.HTTP
             }
 
             var options = builder.GetOptions<HttpClientOptions>(sectionName);
-            if (maskedRequestUrlParts is {} && options.RequestMasking is {})
+            if (maskedRequestUrlParts is not null && options.RequestMasking is not null)
             {
                 options.RequestMasking.UrlParts = maskedRequestUrlParts;
             }

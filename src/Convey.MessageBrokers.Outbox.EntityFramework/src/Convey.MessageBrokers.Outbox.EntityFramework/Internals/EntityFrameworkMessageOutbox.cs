@@ -119,14 +119,14 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
             var outboxMessages = await outboxMessagesSet.Where(om => om.ProcessedAt == null).ToListAsync();
             return outboxMessages.Select(om =>
             {
-                if (om.MessageContextType is {})
+                if (om.MessageContextType is not null)
                 {
                     var messageContextType = Type.GetType(om.MessageContextType);
                     om.MessageContext = JsonConvert.DeserializeObject(om.SerializedMessageContext, messageContextType,
                         SerializerSettings);
                 }
 
-                if (om.MessageType is {})
+                if (om.MessageType is not null)
                 {
                     var messageType = Type.GetType(om.MessageType);
                     om.Message = JsonConvert.DeserializeObject(om.SerializedMessage, messageType, SerializerSettings);

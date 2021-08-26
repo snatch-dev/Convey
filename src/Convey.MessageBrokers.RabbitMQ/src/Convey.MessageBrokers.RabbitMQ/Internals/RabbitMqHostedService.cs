@@ -300,7 +300,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                     }
 
                     currentRetry++;
-                    var hasNextRetry = currentRetry - 1 < _retries;
+                    var hasNextRetry = currentRetry <= _retries;
 
                     var failedMessage = _exceptionToFailedMessageMapper.Map(ex, message);
                     if (failedMessage is null)
@@ -316,17 +316,16 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                     if (failedMessage?.Message is not null && (!failedMessage.ShouldRetry || !hasNextRetry))
                     {
                         var failedMessageName = failedMessage.Message.GetType().Name.Underscore();
-                        await _publisher.PublishAsync(failedMessage.Message, correlationId: correlationId,
+                        var failedMessageId = Guid.NewGuid().ToString("N");
+                        await _publisher.PublishAsync(failedMessage.Message, failedMessageId, correlationId,
                             messageContext: messageContext);
+                        _logger.LogError(ex, ex.Message);
                         if (_loggerEnabled)
                         {
-                            _logger.LogWarning($"Published a failed messaged: '{failedMessageName}' " +
-                                               $"for the message: '{messageName}' [ID: '{messageId}'] with Correlation ID: '{correlationId}'.");
+                            _logger.LogWarning("Published a failed messaged: {FailedMessageName} with ID: {FailedMessageId}, " +
+                                               "Correlation ID: {CorrelationId}, for the message: {MessageName} with ID: {MessageId}",
+                                failedMessageName, failedMessageId, correlationId, messageName, messageId);
                         }
-
-                        _logger.LogError($"Handling a message: '{messageName}' [ID: '{messageId}'] " +
-                                         $"with Correlation ID: '{correlationId}' failed and failed message: " +
-                                         $"'{failedMessageName}' was published.", ex);
 
                         channel.BasicAck(args.DeliveryTag, false);
                         await Task.Yield();
@@ -335,14 +334,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
 
                     if (failedMessage is null || failedMessage.ShouldRetry)
                     {
-                        var errorMessage = $"Unable to handle a message: '{messageName}' [ID: '{messageId}'] " +
-                                           $"with Correlation ID: '{correlationId}', " +
-                                           $"retry {currentRetry - 1}/{_retries}...";
+                        var errorMessage = $"Unable to handle a message: '{messageName}' with ID: '{messageId}', " +
+                                           $"Correlation ID: '{correlationId}', retry {currentRetry}/{_retries}...";
 
-                        if (currentRetry > 1)
-                        {
-                            _logger.LogError(errorMessage);
-                        }
+                        _logger.LogError(errorMessage);
 
                         if (hasNextRetry)
                         {
@@ -350,8 +345,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                         }
                     }
 
-                    _logger.LogError($"Handling a message: '{messageName}' [ID: '{messageId}'] " +
-                                     $"with Correlation ID: '{correlationId}' failed.");
+                    _logger.LogError("Handling a message: {MessageName} with ID: {MessageId}, Correlation ID: " +
+                                     "{CorrelationId} failed.", messageName, messageId, correlationId);
                     channel.BasicNack(args.DeliveryTag, false, _requeueFailedMessages);
                     await Task.Yield();
                 }

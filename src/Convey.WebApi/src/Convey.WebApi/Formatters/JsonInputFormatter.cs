@@ -12,7 +12,7 @@ namespace Convey.WebApi.Formatters
     internal class JsonInputFormatter : IInputFormatter
     {
         private const string EmptyJson = "{}";
-        private readonly ConcurrentDictionary<Type, MethodInfo> _methods = new ConcurrentDictionary<Type, MethodInfo>();
+        private readonly ConcurrentDictionary<Type, MethodInfo> _methods = new();
         private readonly IJsonSerializer _serializer;
         private readonly MethodInfo _deserializeMethod;
 

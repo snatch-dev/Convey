@@ -22,7 +22,7 @@ namespace Convey.Auth.Handlers
             ClaimTypes.Role,
         };
 
-        private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+        private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler = new();
         private readonly JwtOptions _options;
         private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly SigningCredentials _signingCredentials;
@@ -58,10 +58,10 @@ namespace Convey.Auth.Handlers
             var now = DateTime.UtcNow;
             var jwtClaims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userId),
-                new Claim(JwtRegisteredClaimNames.UniqueName, userId),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, now.ToTimestamp().ToString()),
+                new(JwtRegisteredClaimNames.Sub, userId),
+                new(JwtRegisteredClaimNames.UniqueName, userId),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Iat, now.ToTimestamp().ToString()),
             };
             if (!string.IsNullOrWhiteSpace(role))
             {

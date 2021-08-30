@@ -212,7 +212,7 @@ namespace Convey.MessageBrokers.RawRabbit
             }
 
             public override async Task InvokeAsync(IPipeContext context,
-                CancellationToken token = new CancellationToken())
+                CancellationToken token = new())
             {
                 using (var scope = _serviceProvider.CreateScope())
                 {

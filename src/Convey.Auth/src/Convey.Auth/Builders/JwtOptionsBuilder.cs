@@ -4,7 +4,7 @@ namespace Convey.Auth.Builders
 {
     internal sealed class JwtOptionsBuilder : IJwtOptionsBuilder
     {
-        private readonly JwtOptions _options = new JwtOptions();
+        private readonly JwtOptions _options = new();
         
         public IJwtOptionsBuilder WithIssuerSigningKey(string issuerSigningKey)
         {

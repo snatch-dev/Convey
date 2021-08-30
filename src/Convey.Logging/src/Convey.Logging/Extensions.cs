@@ -22,7 +22,7 @@ namespace Convey.Logging
     {
         private const string LoggerSectionName = "logger";
         private const string AppSectionName = "app";
-        internal static LoggingLevelSwitch LoggingLevelSwitch = new LoggingLevelSwitch();
+        internal static LoggingLevelSwitch LoggingLevelSwitch = new();
 
         public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
             Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,

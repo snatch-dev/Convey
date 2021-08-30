@@ -6,7 +6,7 @@ namespace Convey.Secrets.Vault.Internals
     internal sealed class LeaseService : ILeaseService
     {
         private static readonly ConcurrentDictionary<string, LeaseData> Secrets =
-            new ConcurrentDictionary<string, LeaseData>();
+            new();
 
         public IReadOnlyDictionary<string, LeaseData> All => Secrets;
 

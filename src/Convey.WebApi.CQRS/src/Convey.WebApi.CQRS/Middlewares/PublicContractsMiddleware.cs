@@ -22,7 +22,7 @@ namespace Convey.WebApi.CQRS.Middlewares
         private readonly string _endpoint;
         private readonly bool _attributeRequired;
 
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Converters = new List<JsonConverter>
@@ -32,7 +32,7 @@ namespace Convey.WebApi.CQRS.Middlewares
             Formatting = Formatting.Indented
         };
 
-        private static readonly ContractTypes Contracts = new ContractTypes();
+        private static readonly ContractTypes Contracts = new();
         private static int _initialized;
         private static string _serializedContracts = "{}";
 
@@ -107,8 +107,8 @@ namespace Convey.WebApi.CQRS.Middlewares
 
         private class ContractTypes
         {
-            public Dictionary<string, object> Commands { get; } = new Dictionary<string, object>();
-            public Dictionary<string, object> Events { get; } = new Dictionary<string, object>();
+            public Dictionary<string, object> Commands { get; } = new();
+            public Dictionary<string, object> Events { get; } = new();
         }
     }
 }

@@ -89,10 +89,10 @@ namespace Convey.MessageBrokers.Outbox.Processors
             using var scope = _serviceScopeFactory.CreateScope();
             var outbox = scope.ServiceProvider.GetRequiredService<IMessageOutboxAccessor>();
             var messages = await outbox.GetUnsentAsync();
-            _logger.LogTrace($"Found {messages.Count} unsent messages in outbox [job id: '{jobId}'].");
+            _logger.LogTrace($"Found {messages.Count} unsent messages in outbox [job ID: '{jobId}'].");
             if (!messages.Any())
             {
-                _logger.LogTrace($"No messages to be processed in outbox [job id: '{jobId}'].");
+                _logger.LogTrace($"No messages to be processed in outbox [job ID: '{jobId}'].");
                 return;
             }
 
@@ -112,7 +112,7 @@ namespace Convey.MessageBrokers.Outbox.Processors
             }
             
             stopwatch.Stop();
-            _logger.LogTrace($"Processed {messages.Count} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job id: '{jobId}'].");
+            _logger.LogTrace($"Processed {messages.Count} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job ID: '{jobId}'].");
         }
 
         private enum OutboxType

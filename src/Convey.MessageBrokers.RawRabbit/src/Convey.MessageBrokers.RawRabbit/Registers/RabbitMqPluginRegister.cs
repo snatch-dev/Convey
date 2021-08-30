@@ -10,7 +10,7 @@ namespace Convey.MessageBrokers.RawRabbit.Registers
         public IServiceProvider ServiceProvider { get; }
         
         private readonly List<(Action<IClientBuilder> buildClient, Action<IDependencyRegister>registerDependencies)> _plugins = 
-            new List<(Action<IClientBuilder> buildClient, Action<IDependencyRegister> registerDependencies)>();
+            new();
         
         public RabbitMqPluginRegister(IServiceProvider serviceProvider)
             => ServiceProvider = serviceProvider;

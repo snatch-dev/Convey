@@ -7,7 +7,7 @@ namespace Convey.Secrets.Vault.Internals
     internal sealed class CertificatesService : ICertificatesService
     {
         private static readonly ConcurrentDictionary<string, X509Certificate2> Certificates =
-            new ConcurrentDictionary<string, X509Certificate2>();
+            new();
 
         public IReadOnlyDictionary<string, X509Certificate2> All => Certificates;
         

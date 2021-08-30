@@ -14,7 +14,7 @@ namespace Convey.MessageBrokers.Outbox.Mongo.Internals
 {
     internal sealed class MongoMessageOutbox : IMessageOutbox, IMessageOutboxAccessor
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             Converters = new List<JsonConverter>

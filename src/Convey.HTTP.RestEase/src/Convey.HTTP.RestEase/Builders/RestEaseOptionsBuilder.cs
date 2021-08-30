@@ -5,8 +5,8 @@ namespace Convey.HTTP.RestEase.Builders
 {
     internal sealed class RestEaseOptionsBuilder : IRestEaseOptionsBuilder
     {
-        private readonly RestEaseOptions _options = new RestEaseOptions();
-        private readonly List<RestEaseOptions.Service> _services = new List<RestEaseOptions.Service>();
+        private readonly RestEaseOptions _options = new();
+        private readonly List<RestEaseOptions.Service> _services = new();
         
         public IRestEaseOptionsBuilder WithLoadBalancer(string loadBalancer)
         {
@@ -29,7 +29,7 @@ namespace Convey.HTTP.RestEase.Builders
 
         private class RestEaseServiceBuilder : IRestEaseServiceBuilder
         {
-            private readonly RestEaseOptions.Service _service = new RestEaseOptions.Service();
+            private readonly RestEaseOptions.Service _service = new();
             
             public IRestEaseServiceBuilder WithName(string name)
             {

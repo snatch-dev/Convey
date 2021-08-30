@@ -7,7 +7,7 @@ namespace Convey.MessageBrokers.RawRabbit.Builders
 {
     internal sealed class RabbitMqOptionsBuilder : IRabbitMqOptionsBuilder
     {
-        private readonly RabbitMqOptions _options = new RabbitMqOptions();
+        private readonly RabbitMqOptions _options = new();
         
         public IRabbitMqOptionsBuilder WithRequestTimeout(TimeSpan requestTimeout)
         {

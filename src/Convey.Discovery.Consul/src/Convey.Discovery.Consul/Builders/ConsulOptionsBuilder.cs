@@ -2,7 +2,7 @@ namespace Convey.Discovery.Consul.Builders
 {
     internal sealed class ConsulOptionsBuilder : IConsulOptionsBuilder
     {
-        private readonly ConsulOptions _options = new ConsulOptions();
+        private readonly ConsulOptions _options = new();
 
         public IConsulOptionsBuilder Enable(bool enabled)
         {

@@ -191,7 +191,7 @@ namespace Convey.WebApi
                 Path = path,
                 Responses = new List<WebApiEndpointResponse>
                 {
-                    new WebApiEndpointResponse
+                    new()
                     {
                         StatusCode = 200
                     }
@@ -218,7 +218,7 @@ namespace Convey.WebApi
                 Path = path,
                 Parameters = new List<WebApiEndpointParameter>
                 {
-                    new WebApiEndpointParameter
+                    new()
                     {
                         In = method == HttpMethods.Get ? "query" : "body",
                         Name = input?.Name,
@@ -230,7 +230,7 @@ namespace Convey.WebApi
                 },
                 Responses = new List<WebApiEndpointResponse>
                 {
-                    new WebApiEndpointResponse
+                    new()
                     {
                         StatusCode = method == HttpMethods.Get ? 200 : 202,
                         Type = output?.Name,

@@ -218,9 +218,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, ex.Message);
-                    channel.BasicReject(args.DeliveryTag, false);
+                    channel.BasicNack(args.DeliveryTag, false, _requeueFailedMessages);
                     await Task.Yield();
-                    throw;
                 }
             };
 

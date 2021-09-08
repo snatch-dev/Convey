@@ -39,13 +39,13 @@ namespace Convey.Docs.Swagger
             builder.Services.AddSingleton(options);
             builder.Services.AddSwaggerGen(c =>
             {
+                c.EnableAnnotations();
                 c.SwaggerDoc(options.Name, new OpenApiInfo { Title = options.Title, Version = options.Version });
                 if (options.IncludeSecurity)
                 {
                     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                     {
-                        Description =
-                            "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                         Name = "Authorization",
                         In = ParameterLocation.Header,
                         Type = SecuritySchemeType.ApiKey

@@ -38,8 +38,24 @@ namespace Convey.HTTP
                 options.RequestMasking.UrlParts = maskedRequestUrlParts;
             }
 
-            builder.Services.AddSingleton<ICorrelationContextFactory, EmptyCorrelationContextFactory>();
-            builder.Services.AddSingleton<ICorrelationIdFactory, EmptyCorrelationIdFactory>();
+            bool registerCorrelationContextFactory;
+            bool registerCorrelationIdFactory;
+            using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+            {
+                registerCorrelationContextFactory = scope.ServiceProvider.GetService<ICorrelationContextFactory>() is null;
+                registerCorrelationIdFactory = scope.ServiceProvider.GetService<ICorrelationIdFactory>() is null;
+            }
+
+            if (registerCorrelationContextFactory)
+            {
+                builder.Services.AddSingleton<ICorrelationContextFactory, EmptyCorrelationContextFactory>();
+            }
+            
+            if (registerCorrelationIdFactory)
+            {
+                builder.Services.AddSingleton<ICorrelationIdFactory, EmptyCorrelationIdFactory>();
+            }
+
             builder.Services.AddSingleton(options);
             builder.Services.AddSingleton<IHttpClientSerializer, SystemTextJsonHttpClientSerializer>();
             var clientBuilder = builder.Services.AddHttpClient<IHttpClient, ConveyHttpClient>(clientName);

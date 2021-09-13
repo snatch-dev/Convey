@@ -12,7 +12,7 @@ namespace Convey.WebApi.Formatters
     internal class JsonInputFormatter : IInputFormatter
     {
         private const string EmptyJson = "{}";
-        private readonly ConcurrentDictionary<Type, MethodInfo> _methods = new ConcurrentDictionary<Type, MethodInfo>();
+        private readonly ConcurrentDictionary<Type, MethodInfo> _methods = new();
         private readonly IJsonSerializer _serializer;
         private readonly MethodInfo _deserializeMethod;
 
@@ -38,7 +38,7 @@ namespace Convey.WebApi.Formatters
 
             var request = context.HttpContext.Request;
             var json = string.Empty;
-            if (request.Body is {})
+            if (request.Body is not null)
             {
                 using var streamReader = new StreamReader(request.Body);
                 json = await streamReader.ReadToEndAsync();

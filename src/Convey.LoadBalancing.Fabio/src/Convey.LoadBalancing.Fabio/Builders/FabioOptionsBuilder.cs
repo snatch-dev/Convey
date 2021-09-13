@@ -2,7 +2,7 @@ namespace Convey.LoadBalancing.Fabio.Builders
 {
     public class FabioOptionsBuilder : IFabioOptionsBuilder
     {
-        private FabioOptions _options = new FabioOptions();
+        private FabioOptions _options = new();
 
         public IFabioOptionsBuilder Enable(bool enabled)
         {

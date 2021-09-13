@@ -11,10 +11,10 @@ namespace Convey.MessageBrokers.Outbox.Outbox
     internal sealed class InMemoryMessageOutbox : IMessageOutbox, IMessageOutboxAccessor
     {
         private readonly ConcurrentDictionary<string, bool> _inboxMessages =
-            new ConcurrentDictionary<string, bool>();
+            new();
 
         private readonly ConcurrentDictionary<string, OutboxMessage> _outboxMessages =
-            new ConcurrentDictionary<string, OutboxMessage>();
+            new();
 
         private readonly ILogger<InMemoryMessageOutbox> _logger;
         private readonly int _expiry;

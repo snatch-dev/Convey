@@ -2,7 +2,7 @@ namespace Convey.Tracing.Jaeger.Builders
 {
     internal sealed class JaegerOptionsBuilder : IJaegerOptionsBuilder
     {
-        private readonly JaegerOptions _options = new JaegerOptions();
+        private readonly JaegerOptions _options = new();
 
         public IJaegerOptionsBuilder Enable(bool enabled)
         {

@@ -2,7 +2,7 @@ namespace Convey.Docs.Swagger.Builders
 {
     internal sealed class SwaggerOptionsBuilder : ISwaggerOptionsBuilder
     {
-        private readonly SwaggerOptions _options = new SwaggerOptions();
+        private readonly SwaggerOptions _options = new();
 
         public ISwaggerOptionsBuilder Enable(bool enabled)
         {

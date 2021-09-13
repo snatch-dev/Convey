@@ -16,10 +16,10 @@ namespace Convey.MessageBrokers.RabbitMQ.Initializers
         private readonly ILogger<RabbitMqExchangeInitializer> _logger;
         private readonly bool _loggerEnabled;
 
-        public RabbitMqExchangeInitializer(IConnection connection, RabbitMqOptions options,
+        public RabbitMqExchangeInitializer(ProducerConnection connection, RabbitMqOptions options,
             ILogger<RabbitMqExchangeInitializer> logger)
         {
-            _connection = connection;
+            _connection = connection.Connection;
             _options = options;
             _logger = logger;
             _loggerEnabled = _options.Logger?.Enabled == true;

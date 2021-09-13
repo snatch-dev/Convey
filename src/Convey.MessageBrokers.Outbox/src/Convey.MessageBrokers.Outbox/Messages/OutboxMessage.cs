@@ -10,7 +10,7 @@ namespace Convey.MessageBrokers.Outbox.Messages
         public string OriginatedMessageId { get; set; }
         public string CorrelationId { get; set; }
         public string SpanContext { get; set; }
-        public Dictionary<string, object> Headers { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, object> Headers { get; set; } = new();
         public string MessageType { get; set; }
         public string MessageContextType { get; set; }
         public object Message { get; set; }

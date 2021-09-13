@@ -42,7 +42,7 @@ namespace Convey.WebApi.CQRS.Middlewares
             }
         }
 
-        private static readonly ContractTypes Contracts = new ContractTypes();
+        private static readonly ContractTypes Contracts = new();
         private static int _initialized;
         private static string _serializedContracts = "{}";
 
@@ -117,8 +117,8 @@ namespace Convey.WebApi.CQRS.Middlewares
 
         private class ContractTypes
         {
-            public Dictionary<string, object> Commands { get; } = new Dictionary<string, object>();
-            public Dictionary<string, object> Events { get; } = new Dictionary<string, object>();
+            public Dictionary<string, object> Commands { get; } = new();
+            public Dictionary<string, object> Events { get; } = new();
         }
     }
 }

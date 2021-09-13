@@ -7,7 +7,7 @@ namespace Convey.Persistence.OpenStack.OCS.OcsTypes
     internal static class ObjectMapper
     {
         public static OcsObjectMetadata Map(ObjectMetadata objectMetadata)
-            => new OcsObjectMetadata(objectMetadata.hash,
+            => new(objectMetadata.hash,
                 objectMetadata.last_modified,
                 objectMetadata.bytes,
                 objectMetadata.name,

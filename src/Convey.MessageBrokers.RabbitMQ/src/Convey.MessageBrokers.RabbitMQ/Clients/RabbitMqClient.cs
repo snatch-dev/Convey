@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -10,7 +9,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
 {
     internal sealed class RabbitMqClient : IRabbitMqClient
     {
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new();
         private const string EmptyContext = "{}";
         private readonly IConnection _connection;
         private readonly IContextProvider _contextProvider;
@@ -21,13 +20,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
         private readonly string _spanContextHeader;
         private readonly bool _persistMessages;
         private int _channelsCount;
-        private readonly ConcurrentDictionary<int, IModel> _channels = new ConcurrentDictionary<int, IModel>();
+        private readonly ConcurrentDictionary<int, IModel> _channels = new();
         private readonly int _maxChannels;
 
-        public RabbitMqClient(IConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
+        public RabbitMqClient(ProducerConnection connection, IContextProvider contextProvider, IRabbitMqSerializer serializer,
             RabbitMqOptions options, ILogger<RabbitMqClient> logger)
         {
-            _connection = connection;
+            _connection = connection.Connection;
             _contextProvider = contextProvider;
             _serializer = serializer;
             _logger = logger;
@@ -70,8 +69,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                 }
             }
             
-            var payload = _serializer.Serialize(message);
-            var body = Encoding.UTF8.GetBytes(payload);
+            var body = _serializer.Serialize(message);
             var properties = channel.CreateBasicProperties();
             properties.Persistent = _persistMessages;
             properties.MessageId = string.IsNullOrWhiteSpace(messageId)
@@ -93,7 +91,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                 properties.Headers.Add(_spanContextHeader, spanContext);
             }
 
-            if (headers is {})
+            if (headers is not null)
             {
                 foreach (var (key, value) in headers)
                 {
@@ -113,14 +111,14 @@ namespace Convey.MessageBrokers.RabbitMQ.Clients
                                  $"[id: '{properties.MessageId}', correlation id: '{properties.CorrelationId}']");
             }
 
-            channel.BasicPublish(conventions.Exchange, conventions.RoutingKey, properties, body);
+            channel.BasicPublish(conventions.Exchange, conventions.RoutingKey, properties, body.ToArray());
         }
 
         private void IncludeMessageContext(object context, IBasicProperties properties)
         {
-            if (context is {})
+            if (context is not null)
             {
-                properties.Headers.Add(_contextProvider.HeaderName, _serializer.Serialize(context));
+                properties.Headers.Add(_contextProvider.HeaderName, _serializer.Serialize(context).ToArray());
                 return;
             }
 

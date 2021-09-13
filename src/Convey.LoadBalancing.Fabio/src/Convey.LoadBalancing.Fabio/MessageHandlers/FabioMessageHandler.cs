@@ -35,6 +35,6 @@ namespace Convey.LoadBalancing.Fabio.MessageHandlers
         }
 
         private Uri GetRequestUri(HttpRequestMessage request)
-            => new Uri($"{_options.Url}/{_servicePath}{request.RequestUri.Host}{request.RequestUri.PathAndQuery}");
+            => new($"{_options.Url}/{_servicePath}{request.RequestUri.Host}{request.RequestUri.PathAndQuery}");
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 
 namespace Convey.MessageBrokers.RabbitMQ.Contexts
 {
@@ -28,12 +27,12 @@ namespace Convey.MessageBrokers.RabbitMQ.Contexts
                 return null;
             }
 
-            if (!(context is byte[] bytes))
+            if (context is byte[] bytes)
             {
-                return null;
+                return _serializer.Deserialize(bytes);
             }
 
-            return _serializer.Deserialize(Encoding.UTF8.GetString(bytes));
+            return null;
         }
     }
 }

@@ -10,10 +10,9 @@ namespace Convey.Secrets.Vault
     //https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Configuration.Json/src/JsonConfigurationFileParser.cs
     internal sealed class JsonParser
     {
-        private readonly Dictionary<string, string> _data =
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _data = new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly Stack<string> _stack = new Stack<string>();
+        private readonly Stack<string> _stack = new();
 
         public IDictionary<string, string> Parse(string json)
         {

@@ -8,7 +8,7 @@ namespace Convey.Discovery.Consul.Services
 {
     internal sealed class ConsulServicesRegistry : IConsulServicesRegistry
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
         private readonly IConsulService _consulService;
         private readonly IDictionary<string, ISet<string>> _usedServices = new Dictionary<string, ISet<string>>();
 

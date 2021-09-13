@@ -4,7 +4,7 @@ namespace Convey.Metrics.AppMetrics.Builders
 {
     internal sealed class MetricsOptionsBuilder : IMetricsOptionsBuilder
     {
-        private readonly MetricsOptions _options = new MetricsOptions();
+        private readonly MetricsOptions _options = new();
         
         public IMetricsOptionsBuilder Enable(bool enabled)
         {

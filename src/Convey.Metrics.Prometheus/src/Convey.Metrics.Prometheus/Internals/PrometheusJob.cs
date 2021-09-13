@@ -28,7 +28,7 @@ namespace Convey.Metrics.Prometheus.Internals
                     .Customize()
                     .WithContentionStats()
                     .WithJitStats()
-                    .WithThreadPoolSchedulingStats()
+                    .WithThreadPoolStats()
                     .WithThreadPoolStats()
                     .WithGcStats()
                     .WithExceptionStats()

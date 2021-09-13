@@ -5,7 +5,7 @@ namespace Convey.MessageBrokers
     public class MessagePropertiesAccessor : IMessagePropertiesAccessor
     {
         private static readonly AsyncLocal<MessageContextHolder>
-            Holder = new AsyncLocal<MessageContextHolder>();
+            Holder = new();
 
         public IMessageProperties MessageProperties
         {

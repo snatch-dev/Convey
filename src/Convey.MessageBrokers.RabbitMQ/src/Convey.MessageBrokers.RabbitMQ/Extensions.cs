@@ -25,7 +25,7 @@ namespace Convey.MessageBrokers.RabbitMQ
 
         public static IConveyBuilder AddRabbitMq(this IConveyBuilder builder, string sectionName = SectionName,
             Func<IRabbitMqPluginsRegistry, IRabbitMqPluginsRegistry> plugins = null,
-            Action<ConnectionFactory> connectionFactoryConfigurator = null)
+            Action<ConnectionFactory> connectionFactoryConfigurator = null, IRabbitMqSerializer serializer = null)
         {
             if (string.IsNullOrWhiteSpace(sectionName))
             {
@@ -61,9 +61,19 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IRabbitMqClient, RabbitMqClient>();
             builder.Services.AddSingleton<IBusPublisher, RabbitMqPublisher>();
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();
+            builder.Services.AddSingleton<MessageSubscribersChannel>();
             builder.Services.AddTransient<RabbitMqExchangeInitializer>();
             builder.Services.AddHostedService<RabbitMqHostedService>();
             builder.AddInitializer<RabbitMqExchangeInitializer>();
+            
+            if (serializer is not null)
+            {
+                builder.Services.AddSingleton(serializer);
+            }
+            else
+            {
+                builder.Services.AddSingleton<IRabbitMqSerializer, SystemTextJsonJsonRabbitMqSerializer>();
+            }
 
             var pluginsRegistry = new RabbitMqPluginsRegistry();
             builder.Services.AddSingleton<IRabbitMqPluginsRegistryAccessor>(pluginsRegistry);
@@ -95,9 +105,11 @@ namespace Convey.MessageBrokers.RabbitMQ
             connectionFactoryConfigurator?.Invoke(connectionFactory);
 
             logger.LogDebug($"Connecting to RabbitMQ: '{string.Join(", ", options.HostNames)}'...");
-            var connection = connectionFactory.CreateConnection(options.HostNames.ToList(), options.ConnectionName);
+            var consumerConnection = connectionFactory.CreateConnection(options.HostNames.ToList(), $"{options.ConnectionName}_consumer");
+            var producerConnection = connectionFactory.CreateConnection(options.HostNames.ToList(), $"{options.ConnectionName}_producer");
             logger.LogDebug($"Connected to RabbitMQ: '{string.Join(", ", options.HostNames)}'.");
-            builder.Services.AddSingleton(connection);
+            builder.Services.AddSingleton(new ConsumerConnection(consumerConnection));
+            builder.Services.AddSingleton(new ProducerConnection(producerConnection));
 
             ((IRabbitMqPluginsRegistryAccessor) pluginsRegistry).Get().ToList().ForEach(p =>
                 builder.Services.AddTransient(p.PluginType));
@@ -172,11 +184,17 @@ namespace Convey.MessageBrokers.RabbitMQ
             where T : class, IExceptionToMessageMapper
         {
             builder.Services.AddSingleton<IExceptionToMessageMapper, T>();
-
+            return builder;
+        }
+        
+        public static IConveyBuilder AddExceptionToFailedMessageMapper<T>(this IConveyBuilder builder)
+            where T : class, IExceptionToFailedMessageMapper
+        {
+            builder.Services.AddSingleton<IExceptionToFailedMessageMapper, T>();
             return builder;
         }
 
         public static IBusSubscriber UseRabbitMq(this IApplicationBuilder app)
-            => new RabbitMqSubscriber(app.ApplicationServices);
+            => new RabbitMqSubscriber(app.ApplicationServices.GetRequiredService<MessageSubscribersChannel>());
     }
 }

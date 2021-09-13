@@ -20,7 +20,7 @@ namespace Convey.WebApi
             return FormatterCache<T>.Formatter;
         }
 
-        public static List<IJsonFormatter> Formatters { get; } = new List<IJsonFormatter>();
+        public static List<IJsonFormatter> Formatters { get; } = new();
 
         private static class FormatterCache<T>
         {

@@ -57,22 +57,21 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
 
             if (string.IsNullOrWhiteSpace(messageId))
             {
-                throw new ArgumentException("Message id to be processed cannot be empty.", nameof(messageId));
+                throw new ArgumentException("Message ID to be processed cannot be empty.", nameof(messageId));
             }
-
+            
+            _logger.LogTrace($"Received a message with ID: '{messageId}' to be processed.");
             var inboxMessagesSet = _dbContext.Set<InboxMessage>();
-
-            _logger.LogTrace($"Received a message with id: '{messageId}' to be processed.");
             if (await inboxMessagesSet.AnyAsync(m => m.Id == messageId))
             {
-                _logger.LogTrace($"Message with id: '{messageId}' was already processed.");
+                _logger.LogTrace($"Message with ID: '{messageId}' was already processed.");
                 return;
             }
 
             await using var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
-                _logger.LogTrace($"Processing a message with id: '{messageId}'...");
+                _logger.LogTrace($"Processing a message with ID: '{messageId}'...");
                 await handler();
                 await inboxMessagesSet.AddAsync(new InboxMessage
                 {
@@ -80,13 +79,17 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
                     ProcessedAt = DateTime.UtcNow
                 });
                 await transaction.CommitAsync();
-                _logger.LogTrace($"Processed a message with id: '{messageId}'.");
+                _logger.LogTrace($"Processed a message with ID: '{messageId}'.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"There was an error when processing a message with id: '{messageId}'.");
+                _logger.LogError(ex, $"There was an error when processing a message with ID: '{messageId}'.");
                 await transaction.RollbackAsync();
                 throw;
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
             }
         }
 
@@ -129,14 +132,14 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
             var outboxMessages = await outboxMessagesSet.Where(om => om.ProcessedAt == null).ToListAsync();
             return outboxMessages.Select(om =>
             {
-                if (om.MessageContextType is {})
+                if (om.MessageContextType is not null)
                 {
                     var messageContextType = Type.GetType(om.MessageContextType);
                     om.MessageContext = JsonSerializer.Deserialize(om.SerializedMessageContext, messageContextType,
                         SerializerOptions);
                 }
 
-                if (om.MessageType is {})
+                if (om.MessageType is not null)
                 {
                     var messageType = Type.GetType(om.MessageType);
                     om.Message = JsonSerializer.Deserialize(om.SerializedMessage, messageType, SerializerOptions);

@@ -39,7 +39,7 @@ namespace Convey.Discovery.Consul.Services
         }
 
         private static StringContent GetPayload(object request)
-            => new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            => new(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
         private static string GetEndpoint(string endpoint) => $"{Version}/{endpoint}";
     }

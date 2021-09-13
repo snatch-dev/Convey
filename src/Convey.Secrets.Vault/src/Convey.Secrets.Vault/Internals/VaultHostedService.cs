@@ -51,7 +51,7 @@ namespace Convey.Secrets.Vault.Internals
                 var now = DateTime.UtcNow;
                 var nextIterationAt = now.AddSeconds(2 * _interval);
                 
-                if (_options.Pki is {} && _options.Pki.Enabled)
+                if (_options.Pki is not null && _options.Pki.Enabled)
                 {
                     foreach (var (role, cert) in _certificatesService.All)
                     {

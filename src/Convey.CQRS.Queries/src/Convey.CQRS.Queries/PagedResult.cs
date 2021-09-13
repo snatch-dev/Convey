@@ -29,13 +29,13 @@ namespace Convey.CQRS.Queries
         public static PagedResult<T> Create(IEnumerable<T> items,
             int currentPage, int resultsPerPage,
             int totalPages, long totalResults)
-            => new PagedResult<T>(items, currentPage, resultsPerPage, totalPages, totalResults);
+            => new(items, currentPage, resultsPerPage, totalPages, totalResults);
 
         public static PagedResult<T> From(PagedResultBase result, IEnumerable<T> items)
-            => new PagedResult<T>(items, result.CurrentPage, result.ResultsPerPage,
+            => new(items, result.CurrentPage, result.ResultsPerPage,
                 result.TotalPages, result.TotalResults);
 
-        public static PagedResult<T> Empty => new PagedResult<T>();
+        public static PagedResult<T> Empty => new();
 
         public PagedResult<U> Map<U>(Func<T, U> map)
             => PagedResult<U>.From(this, Items.Select(map));

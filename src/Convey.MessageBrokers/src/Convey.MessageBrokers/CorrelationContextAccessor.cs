@@ -5,7 +5,7 @@ namespace Convey.MessageBrokers
     public class CorrelationContextAccessor : ICorrelationContextAccessor
     {
         private static readonly AsyncLocal<CorrelationContextHolder>
-            Holder = new AsyncLocal<CorrelationContextHolder>();
+            Holder = new();
 
         public object CorrelationContext
         {

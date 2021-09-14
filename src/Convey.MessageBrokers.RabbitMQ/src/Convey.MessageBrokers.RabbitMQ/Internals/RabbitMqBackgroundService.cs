@@ -16,7 +16,7 @@ using RabbitMQ.Client.Events;
 
 namespace Convey.MessageBrokers.RabbitMQ.Internals
 {
-    internal sealed class RabbitMqHostedService : BackgroundService
+    internal sealed class RabbitMqBackgroundService : BackgroundService
     {
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
@@ -48,7 +48,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
         private readonly RabbitMqOptions.QosOptions _qosOptions;
         private readonly bool _requeueFailedMessages;
 
-        public RabbitMqHostedService(IServiceProvider serviceProvider)
+        public RabbitMqBackgroundService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
             _consumerConnection = serviceProvider.GetRequiredService<ConsumerConnection>().Connection;
@@ -94,14 +94,24 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
         {
             await foreach (var messageSubscriber in _messageSubscribersChannel.Reader.ReadAllAsync(stoppingToken))
             {
-                switch (messageSubscriber.Action)
+                try
                 {
-                    case MessageSubscriberAction.Subscribe:
-                        Subscribe(messageSubscriber);
-                        break;
-                    case MessageSubscriberAction.Unsubscribe:
-                        Unsubscribe(messageSubscriber);
-                        break;
+                    switch (messageSubscriber.Action)
+                    {
+                        case MessageSubscriberAction.Subscribe:
+                            Subscribe(messageSubscriber);
+                            break;
+                        case MessageSubscriberAction.Unsubscribe:
+                            Unsubscribe(messageSubscriber);
+                            break;
+                        default:
+                            throw new InvalidOperationException("Unknown message subscriber action type.");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError($"There was an error during RabbitMQ action: '{messageSubscriber.Action}'.");
+                    _logger.LogError(exception, exception.Message);
                 }
             }
         }

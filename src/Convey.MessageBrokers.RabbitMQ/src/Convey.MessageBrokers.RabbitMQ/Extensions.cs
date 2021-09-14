@@ -62,7 +62,7 @@ namespace Convey.MessageBrokers.RabbitMQ
             builder.Services.AddSingleton<IBusSubscriber, RabbitMqSubscriber>();
             builder.Services.AddSingleton<MessageSubscribersChannel>();
             builder.Services.AddTransient<RabbitMqExchangeInitializer>();
-            builder.Services.AddHostedService<RabbitMqHostedService>();
+            builder.Services.AddHostedService<RabbitMqBackgroundService>();
             builder.AddInitializer<RabbitMqExchangeInitializer>();
             
             if (serializer is not null)

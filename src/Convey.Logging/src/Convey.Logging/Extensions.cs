@@ -27,7 +27,7 @@ namespace Convey.Logging
         internal static LoggingLevelSwitch LoggingLevelSwitch = new();
 
         public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
-            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            Action<HostBuilderContext, LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
             => hostBuilder
                 .ConfigureServices(services => services.AddSingleton<ILoggingService, LoggingService>())
@@ -47,11 +47,11 @@ namespace Convey.Logging
                 var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
 
                 MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
-                configure?.Invoke(loggerConfiguration);
+                configure?.Invoke(context, loggerConfiguration);
             });
 
         public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder,
-            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            Action<WebHostBuilderContext, LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
             => webHostBuilder
                 .ConfigureServices(services => services.AddSingleton<ILoggingService, LoggingService>())
@@ -72,7 +72,7 @@ namespace Convey.Logging
 
                     MapOptions(loggerOptions, appOptions, loggerConfiguration,
                         context.HostingEnvironment.EnvironmentName);
-                    configure?.Invoke(loggerConfiguration);
+                    configure?.Invoke(context, loggerConfiguration);
                 });
 
         public static IEndpointConventionBuilder MapLogLevelHandler(this IEndpointRouteBuilder builder, 

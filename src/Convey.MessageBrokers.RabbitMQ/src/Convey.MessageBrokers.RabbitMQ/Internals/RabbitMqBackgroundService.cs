@@ -204,11 +204,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
             {
                 try
                 {
+                    using var scope = _serviceProvider.CreateScope();
+
                     var messageId = args.BasicProperties.MessageId;
                     var correlationId = args.BasicProperties.CorrelationId;
                     var timestamp = args.BasicProperties.Timestamp.UnixTime;
                     var message = _rabbitMqSerializer.Deserialize(args.Body.Span, messageSubscriber.Type);
-                    
+
                     if (_loggerEnabled)
                     {
                         var messagePayload = _logMessagePayload ? Encoding.UTF8.GetString(args.Body.Span) : string.Empty;
@@ -218,8 +220,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                             messageId, correlationId, timestamp, conventions.Queue, conventions.RoutingKey, conventions.Exchange, messagePayload);
                     }
 
-                    var correlationContext = BuildCorrelationContext(args);
-                    
+                    var correlationContext = BuildCorrelationContext(scope, args);
+
                     Task Next(object m, object ctx, BasicDeliverEventArgs a)
                         => TryHandleAsync(channel, m, messageId, correlationId, ctx, a, messageSubscriber.Handle);
 
@@ -236,9 +238,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
             channel.BasicConsume(conventions.Queue, false, consumer);
         }
 
-        private object BuildCorrelationContext(BasicDeliverEventArgs args)
+        private object BuildCorrelationContext(IServiceScope scope, BasicDeliverEventArgs args)
         {
-            using var scope = _serviceProvider.CreateScope();
             var messagePropertiesAccessor = scope.ServiceProvider.GetRequiredService<IMessagePropertiesAccessor>();
             messagePropertiesAccessor.MessageProperties = new MessageProperties
             {

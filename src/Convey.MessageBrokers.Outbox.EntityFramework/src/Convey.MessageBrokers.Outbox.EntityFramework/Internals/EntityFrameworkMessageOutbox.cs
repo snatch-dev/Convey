@@ -26,6 +26,7 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
         private const string EmptyJsonObject = "{}";
         private readonly TContext _dbContext;
         private readonly ILogger<EntityFrameworkMessageOutbox<TContext>> _logger;
+        private readonly DbSet<InboxMessage> _inboxMessagesSet;
 
         public bool Enabled { get; }
 
@@ -34,6 +35,7 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
         {
             _dbContext = dbContext;
             _logger = logger;
+            _inboxMessagesSet = _dbContext.Set<InboxMessage>();
             Enabled = options.Enabled;
         }
 
@@ -51,8 +53,7 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
             }
             
             _logger.LogTrace($"Received a message with ID: '{messageId}' to be processed.");
-            var inboxMessagesSet = _dbContext.Set<InboxMessage>();
-            if (await inboxMessagesSet.AnyAsync(m => m.Id == messageId))
+            if (await _inboxMessagesSet.AnyAsync(m => m.Id == messageId))
             {
                 _logger.LogTrace($"Message with ID: '{messageId}' was already processed.");
                 return;
@@ -63,11 +64,12 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
             {
                 _logger.LogTrace($"Processing a message with ID: '{messageId}'...");
                 await handler();
-                await inboxMessagesSet.AddAsync(new InboxMessage
+                await _inboxMessagesSet.AddAsync(new InboxMessage
                 {
                     Id = messageId,
                     ProcessedAt = DateTime.UtcNow
                 });
+                await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
                 _logger.LogTrace($"Processed a message with ID: '{messageId}'.");
             }

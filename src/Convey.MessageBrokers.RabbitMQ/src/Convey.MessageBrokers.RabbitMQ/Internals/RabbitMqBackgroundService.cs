@@ -16,7 +16,7 @@ using RabbitMQ.Client.Events;
 
 namespace Convey.MessageBrokers.RabbitMQ.Internals
 {
-    internal sealed class RabbitMqHostedService : BackgroundService
+    internal sealed class RabbitMqBackgroundService : BackgroundService
     {
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
@@ -48,7 +48,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
         private readonly RabbitMqOptions.QosOptions _qosOptions;
         private readonly bool _requeueFailedMessages;
 
-        public RabbitMqHostedService(IServiceProvider serviceProvider)
+        public RabbitMqBackgroundService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
             _consumerConnection = serviceProvider.GetRequiredService<ConsumerConnection>().Connection;
@@ -94,14 +94,24 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
         {
             await foreach (var messageSubscriber in _messageSubscribersChannel.Reader.ReadAllAsync(stoppingToken))
             {
-                switch (messageSubscriber.Action)
+                try
                 {
-                    case MessageSubscriberAction.Subscribe:
-                        Subscribe(messageSubscriber);
-                        break;
-                    case MessageSubscriberAction.Unsubscribe:
-                        Unsubscribe(messageSubscriber);
-                        break;
+                    switch (messageSubscriber.Action)
+                    {
+                        case MessageSubscriberAction.Subscribe:
+                            Subscribe(messageSubscriber);
+                            break;
+                        case MessageSubscriberAction.Unsubscribe:
+                            Unsubscribe(messageSubscriber);
+                            break;
+                        default:
+                            throw new InvalidOperationException("Unknown message subscriber action type.");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError($"There was an error during RabbitMQ action: '{messageSubscriber.Action}'.");
+                    _logger.LogError(exception, exception.Message);
                 }
             }
         }
@@ -194,11 +204,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
             {
                 try
                 {
+                    using var scope = _serviceProvider.CreateScope();
+
                     var messageId = args.BasicProperties.MessageId;
                     var correlationId = args.BasicProperties.CorrelationId;
                     var timestamp = args.BasicProperties.Timestamp.UnixTime;
                     var message = _rabbitMqSerializer.Deserialize(args.Body.Span, messageSubscriber.Type);
-                    
+
                     if (_loggerEnabled)
                     {
                         var messagePayload = _logMessagePayload ? Encoding.UTF8.GetString(args.Body.Span) : string.Empty;
@@ -208,8 +220,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                             messageId, correlationId, timestamp, conventions.Queue, conventions.RoutingKey, conventions.Exchange, messagePayload);
                     }
 
-                    var correlationContext = BuildCorrelationContext(args);
-                    
+                    var correlationContext = BuildCorrelationContext(scope, args);
+
                     Task Next(object m, object ctx, BasicDeliverEventArgs a)
                         => TryHandleAsync(channel, m, messageId, correlationId, ctx, a, messageSubscriber.Handle);
 
@@ -226,9 +238,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
             channel.BasicConsume(conventions.Queue, false, consumer);
         }
 
-        private object BuildCorrelationContext(BasicDeliverEventArgs args)
+        private object BuildCorrelationContext(IServiceScope scope, BasicDeliverEventArgs args)
         {
-            using var scope = _serviceProvider.CreateScope();
             var messagePropertiesAccessor = scope.ServiceProvider.GetRequiredService<IMessagePropertiesAccessor>();
             messagePropertiesAccessor.MessageProperties = new MessageProperties
             {

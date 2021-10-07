@@ -15,6 +15,8 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.Elasticsearch;
+using Serilog.Sinks.Grafana.Loki;
+using Serilog.Sinks.PeriodicBatching;
 
 namespace Convey.Logging
 {
@@ -25,7 +27,7 @@ namespace Convey.Logging
         internal static LoggingLevelSwitch LoggingLevelSwitch = new();
 
         public static IHostBuilder UseLogging(this IHostBuilder hostBuilder,
-            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            Action<HostBuilderContext, LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
             => hostBuilder
                 .ConfigureServices(services => services.AddSingleton<ILoggingService, LoggingService>())
@@ -45,11 +47,11 @@ namespace Convey.Logging
                 var appOptions = context.Configuration.GetOptions<AppOptions>(appSectionName);
 
                 MapOptions(loggerOptions, appOptions, loggerConfiguration, context.HostingEnvironment.EnvironmentName);
-                configure?.Invoke(loggerConfiguration);
+                configure?.Invoke(context, loggerConfiguration);
             });
 
         public static IWebHostBuilder UseLogging(this IWebHostBuilder webHostBuilder,
-            Action<LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
+            Action<WebHostBuilderContext, LoggerConfiguration> configure = null, string loggerSectionName = LoggerSectionName,
             string appSectionName = AppSectionName)
             => webHostBuilder
                 .ConfigureServices(services => services.AddSingleton<ILoggingService, LoggingService>())
@@ -70,7 +72,7 @@ namespace Convey.Logging
 
                     MapOptions(loggerOptions, appOptions, loggerConfiguration,
                         context.HostingEnvironment.EnvironmentName);
-                    configure?.Invoke(loggerConfiguration);
+                    configure?.Invoke(context, loggerConfiguration);
                 });
 
         public static IEndpointConventionBuilder MapLogLevelHandler(this IEndpointRouteBuilder builder, 
@@ -116,6 +118,7 @@ namespace Convey.Logging
             var fileOptions = options.File ?? new FileOptions();
             var elkOptions = options.Elk ?? new ElkOptions();
             var seqOptions = options.Seq ?? new SeqOptions();
+            var lokiOptions = options.Loki ?? new LokiOptions();
 
             if (consoleOptions.Enabled)
             {
@@ -152,6 +155,35 @@ namespace Convey.Logging
             if (seqOptions.Enabled)
             {
                 loggerConfiguration.WriteTo.Seq(seqOptions.Url, apiKey: seqOptions.ApiKey);
+            }
+
+            if (lokiOptions.Enabled)
+            {
+                if (lokiOptions.LokiUsername is not null && lokiOptions.LokiPassword is not null)
+                {
+                    var auth = new LokiCredentials
+                    {
+                        Login = lokiOptions.LokiUsername,
+                        Password = lokiOptions.LokiPassword
+                    };
+                    
+                    loggerConfiguration.WriteTo.GrafanaLoki(
+                        lokiOptions.Url,
+                        credentials: auth,
+                        batchPostingLimit: lokiOptions.BatchPostingLimit ?? 1000,
+                        queueLimit: lokiOptions.QueueLimit,
+                        period: lokiOptions.Period).MinimumLevel.ControlledBy(LoggingLevelSwitch);
+                }
+                else
+                {
+                    loggerConfiguration.WriteTo.GrafanaLoki(                        
+                        lokiOptions.Url,
+                        batchPostingLimit: lokiOptions.BatchPostingLimit ?? 1000,
+                        queueLimit: lokiOptions.QueueLimit,
+                        period: lokiOptions.Period).MinimumLevel.ControlledBy(LoggingLevelSwitch);;
+                }
+                
+                
             }
         }
 

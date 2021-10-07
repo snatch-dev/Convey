@@ -1,9 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 
 namespace Convey.WebApi.Swagger.Filters
 {
@@ -28,71 +29,120 @@ namespace Convey.WebApi.Swagger.Filters
                     return item.Operations[OperationType.Put];
                 case "DELETE":
                     item.AddOperation(OperationType.Delete, new OpenApiOperation());
-                    return item.Operations[OperationType.Delete]; 
+                    return item.Operations[OperationType.Delete];
             }
+
             return null;
         };
 
         public WebApiDocumentFilter(WebApiEndpointDefinitions definitions)
             => _definitions = definitions;
-        
+
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
-            foreach (var definition in _definitions)
+            var jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true };
+
+            foreach (var pathDefinition in _definitions.GroupBy(d => d.Path))
             {
                 var pathItem = new OpenApiPathItem();
-                var operation = _getOperation(pathItem, definition.Method);
-                operation.Responses = new OpenApiResponses();
-                operation.Parameters = new List<OpenApiParameter>();
 
-                foreach (var parameter in definition.Parameters)
+                foreach (var methodDefinition in pathDefinition)
                 {
-                    if (parameter.In is InBody)
-                    {
-                        operation.Parameters.Add(new OpenApiParameter
-                        {
-                            Name = parameter.Name,
-                            Schema = new OpenApiSchema
-                            {
-                                Type = parameter.Type,
-                                Example = new OpenApiString(JsonSerializer.Serialize(parameter.Example))
-                            }
-                        });
-                    }
-                    else if (parameter.In is InQuery)
-                    {
-                        operation.Parameters.Add(new OpenApiParameter
-                        {
-                            Name = parameter.Name,
-                            Schema = new OpenApiSchema
-                            {
-                                Type = parameter.Type,
-                                Example = new OpenApiString(JsonSerializer.Serialize(parameter.Example))
-                            }
-                        });
-                    }
-                }
+                    var operation = _getOperation(pathItem, methodDefinition.Method);
+                    operation.Responses = new OpenApiResponses();
+                    operation.Parameters = new List<OpenApiParameter>();
 
-                foreach (var response in definition.Responses)
-                {
-                    operation.Responses.Add(response.StatusCode.ToString(), new OpenApiResponse
+                    foreach (var parameter in methodDefinition.Parameters)
                     {
-                        Content = new Dictionary<string, OpenApiMediaType>
+                        if (parameter.In is InBody)
                         {
-                            { "body", new OpenApiMediaType
+                            operation.RequestBody = new OpenApiRequestBody()
+                            {
+                                Content = new Dictionary<string, OpenApiMediaType>()
                                 {
+                                    {
+                                        "application/json", new OpenApiMediaType()
+                                        {
+                                            Schema = new OpenApiSchema
+                                            {
+                                                Type = parameter.Type.Name,
+                                                Example = new OpenApiString(
+                                                    JsonSerializer.Serialize(
+                                                        parameter.Example,
+                                                        jsonSerializerOptions))
+                                            }
+                                        }
+                                    }
+                                }
+                            };
+                        }
+                        else if (parameter.In is InQuery)
+                        {
+                            if (parameter.Type.GetInterface("IQuery") is not null)
+                            {
+                                operation.RequestBody = new OpenApiRequestBody()
+                                {
+                                    Content = new Dictionary<string, OpenApiMediaType>()
+                                    {
+                                        {
+                                            "application/json", new OpenApiMediaType()
+                                            {
+                                                Schema = new OpenApiSchema
+                                                {
+                                                    Type = parameter.Type.Name,
+                                                    Example = new OpenApiString(
+                                                        JsonSerializer.Serialize(
+                                                            parameter.Example,
+                                                            jsonSerializerOptions))
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                            else
+                            {
+                                operation.Parameters.Add(new OpenApiParameter
+                                {
+                                    Name = parameter.Name,
                                     Schema = new OpenApiSchema
                                     {
-                                        Type = response.Type,
-                                        Example = new OpenApiString(JsonSerializer.Serialize(response.Example))
+                                        Type = parameter.Type.Name,
+                                        Example = new OpenApiString(
+                                            JsonSerializer.Serialize(
+                                                parameter.Example,
+                                                jsonSerializerOptions))
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    foreach (var response in methodDefinition.Responses)
+                    {
+                        operation.Responses.Add(response.StatusCode.ToString(), new OpenApiResponse
+                        {
+                            Content = new Dictionary<string, OpenApiMediaType>
+                            {
+                                {
+                                    "application/json", new OpenApiMediaType
+                                    {
+                                        Schema = new OpenApiSchema
+                                        {
+                                            Type = response.Type?.Name,
+                                            Example = new OpenApiString(
+                                                JsonSerializer.Serialize(
+                                                    response.Example,
+                                                    jsonSerializerOptions))
+                                        }
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
-                
-                swaggerDoc.Paths.Add($"/{definition.Path}", pathItem);
+
+                swaggerDoc.Paths.Add($"/{pathDefinition.Key}", pathItem);
             }
         }
     }

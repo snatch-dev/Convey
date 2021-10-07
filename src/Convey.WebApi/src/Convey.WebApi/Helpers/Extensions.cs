@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -9,95 +10,148 @@ namespace Convey.WebApi.Helpers
     public static class Extensions
     {
         public static object SetDefaultInstanceProperties(this object instance)
+            => SetDefaultInstanceProperties(instance, new Dictionary<Type, object>());
+
+        private static object SetDefaultInstanceProperties(object instance, Dictionary<Type, object> defaultValueCache)
         {
+            defaultValueCache ??= new Dictionary<Type, object>();
+
             var type = instance.GetType();
-            foreach (var propertyInfo in type.GetProperties())
+
+            foreach (var propertyInfo in type.GetProperties(BindingFlags.Instance))
             {
-                SetValue(propertyInfo, instance);
+                if (TryGetDefaultValue(propertyInfo.PropertyType, out var defaultValue, defaultValueCache))
+                {
+                    SetValue(propertyInfo, instance, defaultValue);
+                }
             }
 
             return instance;
         }
 
-        private static void SetValue(PropertyInfo propertyInfo, object instance)
+        private static bool TryGetDefaultValue(Type type, out object defaultValue, Dictionary<Type, object> defaultValueCache)
         {
-            var propertyType = propertyInfo.PropertyType;
-            if (propertyType == typeof(string))
+            if (defaultValueCache.TryGetValue(type, out defaultValue))
             {
-                SetDefaultValue(propertyInfo, instance, string.Empty);
-                return;
-            }
-            
-            if (propertyType.Name == "IDictionary`2")
-            {
-                return;
+                return true;
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(propertyType))
+            if (type == typeof(string))
             {
-                SetCollection(propertyInfo, instance);
+                defaultValue = string.Empty;
 
-                return;
+                defaultValueCache[type] = defaultValue;
+
+                return true;
             }
 
-            if (propertyType.IsInterface)
+            if (type.Name == "IDictionary`2")
             {
-                return;
+                defaultValue = null;
+
+                return false;
             }
 
-            if (propertyType.IsArray)
+            if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                SetCollection(propertyInfo, instance);
-                return;
+                if (TryGetCollectionDefaultValue(type, out defaultValue))
+                {
+                    defaultValueCache[type] = defaultValue;
+
+                    return true;
+                }
+
+                defaultValue = null;
+
+                return false;
             }
 
-            if (!propertyType.IsClass)
+            if (type.IsInterface)
             {
-                return;
+                defaultValue = null;
+
+                return false;
             }
 
-            var propertyInstance = FormatterServices.GetUninitializedObject(propertyInfo.PropertyType);
-            SetDefaultValue(propertyInfo, instance, propertyInstance);
-            SetDefaultInstanceProperties(propertyInstance);
+            if (type.IsArray)
+            {
+                if (TryGetCollectionDefaultValue(type, out defaultValue))
+                {
+                    defaultValueCache[type] = defaultValue;
+
+                    return true;
+                }
+
+                defaultValue = null;
+
+                return false;
+            }
+
+            if (!type.IsClass)
+            {
+                defaultValue = null;
+
+                return false;
+            }
+
+            defaultValue = FormatterServices.GetUninitializedObject(type);
+
+            defaultValueCache[type] = defaultValue;
+
+            SetDefaultInstanceProperties(defaultValue, defaultValueCache);
+
+            return true;
         }
 
-        private static void SetCollection(PropertyInfo propertyInfo, object instance)
+        private static bool TryGetCollectionDefaultValue(Type type, out object defaultValue)
         {
-            var elementType = propertyInfo.PropertyType.IsGenericType
-                ? propertyInfo.PropertyType.GenericTypeArguments[0]
-                : propertyInfo.PropertyType.GetElementType();
+            var elementType =
+                type.IsGenericType
+                    ? type.GenericTypeArguments[0]
+                    : type.GetElementType();
+
             if (elementType is null)
             {
-                return;
+                defaultValue = null;
+
+                return false;
             }
 
             if (typeof(IEnumerable).IsAssignableFrom(elementType))
             {
                 if (elementType == typeof(string))
                 {
-                    SetDefaultValue(propertyInfo, instance, Array.Empty<string>());
-                    return;
+                    defaultValue = Array.Empty<string>();
+
+                    return true;
                 }
-                
-                return;
+
+                defaultValue = null;
+
+                return false;
             }
 
-            var array = Array.CreateInstance(elementType, 0);
-            SetDefaultValue(propertyInfo, instance, array);
+            defaultValue = Array.CreateInstance(elementType, 0);
+
+            return true;
         }
-        
-        private static void SetDefaultValue(PropertyInfo propertyInfo, object instance, object value)
+
+        private static void SetValue(PropertyInfo propertyInfo, object instance, object value)
         {
             if (propertyInfo.CanWrite)
             {
                 propertyInfo.SetValue(instance, value);
+
                 return;
             }
 
-            var propertyName = propertyInfo.Name;
-            var field = instance.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                .SingleOrDefault(x => x.Name.StartsWith($"<{propertyName}>"));
-            field?.SetValue(instance, value);
+            var fieldInfo =
+                instance
+                    .GetType()
+                    .GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
+                    .SingleOrDefault(x => x.Name.StartsWith($"<{propertyInfo.Name}>"));
+
+            fieldInfo?.SetValue(instance, value);
         }
     }
 }

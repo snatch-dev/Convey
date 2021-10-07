@@ -58,7 +58,7 @@ namespace Convey
             where TModel : new()
         {
             using var serviceProvider = builder.Services.BuildServiceProvider();
-            var configuration = serviceProvider.GetService<IConfiguration>();
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
             return configuration.GetOptions<TModel>(settingsSectionName);
         }
 

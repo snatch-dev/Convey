@@ -58,13 +58,13 @@ namespace Convey.Persistence.MongoDB
             builder.Services.AddSingleton(mongoOptions);
             builder.Services.AddSingleton<IMongoClient>(sp =>
             {
-                var options = sp.GetService<MongoDbOptions>();
+                var options = sp.GetRequiredService<MongoDbOptions>();
                 return new MongoClient(options.ConnectionString);
             });
             builder.Services.AddTransient(sp =>
             {
-                var options = sp.GetService<MongoDbOptions>();
-                var client = sp.GetService<IMongoClient>();
+                var options = sp.GetRequiredService<MongoDbOptions>();
+                var client = sp.GetRequiredService<IMongoClient>();
                 return client.GetDatabase(options.Database);
             });
             builder.Services.AddTransient<IMongoDbInitializer, MongoDbInitializer>();
@@ -108,7 +108,7 @@ namespace Convey.Persistence.MongoDB
         {
             builder.Services.AddTransient<IMongoRepository<TEntity, TIdentifiable>>(sp =>
             {
-                var database = sp.GetService<IMongoDatabase>();
+                var database = sp.GetRequiredService<IMongoDatabase>();
                 return new MongoRepository<TEntity, TIdentifiable>(database, collectionName);
             });
 

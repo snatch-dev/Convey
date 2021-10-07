@@ -31,15 +31,15 @@ namespace Convey
         public void AddInitializer(IInitializer initializer)
             => AddBuildAction(sp =>
             {
-                var startupInitializer = sp.GetService<IStartupInitializer>();
+                var startupInitializer = sp.GetRequiredService<IStartupInitializer>();
                 startupInitializer.AddInitializer(initializer);
             });
 
         public void AddInitializer<TInitializer>() where TInitializer : IInitializer
             => AddBuildAction(sp =>
             {
-                var initializer = sp.GetService<TInitializer>();
-                var startupInitializer = sp.GetService<IStartupInitializer>();
+                var initializer = sp.GetRequiredService<TInitializer>();
+                var startupInitializer = sp.GetRequiredService<IStartupInitializer>();
                 startupInitializer.AddInitializer(initializer);
             });
 

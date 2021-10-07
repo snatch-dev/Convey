@@ -61,7 +61,7 @@ namespace Convey.Secrets.Vault
             IConfiguration configuration;
             using (var serviceProvider = services.BuildServiceProvider())
             {
-                configuration = serviceProvider.GetService<IConfiguration>();
+                configuration = serviceProvider.GetRequiredService<IConfiguration>();
             }
 
             var options = configuration.GetOptions<VaultOptions>(sectionName);

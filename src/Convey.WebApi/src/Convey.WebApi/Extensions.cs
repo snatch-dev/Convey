@@ -70,10 +70,11 @@ namespace Convey.WebApi
             {
                 var jsonSerializerOptions = new JsonSerializerOptions
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    PropertyNameCaseInsensitive = true
                 };
 
-                jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: JsonNamingPolicy.CamelCase));
+                jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 
                 var factory = new Open.Serialization.Json.System.JsonSerializerFactory(jsonSerializerOptions);
 
@@ -157,7 +158,7 @@ namespace Convey.WebApi
 
         public static Task<TResult> DispatchAsync<TRequest, TResult>(this HttpContext httpContext, TRequest request)
             where TRequest : class, IRequest
-            => httpContext.RequestServices.GetService<IRequestHandler<TRequest, TResult>>().HandleAsync(request);
+            => httpContext.RequestServices.GetRequiredService<IRequestHandler<TRequest, TResult>>().HandleAsync(request);
 
         public static T Bind<T>(this T model, Expression<Func<T, object>> expression, object value)
             => model.Bind<T, object>(expression, value);

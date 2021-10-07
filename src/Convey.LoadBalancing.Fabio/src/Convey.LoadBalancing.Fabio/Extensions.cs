@@ -69,7 +69,7 @@ namespace Convey.LoadBalancing.Fabio
             }
 
             using var serviceProvider = builder.Services.BuildServiceProvider();
-            var registration = serviceProvider.GetService<ServiceRegistration>();
+            var registration = serviceProvider.GetRequiredService<ServiceRegistration>();
             var tags = GetFabioTags(registration.Name, fabioOptions.Service);
             if (registration.Tags is null)
             {
@@ -87,7 +87,7 @@ namespace Convey.LoadBalancing.Fabio
 
         public static void AddFabioHttpClient(this IConveyBuilder builder, string clientName, string serviceName)
             => builder.Services.AddHttpClient<IHttpClient, FabioHttpClient>(clientName)
-                .AddHttpMessageHandler(c => new FabioMessageHandler(c.GetService<FabioOptions>(), serviceName));
+                .AddHttpMessageHandler(c => new FabioMessageHandler(c.GetRequiredService<FabioOptions>(), serviceName));
 
         private static void UpdateConsulRegistration(this IServiceCollection services,
             ServiceRegistration registration)

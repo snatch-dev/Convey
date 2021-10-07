@@ -148,11 +148,9 @@ namespace Convey.Tracing.Jaeger
 
         public static IApplicationBuilder UseJaeger(this IApplicationBuilder app)
         {
-            JaegerOptions options;
-            using (var scope = app.ApplicationServices.CreateScope())
-            {
-                options = scope.ServiceProvider.GetService<JaegerOptions>();
-            }
+            // Could be extended with some additional middleware
+            using var scope = app.ApplicationServices.CreateScope();
+            var options = scope.ServiceProvider.GetRequiredService<JaegerOptions>();
 
             return app;
         }

@@ -52,7 +52,7 @@ namespace Convey.WebApi.Security
 
         public static IApplicationBuilder UseCertificateAuthentication(this IApplicationBuilder app)
         {
-            var options = app.ApplicationServices.GetService<SecurityOptions>();
+            var options = app.ApplicationServices.GetRequiredService<SecurityOptions>();
             if (options.Certificate is null || !options.Certificate.Enabled)
             {
                 return app;

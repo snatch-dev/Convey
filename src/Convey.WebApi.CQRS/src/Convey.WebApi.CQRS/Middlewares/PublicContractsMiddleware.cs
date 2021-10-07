@@ -21,26 +21,13 @@ namespace Convey.WebApi.CQRS.Middlewares
         private readonly string _endpoint;
         private readonly bool _attributeRequired;
 
-        private static JsonSerializerOptions _serializerOptions;
-        private static JsonSerializerOptions SerializerOptions
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            get
-            {
-                if (_serializerOptions == null)
-                {
-                    _serializerOptions =
-                        new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                            WriteIndented = true
-                        };
-
-                    _serializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: JsonNamingPolicy.CamelCase));
-                }
-
-                return _serializerOptions;
-            }
-        }
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+            WriteIndented = true
+        };
 
         private static readonly ContractTypes Contracts = new();
         private static int _initialized;
@@ -82,7 +69,7 @@ namespace Convey.WebApi.CQRS.Middlewares
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var contracts = assemblies.SelectMany(a => a.GetTypes())
-                .Where(t => (!_attributeRequired || !(t.GetCustomAttribute(attributeType) is null)) && !t.IsInterface)
+                .Where(t => (!_attributeRequired || t.GetCustomAttribute(attributeType) is not null) && !t.IsInterface)
                 .ToArray();
 
             foreach (var command in contracts.Where(t => typeof(ICommand).IsAssignableFrom(t)))

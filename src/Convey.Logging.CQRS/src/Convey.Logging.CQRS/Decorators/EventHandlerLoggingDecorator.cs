@@ -12,16 +12,15 @@ namespace Convey.Logging.CQRS.Decorators
     internal sealed class EventHandlerLoggingDecorator<TEvent> : IEventHandler<TEvent> where TEvent : class, IEvent
     {
         private readonly IEventHandler<TEvent> _handler;
-        private readonly ILogger<TEvent> _logger;
+        private readonly ILogger<EventHandlerLoggingDecorator<TEvent>> _logger;
         private readonly IMessageToLogTemplateMapper _mapper;
 
-        public EventHandlerLoggingDecorator(IEventHandler<TEvent> handler, ILogger<TEvent> logger,
-            IServiceProvider serviceProvider)
+        public EventHandlerLoggingDecorator(IEventHandler<TEvent> handler,
+            ILogger<EventHandlerLoggingDecorator<TEvent>> logger, IServiceProvider serviceProvider)
         {
             _handler = handler;
             _logger = logger;
-            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ??
-                      new EmptyMessageToLogTemplateMapper();
+            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ?? new EmptyMessageToLogTemplateMapper();
         }
 
         public async Task HandleAsync(TEvent @event)

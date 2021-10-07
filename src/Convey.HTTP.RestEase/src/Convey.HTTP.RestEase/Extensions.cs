@@ -104,7 +104,7 @@ namespace Convey.HTTP.RestEase
 
         private static void ConfigureForwarder<T>(IServiceCollection services, string clientName) where T : class
         {
-            services.AddTransient<T>(c => new RestClient(c.GetService<IHttpClientFactory>().CreateClient(clientName))
+            services.AddTransient<T>(c => new RestClient(c.GetRequiredService<IHttpClientFactory>().CreateClient(clientName))
             {
                 RequestQueryParamSerializer = new QueryParamSerializer()
             }.For<T>());

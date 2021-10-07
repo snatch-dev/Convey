@@ -126,22 +126,19 @@ namespace Convey.Metrics.AppMetrics
             var metrics = metricsBuilder.Build();
             var metricsWebHostOptions = GetMetricsWebHostOptions(metricsOptions);
 
-            using (var serviceProvider = builder.Services.BuildServiceProvider())
-            {
-                var configuration = serviceProvider.GetService<IConfiguration>();
-                builder.Services.AddHealth();
-                builder.Services.AddHealthEndpoints(configuration);
-                builder.Services.AddMetricsTrackingMiddleware(configuration);
-                builder.Services.AddMetricsEndpoints(configuration);
-                builder.Services.AddSingleton<IStartupFilter>(new DefaultMetricsEndpointsStartupFilter());
-                builder.Services.AddSingleton<IStartupFilter>(new DefaultHealthEndpointsStartupFilter());
-                builder.Services.AddSingleton<IStartupFilter>(new DefaultMetricsTrackingStartupFilter());
-                builder.Services.AddMetricsReportingHostedService(metricsWebHostOptions.UnobservedTaskExceptionHandler);
-                builder.Services.AddMetricsEndpoints(metricsWebHostOptions.EndpointOptions, configuration);
-                builder.Services.AddMetricsTrackingMiddleware(metricsWebHostOptions.TrackingMiddlewareOptions,
-                    configuration);
-                builder.Services.AddMetrics(metrics);
-            }
+            using var serviceProvider = builder.Services.BuildServiceProvider();
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            builder.Services.AddHealth();
+            builder.Services.AddHealthEndpoints(configuration);
+            builder.Services.AddMetricsTrackingMiddleware(configuration);
+            builder.Services.AddMetricsEndpoints(configuration);
+            builder.Services.AddSingleton<IStartupFilter>(new DefaultMetricsEndpointsStartupFilter());
+            builder.Services.AddSingleton<IStartupFilter>(new DefaultHealthEndpointsStartupFilter());
+            builder.Services.AddSingleton<IStartupFilter>(new DefaultMetricsTrackingStartupFilter());
+            builder.Services.AddMetricsReportingHostedService(metricsWebHostOptions.UnobservedTaskExceptionHandler);
+            builder.Services.AddMetricsEndpoints(metricsWebHostOptions.EndpointOptions, configuration);
+            builder.Services.AddMetricsTrackingMiddleware(metricsWebHostOptions.TrackingMiddlewareOptions, configuration);
+            builder.Services.AddMetrics(metrics);
 
             return builder;
         }
@@ -183,7 +180,7 @@ namespace Convey.Metrics.AppMetrics
             MetricsOptions options;
             using (var scope = app.ApplicationServices.CreateScope())
             {
-                options = scope.ServiceProvider.GetService<MetricsOptions>();
+                options = scope.ServiceProvider.GetRequiredService<MetricsOptions>();
             }
 
             return !options.Enabled

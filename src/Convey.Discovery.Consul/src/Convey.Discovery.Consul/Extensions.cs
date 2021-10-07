@@ -70,8 +70,8 @@ namespace Convey.Discovery.Consul
         public static void AddConsulHttpClient(this IConveyBuilder builder, string clientName, string serviceName)
             => builder.Services.AddHttpClient<IHttpClient, ConsulHttpClient>(clientName)
                 .AddHttpMessageHandler(c => new ConsulServiceDiscoveryMessageHandler(
-                    c.GetService<IConsulServicesRegistry>(),
-                    c.GetService<ConsulOptions>(), serviceName, true));
+                    c.GetRequiredService<IConsulServicesRegistry>(),
+                    c.GetRequiredService<ConsulOptions>(), serviceName, true));
 
         private static ServiceRegistration CreateConsulAgentRegistration(this IConveyBuilder builder,
             ConsulOptions options)

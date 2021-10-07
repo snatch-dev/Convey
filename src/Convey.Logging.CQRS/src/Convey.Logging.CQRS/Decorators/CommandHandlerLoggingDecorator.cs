@@ -13,16 +13,15 @@ namespace Convey.Logging.CQRS.Decorators
         where TCommand : class, ICommand
     {
         private readonly ICommandHandler<TCommand> _handler;
-        private readonly ILogger<TCommand> _logger;
+        private readonly ILogger<CommandHandlerLoggingDecorator<TCommand>> _logger;
         private readonly IMessageToLogTemplateMapper _mapper;
 
-        public CommandHandlerLoggingDecorator(ICommandHandler<TCommand> handler, ILogger<TCommand> logger,
-            IServiceProvider serviceProvider)
+        public CommandHandlerLoggingDecorator(ICommandHandler<TCommand> handler,
+            ILogger<CommandHandlerLoggingDecorator<TCommand>> logger, IServiceProvider serviceProvider)
         {
             _handler = handler;
             _logger = logger;
-            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ??
-                      new EmptyMessageToLogTemplateMapper();
+            _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ?? new EmptyMessageToLogTemplateMapper();
         }
 
         public async Task HandleAsync(TCommand command)

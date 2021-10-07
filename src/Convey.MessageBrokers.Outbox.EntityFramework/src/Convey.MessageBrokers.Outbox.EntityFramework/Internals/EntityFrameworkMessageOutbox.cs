@@ -13,25 +13,12 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
     internal sealed class EntityFrameworkMessageOutbox<TContext> : IMessageOutbox, IMessageOutboxAccessor
         where TContext : DbContext
     {
-        private static JsonSerializerOptions _serializerOptions;
-        private static JsonSerializerOptions SerializerOptions
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            get
-            {
-                if (_serializerOptions == null)
-                {
-                    _serializerOptions =
-                        new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                        };
-
-                    _serializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: JsonNamingPolicy.CamelCase));
-                }
-
-                return _serializerOptions;
-            }
-        }
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+        };
 
         private const string EmptyJsonObject = "{}";
         private readonly TContext _dbContext;

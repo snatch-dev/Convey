@@ -48,7 +48,7 @@ namespace Convey.MessageBrokers.RabbitMQ
             ILogger<IRabbitMqClient> logger;
             using (var serviceProvider = builder.Services.BuildServiceProvider())
             {
-                logger = serviceProvider.GetService<ILogger<IRabbitMqClient>>();
+                logger = serviceProvider.GetRequiredService<ILogger<IRabbitMqClient>>();
             }
 
             builder.Services.AddSingleton<IContextProvider, ContextProvider>();

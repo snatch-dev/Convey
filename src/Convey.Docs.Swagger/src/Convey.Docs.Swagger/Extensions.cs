@@ -58,7 +58,7 @@ namespace Convey.Docs.Swagger
 
         public static IApplicationBuilder UseSwaggerDocs(this IApplicationBuilder builder)
         {
-            var options = builder.ApplicationServices.GetService<SwaggerOptions>();
+            var options = builder.ApplicationServices.GetRequiredService<SwaggerOptions>();
             if (!options.Enabled)
             {
                 return builder;

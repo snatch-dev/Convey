@@ -116,8 +116,8 @@ namespace Convey.MessageBrokers.RawRabbit
             builder.Services.AddSingleton<IInstanceFactory>(serviceProvider =>
             {
                 var register = plugins?.Invoke(new RabbitMqPluginRegister(serviceProvider));
-                var options = serviceProvider.GetService<RabbitMqOptions>();
-                var configuration = serviceProvider.GetService<RawRabbitConfiguration>();
+                var options = serviceProvider.GetRequiredService<RabbitMqOptions>();
+                var configuration = serviceProvider.GetRequiredService<RawRabbitConfiguration>();
                 var namingConventions = new CustomNamingConventions(options.Namespace);
 
                 return RawRabbitFactory.CreateInstanceFactory(new RawRabbitOptions
@@ -146,7 +146,7 @@ namespace Convey.MessageBrokers.RawRabbit
                 });
             });
 
-            builder.Services.AddTransient(serviceProvider => serviceProvider.GetService<IInstanceFactory>().Create());
+            builder.Services.AddTransient(serviceProvider => serviceProvider.GetRequiredService<IInstanceFactory>().Create());
         }
 
         private class CustomNamingConventions : NamingConventions

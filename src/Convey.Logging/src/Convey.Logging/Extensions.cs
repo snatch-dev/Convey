@@ -16,7 +16,6 @@ using Serilog.Events;
 using Serilog.Filters;
 using Serilog.Sinks.Elasticsearch;
 using Serilog.Sinks.Grafana.Loki;
-using Serilog.Sinks.PeriodicBatching;
 
 namespace Convey.Logging
 {
@@ -209,7 +208,6 @@ namespace Convey.Logging
         private static async Task LevelSwitch(HttpContext context)
         {
             var service = context.RequestServices.GetService<ILoggingService>();
-
             if (service is null)
             {
                 context.Response.StatusCode = StatusCodes.Status400BadRequest;

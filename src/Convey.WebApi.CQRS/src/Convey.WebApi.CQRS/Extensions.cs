@@ -12,11 +12,17 @@ namespace Convey.WebApi.CQRS
 {
     public static class Extensions
     {
+        public static IConveyBuilder AddInMemoryDispatcher(this IConveyBuilder builder)
+        {
+            builder.Services.AddSingleton<IDispatcher, InMemoryDispatcher>();
+            return builder;
+        }
+        
         public static IApplicationBuilder UseDispatcherEndpoints(this IApplicationBuilder app,
             Action<IDispatcherEndpointsBuilder> builder, bool useAuthorization = true,
             Action<IApplicationBuilder> middleware = null)
         {
-            var definitions = app.ApplicationServices.GetService<WebApiEndpointDefinitions>();
+            var definitions = app.ApplicationServices.GetRequiredService<WebApiEndpointDefinitions>();
             app.UseRouting();
             if (useAuthorization)
             {
@@ -49,13 +55,13 @@ namespace Convey.WebApi.CQRS
                 attributeRequired);
 
         public static Task SendAsync<T>(this HttpContext context, T command) where T : class, ICommand
-            => context.RequestServices.GetService<ICommandDispatcher>().SendAsync(command);
+            => context.RequestServices.GetRequiredService<ICommandDispatcher>().SendAsync(command);
 
         public static Task<TResult> QueryAsync<TResult>(this HttpContext context, IQuery<TResult> query)
-            => context.RequestServices.GetService<IQueryDispatcher>().QueryAsync(query);
+            => context.RequestServices.GetRequiredService<IQueryDispatcher>().QueryAsync(query);
 
         public static Task<TResult> QueryAsync<TQuery, TResult>(this HttpContext context, TQuery query)
             where TQuery : class, IQuery<TResult>
-            => context.RequestServices.GetService<IQueryDispatcher>().QueryAsync<TQuery, TResult>(query);
+            => context.RequestServices.GetRequiredService<IQueryDispatcher>().QueryAsync<TQuery, TResult>(query);
     }
 }

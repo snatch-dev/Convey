@@ -9,6 +9,23 @@ namespace Convey.WebApi.Helpers
 {
     public static class Extensions
     {
+        public static object GetDefaultInstance(this Type type)
+        {
+            if (type == typeof(string))
+            {
+                return string.Empty;
+            }
+
+            var defaultValueCache = new Dictionary<Type, object>();
+
+            if (TryGetDefaultValue(type, out var instance, defaultValueCache))
+            {
+                return instance;
+            }
+
+            return default;
+        }
+
         public static object SetDefaultInstanceProperties(this object instance)
             => SetDefaultInstanceProperties(instance, new Dictionary<Type, object>());
 
@@ -66,7 +83,7 @@ namespace Convey.WebApi.Helpers
                 return false;
             }
 
-            if (type.IsInterface)
+            if (type.IsInterface || type.IsAbstract)
             {
                 defaultValue = null;
 

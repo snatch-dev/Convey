@@ -1,16 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.CQRS.Events;
 using Convey.WebApi.Helpers;
 using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Convey.WebApi.CQRS.Middlewares
 {
@@ -44,7 +43,7 @@ namespace Convey.WebApi.CQRS.Middlewares
                 return;
             }
 
-            Load(attributeType); 
+            Load(attributeType);
         }
 
         public Task InvokeAsync(HttpContext context)
@@ -74,28 +73,28 @@ namespace Convey.WebApi.CQRS.Middlewares
 
             foreach (var command in contracts.Where(t => typeof(ICommand).IsAssignableFrom(t)))
             {
-                var instance = FormatterServices.GetUninitializedObject(command);
+                var instance = command.GetDefaultInstance();
                 var name = instance.GetType().Name;
+
                 if (Contracts.Commands.ContainsKey(name))
                 {
                     throw new InvalidOperationException($"Command: '{name}' already exists.");
                 }
 
-                instance.SetDefaultInstanceProperties();
                 Contracts.Commands[name] = instance;
             }
 
             foreach (var @event in contracts.Where(t => typeof(IEvent).IsAssignableFrom(t) &&
                                                         t != typeof(RejectedEvent)))
             {
-                var instance = FormatterServices.GetUninitializedObject(@event);
+                var instance = @event.GetDefaultInstance();
                 var name = instance.GetType().Name;
+
                 if (Contracts.Events.ContainsKey(name))
                 {
                     throw new InvalidOperationException($"Event: '{name}' already exists.");
                 }
 
-                instance.SetDefaultInstanceProperties();
                 Contracts.Events[name] = instance;
             }
 

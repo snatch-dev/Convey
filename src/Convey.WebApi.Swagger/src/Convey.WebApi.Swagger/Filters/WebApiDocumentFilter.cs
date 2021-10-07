@@ -1,10 +1,10 @@
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text.Json;
 
 namespace Convey.WebApi.Swagger.Filters
 {
@@ -40,6 +40,8 @@ namespace Convey.WebApi.Swagger.Filters
 
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
+            var jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true };
+
             foreach (var pathDefinition in _definitions.GroupBy(d => d.Path))
             {
                 var pathItem = new OpenApiPathItem();
@@ -65,7 +67,9 @@ namespace Convey.WebApi.Swagger.Filters
                                             {
                                                 Type = parameter.Type.Name,
                                                 Example = new OpenApiString(
-                                                    JsonConvert.SerializeObject(parameter.Example, Formatting.Indented))
+                                                    JsonSerializer.Serialize(
+                                                        parameter.Example,
+                                                        jsonSerializerOptions))
                                             }
                                         }
                                     }
@@ -87,8 +91,9 @@ namespace Convey.WebApi.Swagger.Filters
                                                 {
                                                     Type = parameter.Type.Name,
                                                     Example = new OpenApiString(
-                                                        JsonConvert.SerializeObject(parameter.Example,
-                                                            Formatting.Indented))
+                                                        JsonSerializer.Serialize(
+                                                            parameter.Example,
+                                                            jsonSerializerOptions))
                                                 }
                                             }
                                         }
@@ -104,7 +109,9 @@ namespace Convey.WebApi.Swagger.Filters
                                     {
                                         Type = parameter.Type.Name,
                                         Example = new OpenApiString(
-                                            JsonConvert.SerializeObject(parameter.Example, Formatting.Indented))
+                                            JsonSerializer.Serialize(
+                                                parameter.Example,
+                                                jsonSerializerOptions))
                                     }
                                 });
                             }
@@ -124,7 +131,9 @@ namespace Convey.WebApi.Swagger.Filters
                                         {
                                             Type = response.Type?.Name,
                                             Example = new OpenApiString(
-                                                JsonConvert.SerializeObject(response.Example, Formatting.Indented))
+                                                JsonSerializer.Serialize(
+                                                    response.Example,
+                                                    jsonSerializerOptions))
                                         }
                                     }
                                 }

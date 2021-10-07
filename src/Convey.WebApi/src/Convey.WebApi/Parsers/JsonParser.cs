@@ -1,102 +1,106 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 
 namespace Convey.WebApi.Parsers
 {
     //Credits goes to .NET Foundation Team.
     //JSON parser is based on JsonConfigurationFileParser found in Microsoft.Extensions.Configuration.Json library.
-    //https://github.com/aspnet/Configuration/blob/dev/src/Microsoft.Extensions.Configuration.Json/JsonConfigurationFileParser.cs
+    //https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Configuration.Json/src/JsonConfigurationFileParser.cs
     public class JsonParser
     {
-        private readonly IDictionary<string, string> _mappings =
-            new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _data = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly Stack<string> _stack = new();
-        private string _currentPath;
 
-        public IDictionary<string, string> Parse(JObject jObject)
+        public IDictionary<string, string> Parse(string json)
         {
-            VisitJObject(jObject);
+            var jsonDocumentOptions = new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true,
+            };
 
-            return _mappings;
+            using (JsonDocument doc = JsonDocument.Parse(json, jsonDocumentOptions))
+            {
+                if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                {
+                    throw new FormatException($"Invalidtop level JSON element: {doc.RootElement.ValueKind}");
+                }
+
+                VisitElement(doc.RootElement);
+            }
+
+            return _data;
         }
 
-        private void VisitJObject(JObject jObject)
+        private void VisitElement(JsonElement element)
         {
-            foreach (var property in jObject.Properties())
+            var isEmpty = true;
+
+            foreach (JsonProperty property in element.EnumerateObject())
             {
+                isEmpty = false;
                 EnterContext(property.Name);
-                VisitProperty(property);
+                VisitValue(property.Value);
                 ExitContext();
+            }
+
+            if (isEmpty && _stack.Count > 0)
+            {
+                _data[_stack.Peek()] = null;
             }
         }
 
-        private void VisitProperty(JProperty property)
+        private void VisitValue(JsonElement value)
         {
-            VisitToken(property.Value);
-        }
-
-        private void VisitToken(JToken token)
-        {
-            switch (token.Type)
+            switch (value.ValueKind)
             {
-                case JTokenType.Object:
-                    VisitJObject(token.Value<JObject>());
+                case JsonValueKind.Object:
+                    VisitElement(value);
+
                     break;
 
-                case JTokenType.Array:
-                    VisitArray(token.Value<JArray>());
+                case JsonValueKind.Array:
+                    int index = 0;
+
+                    foreach (JsonElement arrayElement in value.EnumerateArray())
+                    {
+                        EnterContext(index.ToString());
+                        VisitValue(arrayElement);
+                        ExitContext();
+                        index++;
+                    }
+
                     break;
 
-                case JTokenType.Integer:
-                case JTokenType.Float:
-                case JTokenType.String:
-                case JTokenType.Boolean:
-                case JTokenType.Bytes:
-                case JTokenType.Raw:
-                case JTokenType.Null:
-                    VisitPrimitive(token);
+                case JsonValueKind.Number:
+                case JsonValueKind.String:
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                case JsonValueKind.Null:
+                    var key = _stack.Peek();
+
+                    if (_data.ContainsKey(key))
+                    {
+                        throw new FormatException($"Duplicated key: {key}");
+                    }
+
+                    _data[key] = value.ToString();
+
                     break;
 
                 default:
-                    throw new FormatException($"Invalid JSON token: {token}");
+                    throw new FormatException($"Unsupported JSON token: {value.ValueKind}");
             }
         }
 
-        private void VisitArray(JArray array)
-        {
-            for (var i = 0; i < array.Count; i++)
-            {
-                EnterContext(i.ToString());
-                VisitToken(array[i]);
-                ExitContext();
-            }
-        }
+        private void EnterContext(string context) =>
+            _stack.Push(_stack.Count > 0
+                ? _stack.Peek() + ConfigurationPath.KeyDelimiter + context
+                : context);
 
-        private void VisitPrimitive(JToken data)
-        {
-            var key = _currentPath;
-
-            if (_mappings.ContainsKey(key))
-            {
-                throw new FormatException($"Duplicated key: '{key}'");
-            }
-            _mappings[key] = data.ToString();
-        }
-
-        private void EnterContext(string context)
-        {
-            _stack.Push(context);
-            _currentPath = ConfigurationPath.Combine(_stack.Reverse());
-        }
-
-        private void ExitContext()
-        {
-            _stack.Pop();
-            _currentPath = ConfigurationPath.Combine(_stack.Reverse());
-        }
+        private void ExitContext() => _stack.Pop();
     }
 }

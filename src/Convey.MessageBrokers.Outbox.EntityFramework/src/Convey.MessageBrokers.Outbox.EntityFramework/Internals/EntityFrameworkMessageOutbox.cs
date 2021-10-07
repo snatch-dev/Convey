@@ -1,27 +1,37 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.Outbox.Messages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 
 namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
 {
     internal sealed class EntityFrameworkMessageOutbox<TContext> : IMessageOutbox, IMessageOutboxAccessor
         where TContext : DbContext
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new()
+        private static JsonSerializerOptions _serializerOptions;
+        private static JsonSerializerOptions SerializerOptions
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            Converters = new List<JsonConverter>
+            get
             {
-                new StringEnumConverter(new CamelCaseNamingStrategy())
+                if (_serializerOptions == null)
+                {
+                    _serializerOptions =
+                        new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        };
+
+                    _serializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: JsonNamingPolicy.CamelCase));
+                }
+
+                return _serializerOptions;
             }
-        };
+        }
 
         private const string EmptyJsonObject = "{}";
         private readonly TContext _dbContext;
@@ -105,12 +115,12 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
                 SerializedMessageContext =
                     messageContext is null
                         ? EmptyJsonObject
-                        : JsonConvert.SerializeObject(messageContext, SerializerSettings),
+                        : JsonSerializer.Serialize(messageContext, SerializerOptions),
                 MessageContextType = messageContext?.GetType().AssemblyQualifiedName,
                 Headers = (Dictionary<string, object>) headers,
                 SerializedMessage = message is null
                     ? EmptyJsonObject
-                    : JsonConvert.SerializeObject(message, SerializerSettings),
+                    : JsonSerializer.Serialize(message, SerializerOptions),
                 MessageType = message?.GetType().AssemblyQualifiedName,
                 SentAt = DateTime.UtcNow
             };
@@ -127,14 +137,14 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
                 if (om.MessageContextType is not null)
                 {
                     var messageContextType = Type.GetType(om.MessageContextType);
-                    om.MessageContext = JsonConvert.DeserializeObject(om.SerializedMessageContext, messageContextType,
-                        SerializerSettings);
+                    om.MessageContext = JsonSerializer.Deserialize(om.SerializedMessageContext, messageContextType,
+                        SerializerOptions);
                 }
 
                 if (om.MessageType is not null)
                 {
                     var messageType = Type.GetType(om.MessageType);
-                    om.Message = JsonConvert.DeserializeObject(om.SerializedMessage, messageType, SerializerSettings);
+                    om.Message = JsonSerializer.Deserialize(om.SerializedMessage, messageType, SerializerOptions);
                 }
 
                 return om;

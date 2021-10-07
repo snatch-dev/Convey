@@ -66,10 +66,8 @@ namespace Convey.WebApi.Swagger.Filters
                                             Schema = new OpenApiSchema
                                             {
                                                 Type = parameter.Type.Name,
-                                                Example = new OpenApiString(
-                                                    JsonSerializer.Serialize(
-                                                        parameter.Example,
-                                                        jsonSerializerOptions))
+                                                Example = new OpenApiString(JsonSerializer.Serialize(parameter.Example,
+                                                    jsonSerializerOptions))
                                             }
                                         }
                                     }
@@ -91,8 +89,7 @@ namespace Convey.WebApi.Swagger.Filters
                                                 {
                                                     Type = parameter.Type.Name,
                                                     Example = new OpenApiString(
-                                                        JsonSerializer.Serialize(
-                                                            parameter.Example,
+                                                        JsonSerializer.Serialize(parameter.Example,
                                                             jsonSerializerOptions))
                                                 }
                                             }
@@ -108,10 +105,8 @@ namespace Convey.WebApi.Swagger.Filters
                                     Schema = new OpenApiSchema
                                     {
                                         Type = parameter.Type.Name,
-                                        Example = new OpenApiString(
-                                            JsonSerializer.Serialize(
-                                                parameter.Example,
-                                                jsonSerializerOptions))
+                                        Example = new OpenApiString(JsonSerializer.Serialize(parameter.Example,
+                                            jsonSerializerOptions))
                                     }
                                 });
                             }
@@ -130,10 +125,8 @@ namespace Convey.WebApi.Swagger.Filters
                                         Schema = new OpenApiSchema
                                         {
                                             Type = response.Type?.Name,
-                                            Example = new OpenApiString(
-                                                JsonSerializer.Serialize(
-                                                    response.Example,
-                                                    jsonSerializerOptions))
+                                            Example = new OpenApiString(JsonSerializer.Serialize(response.Example,
+                                                jsonSerializerOptions))
                                         }
                                     }
                                 }

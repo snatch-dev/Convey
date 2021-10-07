@@ -99,15 +99,14 @@ namespace Convey.MessageBrokers.Outbox.EntityFramework.Internals
                 OriginatedMessageId = originatedMessageId,
                 CorrelationId = correlationId,
                 SpanContext = spanContext,
-                SerializedMessageContext =
-                    messageContext is null
-                        ? EmptyJsonObject
-                        : JsonSerializer.Serialize(messageContext, SerializerOptions),
+                SerializedMessageContext = messageContext is null
+                    ? EmptyJsonObject
+                    : JsonSerializer.Serialize(messageContext, SerializerOptions),
                 MessageContextType = messageContext?.GetType().AssemblyQualifiedName,
-                Headers = (Dictionary<string, object>) headers,
+                Headers = (Dictionary<string, object>)headers,
                 SerializedMessage = message is null
                     ? EmptyJsonObject
-                    : JsonSerializer.Serialize(message, SerializerOptions),
+                    : JsonSerializer.Serialize((object)message, SerializerOptions),
                 MessageType = message?.GetType().AssemblyQualifiedName,
                 SentAt = DateTime.UtcNow
             };

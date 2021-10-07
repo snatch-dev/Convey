@@ -1,13 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 using Convey.WebApi.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Convey.WebApi
 {
@@ -54,7 +53,7 @@ namespace Convey.WebApi
         {
             var builder = _routeBuilder.MapGet(path, ctx => BuildQueryContext(ctx, context));
             endpoint?.Invoke(builder);
-            ApplyAuthRolesAndPolicies(builder, auth,  roles, policies);
+            ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
             AddEndpointDefinition<TRequest, TResult>(HttpMethods.Get, path);
 
             return this;
@@ -66,7 +65,7 @@ namespace Convey.WebApi
         {
             var builder = _routeBuilder.MapPost(path, ctx => context?.Invoke(ctx));
             endpoint?.Invoke(builder);
-            ApplyAuthRolesAndPolicies(builder, auth,  roles, policies);
+            ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
             AddEndpointDefinition(HttpMethods.Post, path);
 
             return this;
@@ -79,7 +78,7 @@ namespace Convey.WebApi
         {
             var builder = _routeBuilder.MapPost(path, ctx => BuildRequestContext(ctx, context));
             endpoint?.Invoke(builder);
-            ApplyAuthRolesAndPolicies(builder, auth,  roles, policies);
+            ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
             AddEndpointDefinition<T>(HttpMethods.Post, path);
 
             return this;
@@ -91,7 +90,7 @@ namespace Convey.WebApi
         {
             var builder = _routeBuilder.MapPut(path, ctx => context?.Invoke(ctx));
             endpoint?.Invoke(builder);
-            ApplyAuthRolesAndPolicies(builder, auth,  roles, policies);
+            ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
             AddEndpointDefinition(HttpMethods.Put, path);
 
             return this;
@@ -104,7 +103,7 @@ namespace Convey.WebApi
         {
             var builder = _routeBuilder.MapPut(path, ctx => BuildRequestContext(ctx, context));
             endpoint?.Invoke(builder);
-            ApplyAuthRolesAndPolicies(builder, auth,  roles, policies);
+            ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
             AddEndpointDefinition<T>(HttpMethods.Put, path);
 
             return this;
@@ -116,7 +115,7 @@ namespace Convey.WebApi
         {
             var builder = _routeBuilder.MapDelete(path, ctx => context?.Invoke(ctx));
             endpoint?.Invoke(builder);
-            ApplyAuthRolesAndPolicies(builder, auth,  roles, policies);
+            ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
             AddEndpointDefinition(HttpMethods.Delete, path);
 
             return this;
@@ -129,7 +128,7 @@ namespace Convey.WebApi
         {
             var builder = _routeBuilder.MapDelete(path, ctx => BuildQueryContext(ctx, context));
             endpoint?.Invoke(builder);
-            ApplyAuthRolesAndPolicies(builder, auth,  roles, policies);
+            ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
             AddEndpointDefinition<T>(HttpMethods.Delete, path);
 
             return this;
@@ -223,9 +222,7 @@ namespace Convey.WebApi
                         In = method == HttpMethods.Get ? "query" : "body",
                         Name = input?.Name,
                         Type = input,
-                        Example = input is null
-                            ? null
-                            : FormatterServices.GetUninitializedObject(input).SetDefaultInstanceProperties()
+                        Example = input?.GetDefaultInstance()
                     }
                 },
                 Responses = new List<WebApiEndpointResponse>
@@ -234,9 +231,7 @@ namespace Convey.WebApi
                     {
                         StatusCode = method == HttpMethods.Get ? 200 : 202,
                         Type = output,
-                        Example = output is null
-                            ? null
-                            : FormatterServices.GetUninitializedObject(output).SetDefaultInstanceProperties()
+                        Example = output?.GetDefaultInstance()
                     }
                 }
             });

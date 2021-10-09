@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MimeKitLite" Version="2.15.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Convey.HTTP\src\Convey.HTTP\Convey.HTTP.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Operations\Inbound\" />
+  </ItemGroup>
+
+</Project>

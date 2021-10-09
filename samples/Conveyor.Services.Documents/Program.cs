@@ -41,10 +41,6 @@ namespace Conveyor.Services.Documents
                         .AddFabio()
                         .AddJaeger()
                         .AddSeaweed()
-                        .AddInMemoryQueryDispatcher()
-                        .AddInMemoryCommandDispatcher()
-                        .AddInMemoryDispatcher()
-                        .AddInMemoryEventDispatcher()
                         .AddEventHandlers()
                         .AddRedis()
                         .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
@@ -57,15 +53,7 @@ namespace Conveyor.Services.Documents
                         .UseErrorHandler()
                         .UseEndpoints(endpoints => endpoints
                             .Get("", ctx => ctx.Response.WriteAsync("Documents Service"))
-                            .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
-                            .Get("seaweed", ctx =>
-                            {
-                                var dispatcher = ctx.RequestServices.GetRequiredService<IDispatcher>();
-
-                                dispatcher.PublishAsync(new OrderCreated(Guid.NewGuid()));
-
-                                return ctx.Response.WriteAsync("ok");
-                            }))
+                            .Get("ping", ctx => ctx.Response.WriteAsync("pong")))
                         .UseJaeger()
                         .UseRabbitMq()
                         .SubscribeEvent<OrderCreated>())

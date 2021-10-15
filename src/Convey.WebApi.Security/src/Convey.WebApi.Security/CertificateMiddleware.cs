@@ -152,7 +152,7 @@ namespace Convey.WebApi.Security
                 return true;
             }
             
-            _logger.LogError("Certificate validation failed.");
+            _logger.LogError("Certificate validation failed");
             foreach (var chainStatus in chain.ChainStatus)
             {
                 _logger.LogError($"Chain error: {chainStatus.Status} -> {chainStatus.StatusInformation}");

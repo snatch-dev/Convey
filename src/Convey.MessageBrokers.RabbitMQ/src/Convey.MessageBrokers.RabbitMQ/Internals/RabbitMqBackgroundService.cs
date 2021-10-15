@@ -223,7 +223,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                     var correlationContext = BuildCorrelationContext(scope, args);
 
                     Task Next(object m, object ctx, BasicDeliverEventArgs a)
-                        => TryHandleAsync(channel, m, messageId, correlationId, ctx, a, messageSubscriber.Handle);
+                        => TryHandleAsync(channel, m, messageId, correlationId, ctx, a,
+                            messageSubscriber.Handle, deadLetterEnabled);
 
                     await _pluginsExecutor.ExecuteAsync(Next, message, correlationContext, args);
                 }
@@ -256,7 +257,8 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
         }
 
         private async Task TryHandleAsync(IModel channel, object message, string messageId, string correlationId,
-            object messageContext, BasicDeliverEventArgs args, Func<IServiceProvider, object, object, Task> handle)
+            object messageContext, BasicDeliverEventArgs args, Func<IServiceProvider, object, object, Task> handle,
+            bool deadLetterEnabled)
         {
             var currentRetry = 0;
             var messageName = message.GetType().Name.Underscore();
@@ -337,9 +339,12 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                                 failedMessageName, failedMessageId, correlationId, messageName, messageId);
                         }
 
-                        channel.BasicAck(args.DeliveryTag, false);
-                        await Task.Yield();
-                        return;
+                        if (!deadLetterEnabled || !failedMessage.MoveToDeadLetter)
+                        {
+                            channel.BasicAck(args.DeliveryTag, false);
+                            await Task.Yield();
+                            return;
+                        }
                     }
 
                     if (failedMessage is null || failedMessage.ShouldRetry)
@@ -356,7 +361,14 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
                     }
 
                     _logger.LogError("Handling a message: {MessageName} with ID: {MessageId}, Correlation ID: " +
-                                     "{CorrelationId} failed.", messageName, messageId, correlationId);
+                                     "{CorrelationId} failed", messageName, messageId, correlationId);
+                    
+                    if (deadLetterEnabled)
+                    {
+                        _logger.LogError("Message: {MessageName} with ID: {MessageId}, Correlation ID: " +
+                                         "{CorrelationId} will be moved to DLX", messageName, messageId, correlationId);
+                    }
+                    
                     channel.BasicNack(args.DeliveryTag, false, _requeueFailedMessages);
                     await Task.Yield();
                 }

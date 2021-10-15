@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Convey.MessageBrokers.RabbitMQ
 {
     public class FailedMessage
@@ -5,15 +7,20 @@ namespace Convey.MessageBrokers.RabbitMQ
         public object Message { get; }
         public bool ShouldRetry { get; }
         
-        public FailedMessage(bool shouldRetry = true) : this(null, shouldRetry)
+        [Description("This will only work if 'deadLetter' is enabled in RabbitMQ options." +
+                     "For more information, see https://www.rabbitmq.com/dlx.html")]
+        public bool MoveToDeadLetter { get; }
+
+        public FailedMessage(bool shouldRetry = true, bool moveToDeadLetter = true) : this(null, shouldRetry,
+            moveToDeadLetter)
         {
-            ShouldRetry = shouldRetry;
         }
 
-        public FailedMessage(object message, bool shouldRetry = true)
+        public FailedMessage(object message, bool shouldRetry = true, bool moveToDeadLetter = true)
         {
             Message = message;
             ShouldRetry = shouldRetry;
+            MoveToDeadLetter = moveToDeadLetter;
         }
     }
 }

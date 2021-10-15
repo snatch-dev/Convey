@@ -362,6 +362,13 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
 
                     _logger.LogError("Handling a message: {MessageName} with ID: {MessageId}, Correlation ID: " +
                                      "{CorrelationId} failed", messageName, messageId, correlationId);
+
+                    if (failedMessage is not null && !failedMessage.MoveToDeadLetter)
+                    {
+                        channel.BasicAck(args.DeliveryTag, false);
+                        await Task.Yield();
+                        return;
+                    }
                     
                     if (deadLetterEnabled)
                     {

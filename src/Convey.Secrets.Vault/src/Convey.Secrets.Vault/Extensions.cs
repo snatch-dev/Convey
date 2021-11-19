@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Convey.Secrets.Vault.Internals;
 using Microsoft.AspNetCore.Hosting;
@@ -9,11 +8,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
 using VaultSharp.V1.SecretsEngines;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Convey.Secrets.Vault
 {
@@ -125,7 +126,8 @@ namespace Convey.Secrets.Vault
                 var keyValueSecrets = new KeyValueSecrets(client, options);
                 var secret = await keyValueSecrets.GetAsync(kvPath);
                 var parser = new JsonParser();
-                var data = parser.Parse(JsonSerializer.Serialize(secret));
+                var json = JsonConvert.SerializeObject(secret);
+                var data = parser.Parse(json);
                 var source = new MemoryConfigurationSource {InitialData = data};
                 builder.Add(source);
             }

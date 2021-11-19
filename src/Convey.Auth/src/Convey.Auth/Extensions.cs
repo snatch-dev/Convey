@@ -72,7 +72,7 @@ namespace Convey.Auth
             }
 
             var hasCertificate = false;
-            if (options.Certificate is not null && !string.IsNullOrWhiteSpace(options.Certificate.Location))
+            if (options.Certificate is not null)
             {
                 X509Certificate2 certificate = null;
                 var password = options.Certificate.Password;

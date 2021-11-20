@@ -71,7 +71,9 @@ namespace Convey.WebApi
                 var jsonSerializerOptions = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    PropertyNameCaseInsensitive = true
+                    PropertyNameCaseInsensitive = true,
+                    NumberHandling = JsonNumberHandling.AllowReadingFromString,
+                    Converters = {new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)}
                 };
 
                 jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));

@@ -14,6 +14,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Serializers
             {
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                NumberHandling = JsonNumberHandling.AllowReadingFromString,
                 Converters = {new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)}
             };
         }

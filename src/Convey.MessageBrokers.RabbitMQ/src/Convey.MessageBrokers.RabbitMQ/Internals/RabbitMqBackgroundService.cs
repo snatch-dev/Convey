@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Convey.MessageBrokers.RabbitMQ.Plugins;
@@ -22,6 +23,7 @@ namespace Convey.MessageBrokers.RabbitMQ.Internals
         {
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
             WriteIndented = true
         };
         

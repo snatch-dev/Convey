@@ -15,6 +15,7 @@ namespace Convey.HTTP
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 PropertyNameCaseInsensitive = true,
+                NumberHandling = JsonNumberHandling.AllowReadingFromString,
                 Converters = {new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)}
             };
         }

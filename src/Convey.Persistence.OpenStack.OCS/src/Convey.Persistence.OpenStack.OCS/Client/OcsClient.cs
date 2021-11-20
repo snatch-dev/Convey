@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Convey.Persistence.OpenStack.OCS.Http;
 using Convey.Persistence.OpenStack.OCS.OcsTypes;
@@ -19,7 +20,8 @@ namespace Convey.Persistence.OpenStack.OCS.Client
     {
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
         };
         private readonly IRequestHandler _requestHandler;
         private readonly OcsOptions _ocsOptions;

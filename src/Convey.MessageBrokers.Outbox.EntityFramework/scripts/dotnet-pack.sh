@@ -3,7 +3,7 @@ echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
 cd src/Convey.MessageBrokers.Outbox.EntityFramework/src/Convey.MessageBrokers.Outbox.EntityFramework
-dotnet pack -c release /p:PackageVersion=0.5.$TRAVIS_BUILD_NUMBER --no-restore -o .
+dotnet pack -c release /p:PackageVersion=0.6.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.MessageBrokers.Outbox.EntityFramework package to Nuget using branch $TRAVIS_BRANCH
 

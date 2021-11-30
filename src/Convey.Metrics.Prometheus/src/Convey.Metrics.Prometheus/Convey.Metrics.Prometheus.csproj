@@ -3,7 +3,7 @@
     <PropertyGroup>
         <Description>Convey.Metrics.Prometheus</Description>
         <Authors>DevMentors.io</Authors>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <LangVersion>Latest</LangVersion>
         <AssemblyName>Convey.Metrics.Prometheus</AssemblyName>
         <Title>Convey.Metrics.Prometheus</Title>
@@ -16,11 +16,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="prometheus-net" Version="5.0.1" />
-      <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.1" />
-      <PackageReference Include="prometheus-net.AspNetCore.Grpc" Version="5.0.1" />
-      <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="5.0.1" />
-      <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.2.1" />
+      <PackageReference Include="prometheus-net" Version="5.0.2" />
+      <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.2" />
+      <PackageReference Include="prometheus-net.AspNetCore.Grpc" Version="5.0.2" />
+      <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="5.0.2" />
+      <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.2.2" />
       <PackageReference Include="prometheus-net.SystemMetrics" Version="2.0.0" />
     </ItemGroup>
 

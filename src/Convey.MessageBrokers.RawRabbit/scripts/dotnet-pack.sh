@@ -3,7 +3,7 @@ echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
 cd src/Convey.MessageBrokers.RawRabbit/src/Convey.MessageBrokers.RawRabbit
-dotnet pack -c release /p:PackageVersion=0.5.$TRAVIS_BUILD_NUMBER --no-restore -o .
+dotnet pack -c release /p:PackageVersion=0.6.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.MessageBrokers.RawRabbit package to Nuget using branch $TRAVIS_BRANCH
 

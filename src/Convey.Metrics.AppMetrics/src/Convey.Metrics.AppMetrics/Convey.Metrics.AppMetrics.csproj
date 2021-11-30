@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Metrics.AppMetrics</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Metrics.AppMetrics</AssemblyName>
     <Title>Convey.Metrics.AppMetrics</Title>
@@ -16,25 +16,25 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="App.Metrics.AspNetCore" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.AspNetCore.Core" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.AspNetCore.Endpoints" Version="4.2.0" />
+    <PackageReference Include="App.Metrics.AspNetCore" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.Core" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.Endpoints" Version="4.3.0" />
     <PackageReference Include="App.Metrics.AspNetCore.Health" Version="3.2.0" />
     <PackageReference Include="App.Metrics.AspNetCore.Health.Endpoints" Version="3.2.0" />
-    <PackageReference Include="App.Metrics.AspNetCore.Hosting" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.AspNetCore.Mvc" Version="4.2.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.Hosting" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.Mvc" Version="4.3.0" />
     <PackageReference Include="App.Metrics.AspNetCore.Reporting" Version="4.0.0" />
-    <PackageReference Include="App.Metrics.AspNetCore.Routing" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.AspNetCore.Tracking" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Core" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Extensions.Configuration" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Extensions.DependencyInjection" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Formatters.InfluxDB" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Formatters.Json" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Formatters.Prometheus" Version="4.2.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.Routing" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.Tracking" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Core" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Extensions.Configuration" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Extensions.DependencyInjection" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Formatters.InfluxDB" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Formatters.Json" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Formatters.Prometheus" Version="4.3.0" />
     <PackageReference Include="App.Metrics.Health.Checks.Http" Version="3.2.0" />
-    <PackageReference Include="App.Metrics.Reporting.Console" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Reporting.Http" Version="4.2.0" />
-    <PackageReference Include="App.Metrics.Reporting.InfluxDB" Version="4.2.0" />
+    <PackageReference Include="App.Metrics.Reporting.Console" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Reporting.Http" Version="4.3.0" />
+    <PackageReference Include="App.Metrics.Reporting.InfluxDB" Version="4.3.0" />
   </ItemGroup>
 </Project>

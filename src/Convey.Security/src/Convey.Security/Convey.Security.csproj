@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Security</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <Title>Convey.Security</Title>
     <PackageId>Convey.Security</PackageId>

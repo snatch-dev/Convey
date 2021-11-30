@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.LoadBalancing.Fabio</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.LoadBalancing.Fabio</AssemblyName>
     <Title>Convey.LoadBalancing.Fabio</Title>

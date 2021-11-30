@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Convey.Auth.Distributed</Description>
     <Authors>DevMentors.io</Authors>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <AssemblyName>Convey.Auth.Distributed</AssemblyName>
     <Title>Convey.Auth.Distributed</Title>

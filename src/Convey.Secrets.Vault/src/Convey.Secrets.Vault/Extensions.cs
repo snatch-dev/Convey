@@ -14,7 +14,6 @@ using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
 using VaultSharp.V1.SecretsEngines;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Convey.Secrets.Vault
 {

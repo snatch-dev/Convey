@@ -2,7 +2,7 @@ language: csharp
 mono: none
 sudo: required
 dist: bionic
-dotnet: 5.0.102
+dotnet: 6.0.100
 branches:
   only:
     - master

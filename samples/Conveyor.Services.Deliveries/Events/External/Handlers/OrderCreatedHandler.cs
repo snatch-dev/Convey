@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Events;
 using Convey.MessageBrokers;
@@ -29,7 +30,7 @@ public class OrderCreatedHandler : IEventHandler<OrderCreated>
             : rabbitMqOptions.SpanContextHeader;
     }
 
-    public Task HandleAsync(OrderCreated @event)
+    public Task HandleAsync(OrderCreated @event, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation($"Received 'order created' event with order id: {@event.OrderId}");
         var deliveryId = Guid.NewGuid();

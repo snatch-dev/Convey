@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Convey.Discovery.Consul.Models;
@@ -9,18 +10,18 @@ namespace Convey.Discovery.Consul.Services;
 
 internal sealed class ConsulHostedService : IHostedService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ConsulHostedService> _logger;
 
-    public ConsulHostedService(IServiceScopeFactory serviceScopeFactory, ILogger<ConsulHostedService> logger)
+    public ConsulHostedService(IServiceProvider serviceProvider, ILogger<ConsulHostedService> logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
+        _serviceProvider = serviceProvider;
         _logger = logger;
     }
         
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var consulService = scope.ServiceProvider.GetRequiredService<IConsulService>();
         var registration = scope.ServiceProvider.GetRequiredService<ServiceRegistration>();
         _logger.LogInformation($"Registering a service [id: {registration.Id}] in Consul...");
@@ -36,7 +37,7 @@ internal sealed class ConsulHostedService : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var consulService = scope.ServiceProvider.GetRequiredService<IConsulService>();
         var registration = scope.ServiceProvider.GetRequiredService<ServiceRegistration>();
         _logger.LogInformation($"Deregistering a service [id: {registration.Id}] from Consul...");

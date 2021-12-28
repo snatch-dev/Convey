@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Queries;
 using Convey.Persistence.MongoDB;
@@ -16,7 +17,7 @@ public class GetOrderHandler : IQueryHandler<GetOrder, OrderDto>
         _repository = repository;
     }
 
-    public async Task<OrderDto> HandleAsync(GetOrder query)
+    public async Task<OrderDto> HandleAsync(GetOrder query, CancellationToken cancellationToken = default)
     {
         var order = await _repository.GetAsync(query.OrderId);
 

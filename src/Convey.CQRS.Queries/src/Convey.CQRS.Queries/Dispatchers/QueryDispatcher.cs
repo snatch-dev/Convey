@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,28 +7,29 @@ namespace Convey.CQRS.Queries.Dispatchers;
 
 internal sealed class QueryDispatcher : IQueryDispatcher
 {
-    private readonly IServiceScopeFactory _serviceFactory;
+    private readonly IServiceProvider _serviceProvider;
 
-    public QueryDispatcher(IServiceScopeFactory serviceFactory)
+    public QueryDispatcher(IServiceProvider serviceProvider)
     {
-        _serviceFactory = serviceFactory;
+        _serviceProvider = serviceProvider;
     }
 
-    public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query)
+    public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
     {
-        using var scope = _serviceFactory.CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
         var handler = scope.ServiceProvider.GetRequiredService(handlerType);
         // ReSharper disable once PossibleNullReferenceException
         return await (Task<TResult>) handlerType
             .GetMethod(nameof(IQueryHandler<IQuery<TResult>, TResult>.HandleAsync))?
-            .Invoke(handler, new object[] {query});
+            .Invoke(handler, new object[] {query, cancellationToken});
     }
 
-    public async Task<TResult> QueryAsync<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>
+    public async Task<TResult> QueryAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken = default)
+        where TQuery : class, IQuery<TResult>
     {
-        using var scope = _serviceFactory.CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<IQueryHandler<TQuery, TResult>>();
-        return await handler.HandleAsync(query);
+        return await handler.HandleAsync(query, cancellationToken);
     }
 }

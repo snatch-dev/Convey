@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,17 +7,18 @@ namespace Convey.WebApi.Requests;
 
 public class RequestDispatcher : IRequestDispatcher
 {
-    private readonly IServiceScopeFactory _serviceFactory;
+    private readonly IServiceProvider _serviceProvider;
 
-    public RequestDispatcher(IServiceScopeFactory serviceFactory)
+    public RequestDispatcher(IServiceProvider serviceProvider)
     {
-        _serviceFactory = serviceFactory;
+        _serviceProvider = serviceProvider;
     }
 
-    public async Task<TResult> DispatchAsync<TRequest, TResult>(TRequest request) where TRequest : class, IRequest
+    public async Task<TResult> DispatchAsync<TRequest, TResult>(TRequest request,
+        CancellationToken cancellationToken = default) where TRequest : class, IRequest
     {
-        using var scope = _serviceFactory.CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<IRequestHandler<TRequest, TResult>>();
-        return await handler.HandleAsync(request);
+        return await handler.HandleAsync(request, cancellationToken);
     }
 }

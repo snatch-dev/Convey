@@ -3,7 +3,7 @@ echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
 cd src/Convey.CQRS.Events/src/Convey.CQRS.Events
-dotnet pack -c release /p:PackageVersion=0.6.$TRAVIS_BUILD_NUMBER --no-restore -o .
+dotnet pack -c release /p:PackageVersion=1.0.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.CQRS.Events package to Nuget using branch $TRAVIS_BRANCH
 

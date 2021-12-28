@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.MessageBrokers;
@@ -33,7 +34,7 @@ public class CreateOrderHandler : ICommandHandler<CreateOrder>
         _logger = logger;
     }
 
-    public async Task HandleAsync(CreateOrder command)
+    public async Task HandleAsync(CreateOrder command, CancellationToken cancellationToken = default)
     {
         var exists = await _repository.ExistsAsync(o => o.Id == command.OrderId);
         if (exists)

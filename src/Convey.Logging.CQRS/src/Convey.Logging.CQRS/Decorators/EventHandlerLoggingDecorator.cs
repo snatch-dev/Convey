@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Events;
 using Convey.Types;
@@ -23,20 +24,20 @@ internal sealed class EventHandlerLoggingDecorator<TEvent> : IEventHandler<TEven
         _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ?? new EmptyMessageToLogTemplateMapper();
     }
 
-    public async Task HandleAsync(TEvent @event)
+    public async Task HandleAsync(TEvent @event, CancellationToken cancellationToken = default)
     {
         var template = _mapper.Map(@event);
 
         if (template is null)
         {
-            await _handler.HandleAsync(@event);
+            await _handler.HandleAsync(@event, cancellationToken);
             return;
         }
 
         try
         {
             Log(@event, template.Before);
-            await _handler.HandleAsync(@event);
+            await _handler.HandleAsync(@event, cancellationToken);
             Log(@event, template.After);
         }
         catch (Exception ex)

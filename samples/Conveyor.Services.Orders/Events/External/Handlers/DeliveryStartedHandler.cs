@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Events;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ public class DeliveryStartedHandler : IEventHandler<DeliveryStarted>
         _logger = logger;
     }
 
-    public Task HandleAsync(DeliveryStarted @event)
+    public Task HandleAsync(DeliveryStarted @event, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation($"Received 'delivery started' event with delivery id: {@event.DeliveryId}");
         return Task.CompletedTask;

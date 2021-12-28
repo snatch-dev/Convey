@@ -11,7 +11,7 @@ namespace Convey.MessageBrokers.Outbox.Processors;
 
 internal sealed class OutboxProcessor : IHostedService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IBusPublisher _publisher;
     private readonly OutboxOptions _options;
     private readonly ILogger<OutboxProcessor> _logger;
@@ -19,7 +19,7 @@ internal sealed class OutboxProcessor : IHostedService
     private readonly OutboxType _type;
     private Timer _timer;
 
-    public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, IBusPublisher publisher, OutboxOptions options,
+    public OutboxProcessor(IServiceProvider serviceProvider, IBusPublisher publisher, OutboxOptions options,
         ILogger<OutboxProcessor> logger)
     {
         if (options.Enabled && options.IntervalMilliseconds <= 0)
@@ -39,7 +39,7 @@ internal sealed class OutboxProcessor : IHostedService
             _type = outboxType;
         }
 
-        _serviceScopeFactory = serviceScopeFactory;
+        _serviceProvider = serviceProvider;
         _publisher = publisher;
         _options = options;
         _logger = logger;            
@@ -86,7 +86,7 @@ internal sealed class OutboxProcessor : IHostedService
         _logger.LogTrace($"Started processing outbox messages... [job id: '{jobId}']");
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var outbox = scope.ServiceProvider.GetRequiredService<IMessageOutboxAccessor>();
         var messages = await outbox.GetUnsentAsync();
         _logger.LogTrace($"Found {messages.Count} unsent messages in outbox [job ID: '{jobId}'].");

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.CQRS.Events;
@@ -15,9 +16,9 @@ internal sealed class ServiceBusMessageDispatcher : ICommandDispatcher, IEventDi
         _accessor = accessor;
     }
 
-    public Task SendAsync<T>(T command) where T : class, ICommand
+    public Task SendAsync<T>(T command, CancellationToken cancellationToken = default) where T : class, ICommand
         => _busPublisher.SendAsync(command, _accessor.CorrelationContext);
 
-    public Task PublishAsync<T>(T @event) where T : class, IEvent
+    public Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class, IEvent
         => _busPublisher.PublishAsync(@event, _accessor.CorrelationContext);
 }

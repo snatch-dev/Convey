@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,20 +7,20 @@ namespace Convey.CQRS.Events.Dispatchers;
 
 internal sealed class EventDispatcher : IEventDispatcher
 {
-    private readonly IServiceScopeFactory _serviceFactory;
+    private readonly IServiceProvider _serviceProvider;
 
-    public EventDispatcher(IServiceScopeFactory serviceFactory)
+    public EventDispatcher(IServiceProvider serviceProvider)
     {
-        _serviceFactory = serviceFactory;
+        _serviceProvider = serviceProvider;
     }
 
-    public async Task PublishAsync<T>(T @event) where T : class, IEvent
+    public async Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class, IEvent
     {
-        using var scope = _serviceFactory.CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var handlers = scope.ServiceProvider.GetServices<IEventHandler<T>>();
         foreach (var handler in handlers)
         {
-            await handler.HandleAsync(@event);
+            await handler.HandleAsync(@event, cancellationToken);
         }
     }
 }

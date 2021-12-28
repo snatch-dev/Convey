@@ -3,7 +3,7 @@ echo Executing after success scripts on branch $TRAVIS_BRANCH
 echo Triggering Nuget package build
 
 cd src/Convey.Persistence.Redis/src/Convey.Persistence.Redis
-dotnet pack -c release /p:PackageVersion=0.6.$TRAVIS_BUILD_NUMBER --no-restore -o .
+dotnet pack -c release /p:PackageVersion=1.0.$TRAVIS_BUILD_NUMBER --no-restore -o .
 
 echo Uploading Convey.Persistence.Redis package to Nuget using branch $TRAVIS_BRANCH
 

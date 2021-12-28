@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.Types;
@@ -24,20 +25,20 @@ internal sealed class CommandHandlerLoggingDecorator<TCommand> : ICommandHandler
         _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ?? new EmptyMessageToLogTemplateMapper();
     }
 
-    public async Task HandleAsync(TCommand command)
+    public async Task HandleAsync(TCommand command, CancellationToken cancellationToken = default)
     {
         var template = _mapper.Map(command);
 
         if (template is null)
         {
-            await _handler.HandleAsync(command);
+            await _handler.HandleAsync(command, cancellationToken);
             return;
         }
 
         try
         {
             Log(command, template.Before);
-            await _handler.HandleAsync(command);
+            await _handler.HandleAsync(command, cancellationToken);
             Log(command, template.After);
         }
         catch (Exception ex)

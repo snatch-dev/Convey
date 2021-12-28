@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.CQRS.Events;
@@ -19,9 +20,12 @@ public class InMemoryDispatcher : IDispatcher
         _queryDispatcher = queryDispatcher;
     }
 
-    public Task SendAsync<T>(T command) where T : class, ICommand => _commandDispatcher.SendAsync(command);
+    public Task SendAsync<T>(T command, CancellationToken cancellationToken = default) where T : class, ICommand
+        => _commandDispatcher.SendAsync(command, cancellationToken);
 
-    public Task PublishAsync<T>(T @event) where T : class, IEvent => _eventDispatcher.PublishAsync(@event);
+    public Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class, IEvent
+        => _eventDispatcher.PublishAsync(@event, cancellationToken);
 
-    public Task<TResult> QueryAsync<TResult>(IQuery<TResult> query) => _queryDispatcher.QueryAsync(query);
+    public Task<TResult> QueryAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
+        => _queryDispatcher.QueryAsync(query, cancellationToken);
 }

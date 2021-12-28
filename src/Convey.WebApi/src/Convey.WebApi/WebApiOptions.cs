@@ -1,7 +1,6 @@
-namespace Convey.WebApi
+namespace Convey.WebApi;
+
+public class WebApiOptions
 {
-    public class WebApiOptions
-    {
-        public bool BindRequestFromRoute { get; set; }
-    }
+    public bool BindRequestFromRoute { get; set; }
 }

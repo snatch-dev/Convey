@@ -1,8 +1,7 @@
 using Convey.Types;
 
-namespace Convey.Persistence.MongoDB
+namespace Convey.Persistence.MongoDB;
+
+public interface IMongoDbInitializer : IInitializer
 {
-    public interface IMongoDbInitializer : IInitializer
-    {
-    }
 }

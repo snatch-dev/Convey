@@ -1,33 +1,32 @@
 using System.Threading;
 
-namespace Convey.MessageBrokers
+namespace Convey.MessageBrokers;
+
+public class CorrelationContextAccessor : ICorrelationContextAccessor
 {
-    public class CorrelationContextAccessor : ICorrelationContextAccessor
+    private static readonly AsyncLocal<CorrelationContextHolder>
+        Holder = new();
+
+    public object CorrelationContext
     {
-        private static readonly AsyncLocal<CorrelationContextHolder>
-            Holder = new();
-
-        public object CorrelationContext
+        get => Holder.Value?.Context;
+        set
         {
-            get => Holder.Value?.Context;
-            set
+            var holder = Holder.Value;
+            if (holder != null)
             {
-                var holder = Holder.Value;
-                if (holder != null)
-                {
-                    holder.Context = null;
-                }
+                holder.Context = null;
+            }
 
-                if (value != null)
-                {
-                    Holder.Value = new CorrelationContextHolder {Context = value};
-                }
+            if (value != null)
+            {
+                Holder.Value = new CorrelationContextHolder {Context = value};
             }
         }
+    }
 
-        private class CorrelationContextHolder
-        {
-            public object Context;
-        }
+    private class CorrelationContextHolder
+    {
+        public object Context;
     }
 }

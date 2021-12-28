@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 
-namespace Convey.MessageBrokers.RabbitMQ.Plugins
+namespace Convey.MessageBrokers.RabbitMQ.Plugins;
+
+internal interface IRabbitMqPluginsRegistryAccessor
 {
-    internal interface IRabbitMqPluginsRegistryAccessor
-    {
-        LinkedList<RabbitMqPluginChain> Get();
-    }
+    LinkedList<RabbitMqPluginChain> Get();
 }

@@ -1,14 +1,13 @@
-﻿namespace Convey.Persistence.OpenStack.OCS.Auth
+﻿namespace Convey.Persistence.OpenStack.OCS.Auth;
+
+internal class AuthData
 {
-    internal class AuthData
+    private AuthData() { }
+
+    public AuthData(string subjectToken)
     {
-        private AuthData() { }
-
-        public AuthData(string subjectToken)
-        {
-            SubjectToken = subjectToken;
-        }
-
-        public string SubjectToken { get; }
+        SubjectToken = subjectToken;
     }
+
+    public string SubjectToken { get; }
 }

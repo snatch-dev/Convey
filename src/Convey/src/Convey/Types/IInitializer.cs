@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
-namespace Convey.Types
+namespace Convey.Types;
+
+public interface IInitializer
 {
-    public interface IInitializer
-    {
-        Task InitializeAsync();
-    }
+    Task InitializeAsync();
 }

@@ -9,49 +9,48 @@ using Convey.Logging.CQRS.Decorators;
 using Microsoft.Extensions.DependencyInjection;
 using Scrutor;
 
-namespace Convey.Logging.CQRS
+namespace Convey.Logging.CQRS;
+
+public static class Extensions
 {
-    public static class Extensions
+    public static IConveyBuilder AddCommandHandlersLogging(this IConveyBuilder builder, Assembly assembly = null)
+        => builder.AddHandlerLogging(typeof(ICommandHandler<>), typeof(CommandHandlerLoggingDecorator<>), assembly);
+
+    public static IConveyBuilder AddEventHandlersLogging(this IConveyBuilder builder, Assembly assembly = null)
+        => builder.AddHandlerLogging(typeof(IEventHandler<>), typeof(EventHandlerLoggingDecorator<>), assembly);
+
+    private static IConveyBuilder AddHandlerLogging(this IConveyBuilder builder, Type handlerType,
+        Type decoratorType, Assembly assembly = null)
     {
-        public static IConveyBuilder AddCommandHandlersLogging(this IConveyBuilder builder, Assembly assembly = null)
-            => builder.AddHandlerLogging(typeof(ICommandHandler<>), typeof(CommandHandlerLoggingDecorator<>), assembly);
+        assembly ??= Assembly.GetCallingAssembly();
 
-        public static IConveyBuilder AddEventHandlersLogging(this IConveyBuilder builder, Assembly assembly = null)
-            => builder.AddHandlerLogging(typeof(IEventHandler<>), typeof(EventHandlerLoggingDecorator<>), assembly);
-
-        private static IConveyBuilder AddHandlerLogging(this IConveyBuilder builder, Type handlerType,
-            Type decoratorType, Assembly assembly = null)
-        {
-            assembly ??= Assembly.GetCallingAssembly();
-
-            var handlers = assembly
-                .GetTypes()
-                .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerType))
-                .ToList();
+        var handlers = assembly
+            .GetTypes()
+            .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == handlerType))
+            .ToList();
             
-            handlers.ForEach(ch => GetExtensionMethods()
-                .FirstOrDefault(mi => !mi.IsGenericMethod && mi.Name == "TryDecorate")?
-                .Invoke(builder.Services, new object[]
-                {
-                    builder.Services,
-                    ch.GetInterfaces().FirstOrDefault(),
-                    decoratorType.MakeGenericType(ch.GetInterfaces().FirstOrDefault()?.GenericTypeArguments.First())
-                }));
+        handlers.ForEach(ch => GetExtensionMethods()
+            .FirstOrDefault(mi => !mi.IsGenericMethod && mi.Name == "TryDecorate")?
+            .Invoke(builder.Services, new object[]
+            {
+                builder.Services,
+                ch.GetInterfaces().FirstOrDefault(),
+                decoratorType.MakeGenericType(ch.GetInterfaces().FirstOrDefault()?.GenericTypeArguments.First())
+            }));
 
-            return builder;
-        }
+        return builder;
+    }
 
-        private static IEnumerable<MethodInfo> GetExtensionMethods()
-        {
-            var types = typeof(ReplacementBehavior).Assembly.GetTypes();
+    private static IEnumerable<MethodInfo> GetExtensionMethods()
+    {
+        var types = typeof(ReplacementBehavior).Assembly.GetTypes();
 
-            var query = from type in types
-                where type.IsSealed && !type.IsGenericType && !type.IsNested
-                from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                where method.IsDefined(typeof(ExtensionAttribute), false)
-                where method.GetParameters()[0].ParameterType == typeof(IServiceCollection)
-                select method;
-            return query;
-        }
+        var query = from type in types
+            where type.IsSealed && !type.IsGenericType && !type.IsNested
+            from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+            where method.IsDefined(typeof(ExtensionAttribute), false)
+            where method.GetParameters()[0].ParameterType == typeof(IServiceCollection)
+            select method;
+        return query;
     }
 }

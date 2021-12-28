@@ -1,10 +1,9 @@
-﻿namespace Convey.CQRS.Queries
+﻿namespace Convey.CQRS.Queries;
+
+public interface IPagedQuery : IQuery
 {
-    public interface IPagedQuery : IQuery
-    {
-        int Page { get; }
-        int Results { get; }
-        string OrderBy { get; }
-        string SortOrder { get; }
-    }
+    int Page { get; }
+    int Results { get; }
+    string OrderBy { get; }
+    string SortOrder { get; }
 }

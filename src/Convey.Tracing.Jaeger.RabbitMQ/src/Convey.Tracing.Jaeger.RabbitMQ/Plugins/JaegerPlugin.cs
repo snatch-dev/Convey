@@ -7,64 +7,63 @@ using OpenTracing;
 using OpenTracing.Tag;
 using RabbitMQ.Client.Events;
 
-namespace Convey.Tracing.Jaeger.RabbitMQ.Plugins
+namespace Convey.Tracing.Jaeger.RabbitMQ.Plugins;
+
+internal sealed class JaegerPlugin : RabbitMqPlugin
 {
-    internal sealed class JaegerPlugin : RabbitMqPlugin
+    private readonly ITracer _tracer;
+    private readonly string _spanContextHeader;
+
+    public JaegerPlugin(ITracer tracer, RabbitMqOptions options)
     {
-        private readonly ITracer _tracer;
-        private readonly string _spanContextHeader;
+        _tracer = tracer;
+        _spanContextHeader = options.GetSpanContextHeader();
+    }
 
-        public JaegerPlugin(ITracer tracer, RabbitMqOptions options)
+    public override async Task HandleAsync(object message, object correlationContext,
+        BasicDeliverEventArgs args)
+    {
+        var messageName = message.GetType().Name.Underscore();
+        var messageId = args.BasicProperties.MessageId;
+        var spanContext = string.Empty;
+        if (args.BasicProperties.Headers is { } &&
+            args.BasicProperties.Headers.TryGetValue(_spanContextHeader, out var spanContextHeader) &&
+            spanContextHeader is byte[] spanContextBytes)
         {
-            _tracer = tracer;
-            _spanContextHeader = options.GetSpanContextHeader();
+            spanContext = Encoding.UTF8.GetString(spanContextBytes);
         }
 
-        public override async Task HandleAsync(object message, object correlationContext,
-            BasicDeliverEventArgs args)
+        using var scope = BuildScope(messageName, spanContext);
+        var span = scope.Span;
+        span.Log($"Started processing a message: '{messageName}' [id: '{messageId}'].");
+        try
         {
-            var messageName = message.GetType().Name.Underscore();
-            var messageId = args.BasicProperties.MessageId;
-            var spanContext = string.Empty;
-            if (args.BasicProperties.Headers is { } &&
-                args.BasicProperties.Headers.TryGetValue(_spanContextHeader, out var spanContextHeader) &&
-                spanContextHeader is byte[] spanContextBytes)
-            {
-                spanContext = Encoding.UTF8.GetString(spanContextBytes);
-            }
-
-            using var scope = BuildScope(messageName, spanContext);
-            var span = scope.Span;
-            span.Log($"Started processing a message: '{messageName}' [id: '{messageId}'].");
-            try
-            {
-                await Next(message, correlationContext, args);
-            }
-            catch (Exception ex)
-            {
-                span.SetTag(Tags.Error, true);
-                span.Log(ex.Message);
-            }
-
-            span.Log($"Finished processing a message: '{messageName}' [id: '{messageId}'].");
+            await Next(message, correlationContext, args);
         }
+        catch (Exception ex)
+        {
+            span.SetTag(Tags.Error, true);
+            span.Log(ex.Message);
+        }
+
+        span.Log($"Finished processing a message: '{messageName}' [id: '{messageId}'].");
+    }
         
-        private IScope BuildScope(string messageName, string serializedSpanContext)
+    private IScope BuildScope(string messageName, string serializedSpanContext)
+    {
+        var spanBuilder = _tracer
+            .BuildSpan($"processing-{messageName}")
+            .WithTag("message-type", messageName);
+
+        if (string.IsNullOrEmpty(serializedSpanContext))
         {
-            var spanBuilder = _tracer
-                .BuildSpan($"processing-{messageName}")
-                .WithTag("message-type", messageName);
-
-            if (string.IsNullOrEmpty(serializedSpanContext))
-            {
-                return spanBuilder.StartActive(true);
-            }
-
-            var spanContext = SpanContext.ContextFromString(serializedSpanContext);
-
-            return spanBuilder
-                .AddReference(References.FollowsFrom, spanContext)
-                .StartActive(true);
+            return spanBuilder.StartActive(true);
         }
+
+        var spanContext = SpanContext.ContextFromString(serializedSpanContext);
+
+        return spanBuilder
+            .AddReference(References.FollowsFrom, spanContext)
+            .StartActive(true);
     }
 }

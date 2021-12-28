@@ -4,69 +4,68 @@ using System.Linq;
 using System.Threading.Tasks;
 using Convey.Discovery.Consul.Models;
 
-namespace Convey.Discovery.Consul.Services
+namespace Convey.Discovery.Consul.Services;
+
+internal sealed class ConsulServicesRegistry : IConsulServicesRegistry
 {
-    internal sealed class ConsulServicesRegistry : IConsulServicesRegistry
+    private readonly Random _random = new();
+    private readonly IConsulService _consulService;
+    private readonly IDictionary<string, ISet<string>> _usedServices = new Dictionary<string, ISet<string>>();
+
+    public ConsulServicesRegistry(IConsulService consulService)
     {
-        private readonly Random _random = new();
-        private readonly IConsulService _consulService;
-        private readonly IDictionary<string, ISet<string>> _usedServices = new Dictionary<string, ISet<string>>();
+        _consulService = consulService;
+    }
 
-        public ConsulServicesRegistry(IConsulService consulService)
+    public async Task<ServiceAgent> GetAsync(string name)
+    {
+        var services = await _consulService.GetServiceAgentsAsync(name);
+        if (!services.Any())
         {
-            _consulService = consulService;
+            return null;
         }
 
-        public async Task<ServiceAgent> GetAsync(string name)
+        if (!_usedServices.ContainsKey(name))
         {
-            var services = await _consulService.GetServiceAgentsAsync(name);
-            if (!services.Any())
-            {
+            _usedServices[name] = new HashSet<string>();
+        }
+        else if (services.Count == _usedServices[name].Count)
+        {
+            _usedServices[name].Clear();
+        }
+
+        return GetService(services, name);
+    }
+
+    private ServiceAgent GetService(IDictionary<string, ServiceAgent> services, string name)
+    {
+        switch (services.Count)
+        {
+            case 0:
                 return null;
-            }
-
-            if (!_usedServices.ContainsKey(name))
-            {
-                _usedServices[name] = new HashSet<string>();
-            }
-            else if (services.Count == _usedServices[name].Count)
-            {
-                _usedServices[name].Clear();
-            }
-
-            return GetService(services, name);
+            case 1:
+                return services.First().Value;
+            default:
+                return ChooseService(services, name);
         }
+    }
 
-        private ServiceAgent GetService(IDictionary<string, ServiceAgent> services, string name)
+    private ServiceAgent ChooseService(IDictionary<string, ServiceAgent> services, string name)
+    {
+        ServiceAgent service;
+        var unusedServices = services.Where(s => !_usedServices[name].Contains(s.Key)).ToArray();
+        if (unusedServices.Any())
         {
-            switch (services.Count)
-            {
-                case 0:
-                    return null;
-                case 1:
-                    return services.First().Value;
-                default:
-                    return ChooseService(services, name);
-            }
+            service = unusedServices.ElementAt(_random.Next(0, unusedServices.Count())).Value;
         }
-
-        private ServiceAgent ChooseService(IDictionary<string, ServiceAgent> services, string name)
+        else
         {
-            ServiceAgent service;
-            var unusedServices = services.Where(s => !_usedServices[name].Contains(s.Key));
-            if (unusedServices.Any())
-            {
-                service = unusedServices.ElementAt(_random.Next(0, unusedServices.Count())).Value;
-            }
-            else
-            {
-                service = unusedServices.First().Value;
-                _usedServices[name].Clear();
-            }
-
-            _usedServices[name].Add(service.Id);
-
-            return service;
+            service = unusedServices.First().Value;
+            _usedServices[name].Clear();
         }
+
+        _usedServices[name].Add(service.Id);
+
+        return service;
     }
 }

@@ -3,34 +3,33 @@ using Convey.Docs.Swagger;
 using Convey.WebApi.Swagger.Filters;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Convey.WebApi.Swagger
+namespace Convey.WebApi.Swagger;
+
+public static class Extensions
 {
-    public static class Extensions
+    private const string SectionName = "swagger";
+
+    public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, string sectionName = SectionName)
     {
-        private const string SectionName = "swagger";
-
-        public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, string sectionName = SectionName)
+        if (string.IsNullOrWhiteSpace(sectionName))
         {
-            if (string.IsNullOrWhiteSpace(sectionName))
-            {
-                sectionName = SectionName;
-            }
+            sectionName = SectionName;
+        }
 
-            return builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(sectionName));
-        }
+        return builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(sectionName));
+    }
         
-        public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, 
-            Func<ISwaggerOptionsBuilder, ISwaggerOptionsBuilder> buildOptions)
-            => builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(buildOptions));
+    public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, 
+        Func<ISwaggerOptionsBuilder, ISwaggerOptionsBuilder> buildOptions)
+        => builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(buildOptions));
         
-        public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, SwaggerOptions options)
-            => builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(options));
+    public static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, SwaggerOptions options)
+        => builder.AddWebApiSwaggerDocs(b => b.AddSwaggerDocs(options));
         
-        private static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, Action<IConveyBuilder> registerSwagger)
-        {
-            registerSwagger(builder);
-            builder.Services.AddSwaggerGen(c => c.DocumentFilter<WebApiDocumentFilter>());
-            return builder;
-        }
+    private static IConveyBuilder AddWebApiSwaggerDocs(this IConveyBuilder builder, Action<IConveyBuilder> registerSwagger)
+    {
+        registerSwagger(builder);
+        builder.Services.AddSwaggerGen(c => c.DocumentFilter<WebApiDocumentFilter>());
+        return builder;
     }
 }

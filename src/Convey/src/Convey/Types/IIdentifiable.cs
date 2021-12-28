@@ -1,7 +1,6 @@
-namespace Convey.Types
+namespace Convey.Types;
+
+public interface IIdentifiable<out T>
 {
-    public interface IIdentifiable<out T>
-    {
-        T Id { get; }
-    }
+    T Id { get; }
 }

@@ -1,9 +1,8 @@
 using System;
 
-namespace Convey.Types
+namespace Convey.Types;
+
+// Marker
+public class DecoratorAttribute : Attribute
 {
-    // Marker
-    public class DecoratorAttribute : Attribute
-    {
-    }
 }

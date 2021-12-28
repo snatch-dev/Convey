@@ -2,30 +2,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 
-namespace Convey.Persistence.MongoDB.Initializers
+namespace Convey.Persistence.MongoDB.Initializers;
+
+internal sealed class MongoDbInitializer : IMongoDbInitializer
 {
-    internal sealed class MongoDbInitializer : IMongoDbInitializer
+    private static int _initialized;
+    private readonly bool _seed;
+    private readonly IMongoDatabase _database;
+    private readonly IMongoDbSeeder _seeder;
+
+    public MongoDbInitializer(IMongoDatabase database, IMongoDbSeeder seeder, MongoDbOptions options)
     {
-        private static int _initialized;
-        private readonly bool _seed;
-        private readonly IMongoDatabase _database;
-        private readonly IMongoDbSeeder _seeder;
+        _database = database;
+        _seeder = seeder;
+        _seed = options.Seed;
+    }
 
-        public MongoDbInitializer(IMongoDatabase database, IMongoDbSeeder seeder, MongoDbOptions options)
+    public Task InitializeAsync()
+    {
+        if (Interlocked.Exchange(ref _initialized, 1) == 1)
         {
-            _database = database;
-            _seeder = seeder;
-            _seed = options.Seed;
+            return Task.CompletedTask;
         }
 
-        public Task InitializeAsync()
-        {
-            if (Interlocked.Exchange(ref _initialized, 1) == 1)
-            {
-                return Task.CompletedTask;
-            }
-
-            return _seed ? _seeder.SeedAsync(_database) : Task.CompletedTask;
-        }
+        return _seed ? _seeder.SeedAsync(_database) : Task.CompletedTask;
     }
 }

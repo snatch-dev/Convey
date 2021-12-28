@@ -1,15 +1,14 @@
 using System;
 using Convey.CQRS.Events;
 
-namespace Conveyor.Services.Deliveries.Events
-{
-    public class DeliveryStarted : IEvent
-    {
-        public Guid DeliveryId { get; }
+namespace Conveyor.Services.Deliveries.Events;
 
-        public DeliveryStarted(Guid deliveryId)
-        {
-            DeliveryId = deliveryId;
-        }
+public class DeliveryStarted : IEvent
+{
+    public Guid DeliveryId { get; }
+
+    public DeliveryStarted(Guid deliveryId)
+    {
+        DeliveryId = deliveryId;
     }
 }

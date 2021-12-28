@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 using MongoDB.Driver;
 
-namespace Convey.Persistence.MongoDB
+namespace Convey.Persistence.MongoDB;
+
+public interface IMongoDbSeeder
 {
-    public interface IMongoDbSeeder
-    {
-        Task SeedAsync(IMongoDatabase database);
-    }
+    Task SeedAsync(IMongoDatabase database);
 }

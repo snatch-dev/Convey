@@ -1,7 +1,6 @@
-namespace Convey.CQRS.Events
+namespace Convey.CQRS.Events;
+
+//Marker
+public interface IEvent
 {
-    //Marker
-    public interface IEvent
-    {
-    }
 }

@@ -1,11 +1,10 @@
-namespace Convey.HTTP.RestEase
+namespace Convey.HTTP.RestEase;
+
+public interface IRestEaseServiceBuilder
 {
-    public interface IRestEaseServiceBuilder
-    {
-        IRestEaseServiceBuilder WithName(string name);
-        IRestEaseServiceBuilder WithScheme(string scheme);
-        IRestEaseServiceBuilder WithHost(string host);
-        IRestEaseServiceBuilder WithPort(int port);
-        RestEaseOptions.Service Build();
-    }
+    IRestEaseServiceBuilder WithName(string name);
+    IRestEaseServiceBuilder WithScheme(string scheme);
+    IRestEaseServiceBuilder WithHost(string host);
+    IRestEaseServiceBuilder WithPort(int port);
+    RestEaseOptions.Service Build();
 }

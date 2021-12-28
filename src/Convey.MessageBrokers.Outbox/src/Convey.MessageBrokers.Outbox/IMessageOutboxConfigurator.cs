@@ -1,8 +1,7 @@
-namespace Convey.MessageBrokers.Outbox
+namespace Convey.MessageBrokers.Outbox;
+
+public interface IMessageOutboxConfigurator
 {
-    public interface IMessageOutboxConfigurator
-    {
-        IConveyBuilder Builder { get; }
-        OutboxOptions Options { get; }
-    }
+    IConveyBuilder Builder { get; }
+    OutboxOptions Options { get; }
 }

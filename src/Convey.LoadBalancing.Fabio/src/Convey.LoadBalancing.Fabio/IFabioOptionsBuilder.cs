@@ -1,10 +1,9 @@
-namespace Convey.LoadBalancing.Fabio
+namespace Convey.LoadBalancing.Fabio;
+
+public interface IFabioOptionsBuilder
 {
-    public interface IFabioOptionsBuilder
-    {
-        IFabioOptionsBuilder Enable(bool enabled);
-        IFabioOptionsBuilder WithUrl(string url);
-        IFabioOptionsBuilder WithService(string service);
-        FabioOptions Build();
-    }
+    IFabioOptionsBuilder Enable(bool enabled);
+    IFabioOptionsBuilder WithUrl(string url);
+    IFabioOptionsBuilder WithService(string service);
+    FabioOptions Build();
 }

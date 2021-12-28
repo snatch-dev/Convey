@@ -1,6 +1,5 @@
-namespace Convey.WebApi.Requests
+namespace Convey.WebApi.Requests;
+
+public interface IRequest
 {
-    public interface IRequest
-    {
-    }
 }

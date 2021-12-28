@@ -1,7 +1,6 @@
-namespace Convey.Logging.Options
+namespace Convey.Logging.Options;
+
+public class ConsoleOptions
 {
-    public class ConsoleOptions
-    {
-        public bool Enabled { get; set; }
-    }
+    public bool Enabled { get; set; }
 }

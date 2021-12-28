@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
-namespace Convey.CQRS.Events
+namespace Convey.CQRS.Events;
+
+public interface IEventHandler<in TEvent> where TEvent : class, IEvent
 {
-    public interface IEventHandler<in TEvent> where TEvent : class, IEvent
-    {
-        Task HandleAsync(TEvent @event);
-    }
+    Task HandleAsync(TEvent @event);
 }

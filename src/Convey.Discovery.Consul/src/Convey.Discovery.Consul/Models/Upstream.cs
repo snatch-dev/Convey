@@ -1,8 +1,7 @@
-namespace Convey.Discovery.Consul.Models
+namespace Convey.Discovery.Consul.Models;
+
+public class Upstream
 {
-    public class Upstream
-    {
-        public string DestinationName { get; set; }
-        public int LocalBindPort { get; set; }
-    }
+    public string DestinationName { get; set; }
+    public int LocalBindPort { get; set; }
 }

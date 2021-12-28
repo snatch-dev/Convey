@@ -1,7 +1,6 @@
-namespace Convey.MessageBrokers.RabbitMQ
+namespace Convey.MessageBrokers.RabbitMQ;
+
+public interface IRabbitMqPluginsRegistry
 {
-    public interface IRabbitMqPluginsRegistry
-    {
-        IRabbitMqPluginsRegistry Add<TPlugin>() where TPlugin : class, IRabbitMqPlugin;
-    }
+    IRabbitMqPluginsRegistry Add<TPlugin>() where TPlugin : class, IRabbitMqPlugin;
 }

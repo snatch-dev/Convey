@@ -1,7 +1,6 @@
-namespace Convey.MessageBrokers
+namespace Convey.MessageBrokers;
+
+public interface ICorrelationContextAccessor
 {
-    public interface ICorrelationContextAccessor
-    {
-        object CorrelationContext { get; set; }
-    }
+    object CorrelationContext { get; set; }
 }

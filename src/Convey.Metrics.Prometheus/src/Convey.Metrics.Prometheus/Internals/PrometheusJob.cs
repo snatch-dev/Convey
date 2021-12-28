@@ -5,44 +5,43 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Prometheus.DotNetRuntime;
 
-namespace Convey.Metrics.Prometheus.Internals
+namespace Convey.Metrics.Prometheus.Internals;
+
+internal sealed class PrometheusJob : IHostedService
 {
-    internal sealed class PrometheusJob : IHostedService
+    private IDisposable _collector;
+    private readonly ILogger<PrometheusJob> _logger;
+    private readonly bool _enabled;
+
+    public PrometheusJob(PrometheusOptions options, ILogger<PrometheusJob> logger)
     {
-        private IDisposable _collector;
-        private readonly ILogger<PrometheusJob> _logger;
-        private readonly bool _enabled;
+        _enabled = options.Enabled;
+        _logger = logger;
+        _logger.LogInformation($"Prometheus integration is {(_enabled ? "enabled" : "disabled")}.");
+    }
 
-        public PrometheusJob(PrometheusOptions options, ILogger<PrometheusJob> logger)
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (_enabled)
         {
-            _enabled = options.Enabled;
-            _logger = logger;
-            _logger.LogInformation($"Prometheus integration is {(_enabled ? "enabled" : "disabled")}.");
+            _collector = DotNetRuntimeStatsBuilder
+                .Customize()
+                .WithContentionStats()
+                .WithJitStats()
+                .WithThreadPoolStats()
+                .WithThreadPoolStats()
+                .WithGcStats()
+                .WithExceptionStats()
+                .StartCollecting();
         }
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            if (_enabled)
-            {
-                _collector = DotNetRuntimeStatsBuilder
-                    .Customize()
-                    .WithContentionStats()
-                    .WithJitStats()
-                    .WithThreadPoolStats()
-                    .WithThreadPoolStats()
-                    .WithGcStats()
-                    .WithExceptionStats()
-                    .StartCollecting();
-            }
             
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
+    }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _collector?.Dispose();
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _collector?.Dispose();
 
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

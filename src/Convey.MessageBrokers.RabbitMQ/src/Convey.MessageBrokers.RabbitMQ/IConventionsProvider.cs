@@ -1,10 +1,9 @@
 using System;
 
-namespace Convey.MessageBrokers.RabbitMQ
+namespace Convey.MessageBrokers.RabbitMQ;
+
+public interface IConventionsProvider
 {
-    public interface IConventionsProvider
-    {
-        IConventions Get<T>();
-        IConventions Get(Type type);
-    }
+    IConventions Get<T>();
+    IConventions Get(Type type);
 }

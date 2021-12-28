@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace Convey.Auth
+namespace Convey.Auth;
+
+public class AuthAttribute : AuthorizeAttribute
 {
-    public class AuthAttribute : AuthorizeAttribute
+    public AuthAttribute(string scheme, string policy = "") : base(policy)
     {
-        public AuthAttribute(string scheme, string policy = "") : base(policy)
-        {
-            AuthenticationSchemes = scheme;
-        }
+        AuthenticationSchemes = scheme;
     }
 }

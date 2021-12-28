@@ -3,37 +3,36 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Open.Serialization.Json;
 
-namespace Convey.WebApi.Formatters
+namespace Convey.WebApi.Formatters;
+
+internal class JsonOutputFormatter : IOutputFormatter
 {
-    internal class JsonOutputFormatter : IOutputFormatter
+    private readonly IJsonSerializer _serializer;
+
+    public JsonOutputFormatter(IJsonSerializer serializer)
     {
-        private readonly IJsonSerializer _serializer;
+        _serializer = serializer;
+    }
 
-        public JsonOutputFormatter(IJsonSerializer serializer)
+    public bool CanWriteResult(OutputFormatterCanWriteContext context)
+    {
+        return true;
+    }
+
+    public async Task WriteAsync(OutputFormatterWriteContext context)
+    {
+        if (context.Object is null)
         {
-            _serializer = serializer;
+            return;
         }
 
-        public bool CanWriteResult(OutputFormatterCanWriteContext context)
+        context.HttpContext.Response.ContentType = "application/json";
+        if (context.Object is string json)
         {
-            return true;
+            await context.HttpContext.Response.WriteAsync(json);
+            return;
         }
-
-        public async Task WriteAsync(OutputFormatterWriteContext context)
-        {
-            if (context.Object is null)
-            {
-                return;
-            }
-
-            context.HttpContext.Response.ContentType = "application/json";
-            if (context.Object is string json)
-            {
-                await context.HttpContext.Response.WriteAsync(json);
-                return;
-            }
             
-            await _serializer.SerializeAsync(context.HttpContext.Response.Body, context.Object);
-        }
+        await _serializer.SerializeAsync(context.HttpContext.Response.Body, context.Object);
     }
 }

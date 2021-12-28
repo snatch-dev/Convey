@@ -1,9 +1,8 @@
 using System;
 
-namespace Convey
+namespace Convey;
+
+internal class ServiceId : IServiceId
 {
-    internal class ServiceId : IServiceId
-    {
-        public string Id { get; } = $"{Guid.NewGuid():N}";
-    }
+    public string Id { get; } = $"{Guid.NewGuid():N}";
 }

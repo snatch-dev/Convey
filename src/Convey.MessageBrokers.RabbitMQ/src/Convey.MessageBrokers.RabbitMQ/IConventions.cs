@@ -1,12 +1,11 @@
 using System;
 
-namespace Convey.MessageBrokers.RabbitMQ
+namespace Convey.MessageBrokers.RabbitMQ;
+
+public interface IConventions
 {
-    public interface IConventions
-    {
-        Type Type { get; }
-        string RoutingKey { get; }
-        string Exchange { get; }
-        string Queue { get; }
-    }
+    Type Type { get; }
+    string RoutingKey { get; }
+    string Exchange { get; }
+    string Queue { get; }
 }

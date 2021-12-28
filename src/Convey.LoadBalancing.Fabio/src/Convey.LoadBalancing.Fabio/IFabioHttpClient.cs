@@ -1,8 +1,7 @@
 using Convey.HTTP;
 
-namespace Convey.LoadBalancing.Fabio
+namespace Convey.LoadBalancing.Fabio;
+
+public interface IFabioHttpClient : IHttpClient
 {
-    public interface IFabioHttpClient : IHttpClient
-    {
-    }
 }

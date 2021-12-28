@@ -1,11 +1,10 @@
-﻿namespace Convey.CQRS.Queries
-{
-    //Marker
-    public interface IQuery
-    {
-    }
+﻿namespace Convey.CQRS.Queries;
 
-    public interface IQuery<T> : IQuery
-    {
-    }
+//Marker
+public interface IQuery
+{
+}
+
+public interface IQuery<T> : IQuery
+{
 }

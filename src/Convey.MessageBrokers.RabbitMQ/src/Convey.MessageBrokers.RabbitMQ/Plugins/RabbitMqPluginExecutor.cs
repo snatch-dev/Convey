@@ -4,56 +4,55 @@ using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
 
-namespace Convey.MessageBrokers.RabbitMQ.Plugins
+namespace Convey.MessageBrokers.RabbitMQ.Plugins;
+
+internal sealed class RabbitMqPluginsExecutor : IRabbitMqPluginsExecutor
 {
-    internal sealed class RabbitMqPluginsExecutor : IRabbitMqPluginsExecutor
+    private readonly IRabbitMqPluginsRegistryAccessor _registry;
+    private readonly IServiceProvider _serviceProvider;
+
+    public RabbitMqPluginsExecutor(IRabbitMqPluginsRegistryAccessor registry, IServiceProvider serviceProvider)
     {
-        private readonly IRabbitMqPluginsRegistryAccessor _registry;
-        private readonly IServiceProvider _serviceProvider;
+        _registry = registry;
+        _serviceProvider = serviceProvider;
+    }
 
-        public RabbitMqPluginsExecutor(IRabbitMqPluginsRegistryAccessor registry, IServiceProvider serviceProvider)
+    public async Task ExecuteAsync(Func<object, object, BasicDeliverEventArgs, Task> successor,
+        object message, object correlationContext, BasicDeliverEventArgs args)
+    {
+        var chains = _registry.Get();
+
+        if (chains is null || !chains.Any())
         {
-            _registry = registry;
-            _serviceProvider = serviceProvider;
+            await successor(message, correlationContext, args);
+            return;
         }
 
-        public async Task ExecuteAsync(Func<object, object, BasicDeliverEventArgs, Task> successor,
-            object message, object correlationContext, BasicDeliverEventArgs args)
+        var plugins = new LinkedList<IRabbitMqPlugin>();
+
+        foreach (var chain in chains)
         {
-            var chains = _registry.Get();
+            var plugin = _serviceProvider.GetService(chain.PluginType);
 
-            if (chains is null || !chains.Any())
+            if (plugin is null)
             {
-                await successor(message, correlationContext, args);
-                return;
+                throw new InvalidOperationException($"RabbitMq plugin of type {chain.PluginType.Name} was not registered");
             }
 
-            var plugins = new LinkedList<IRabbitMqPlugin>();
-
-            foreach (var chain in chains)
-            {
-                var plugin = _serviceProvider.GetService(chain.PluginType);
-
-                if (plugin is null)
-                {
-                    throw new InvalidOperationException($"RabbitMq plugin of type {chain.PluginType.Name} was not registered");
-                }
-
-                plugins.AddLast(plugin as IRabbitMqPlugin);
-            }
-
-            var current = plugins.Last;
-
-            while (current != null)
-            {
-                ((IRabbitMqPluginAccessor)current.Value).SetSuccessor(current.Next is null
-                    ? successor
-                    : current.Next.Value.HandleAsync);
-
-                current = current.Previous;
-            }
-
-            await plugins.First.Value.HandleAsync(message, correlationContext, args);
+            plugins.AddLast(plugin as IRabbitMqPlugin);
         }
+
+        var current = plugins.Last;
+
+        while (current != null)
+        {
+            ((IRabbitMqPluginAccessor)current.Value).SetSuccessor(current.Next is null
+                ? successor
+                : current.Next.Value.HandleAsync);
+
+            current = current.Previous;
+        }
+
+        await plugins.First.Value.HandleAsync(message, correlationContext, args);
     }
 }

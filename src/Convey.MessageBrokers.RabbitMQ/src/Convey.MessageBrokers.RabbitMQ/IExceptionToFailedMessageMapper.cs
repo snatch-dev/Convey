@@ -1,9 +1,8 @@
 using System;
 
-namespace Convey.MessageBrokers.RabbitMQ
+namespace Convey.MessageBrokers.RabbitMQ;
+
+public interface IExceptionToFailedMessageMapper
 {
-    public interface IExceptionToFailedMessageMapper
-    {
-        FailedMessage Map(Exception exception, object message);
-    }
+    FailedMessage Map(Exception exception, object message);
 }

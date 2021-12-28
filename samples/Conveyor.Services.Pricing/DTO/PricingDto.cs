@@ -1,10 +1,9 @@
 using System;
 
-namespace Conveyor.Services.Pricing.DTO
+namespace Conveyor.Services.Pricing.DTO;
+
+public class PricingDto
 {
-    public class PricingDto
-    {
-        public Guid OrderId { get; set; }
-        public decimal TotalAmount { get; set; }
-    }
+    public Guid OrderId { get; set; }
+    public decimal TotalAmount { get; set; }
 }

@@ -1,14 +1,13 @@
 using Convey;
 using Convey.WebApi.Security;
 
-namespace Conveyor.Services.Pricing
+namespace Conveyor.Services.Pricing;
+
+public static class Extensions
 {
-    public static class Extensions
+    public static IConveyBuilder AddServices(this IConveyBuilder builder)
     {
-        public static IConveyBuilder AddServices(this IConveyBuilder builder)
-        {
-            builder.AddCertificateAuthentication();
-            return builder;
-        }
+        builder.AddCertificateAuthentication();
+        return builder;
     }
 }

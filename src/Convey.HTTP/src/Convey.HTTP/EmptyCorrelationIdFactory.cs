@@ -1,7 +1,6 @@
-namespace Convey.HTTP
+namespace Convey.HTTP;
+
+internal class EmptyCorrelationIdFactory : ICorrelationIdFactory
 {
-    internal class EmptyCorrelationIdFactory : ICorrelationIdFactory
-    {
-        public string Create() => default;
-    }
+    public string Create() => default;
 }

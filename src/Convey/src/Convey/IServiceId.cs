@@ -1,7 +1,6 @@
-namespace Convey
+namespace Convey;
+
+public interface IServiceId
 {
-    public interface IServiceId
-    {
-        string Id { get; }
-    }
+    string Id { get; }
 }

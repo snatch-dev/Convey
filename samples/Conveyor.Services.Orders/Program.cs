@@ -33,61 +33,60 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 
-namespace Conveyor.Services.Orders
-{
-    public class Program
-    {
-        public static Task Main(string[] args)
-            => CreateHostBuilder(args).Build().RunAsync();
+namespace Conveyor.Services.Orders;
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
-            => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.ConfigureServices(services => services
-                        .AddConvey()
-                        .AddErrorHandler<ExceptionToResponseMapper>()
-                        .AddServices()
-                        .AddHttpClient()
-                        .AddCorrelationContextLogging()
-                        .AddConsul()
-                        .AddFabio()
-                        .AddJaeger()
-                        .AddMongo()
-                        .AddMongoRepository<Order, Guid>("orders")
-                        .AddCommandHandlers()
-                        .AddEventHandlers()
-                        .AddQueryHandlers()
-                        .AddInMemoryCommandDispatcher()
-                        .AddInMemoryEventDispatcher()
-                        .AddInMemoryQueryDispatcher()
-                        .AddPrometheus()
-                        .AddRedis()
-                        .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
-                        .AddMessageOutbox(o => o.AddMongo())
-                        .AddWebApi()
-                        .AddSwaggerDocs()
-                        .AddWebApiSwaggerDocs()
-                        .Build())
-                    .Configure(app => app
-                        .UseConvey()
-                        .UserCorrelationContextLogging()
-                        .UseErrorHandler()
-                        .UsePrometheus()
-                        .UseRouting()
-                        .UseCertificateAuthentication()
-                        .UseEndpoints(r => r.MapControllers())
-                        .UseDispatcherEndpoints(endpoints => endpoints
-                                .Get("", ctx => ctx.Response.WriteAsync("Orders Service"))
-                                .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
-                                .Get<GetOrder, OrderDto>("orders/{orderId}")
-                                .Post<CreateOrder>("orders",
-                                    afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
-                        .UseJaeger()
-                        .UseSwaggerDocs()
-                        .UseRabbitMq()
-                        .SubscribeEvent<DeliveryStarted>())
-                    .UseLogging()
-                    .UseVault();
-            });
-    }
+public class Program
+{
+    public static Task Main(string[] args)
+        => CreateHostBuilder(args).Build().RunAsync();
+
+    public static IHostBuilder CreateHostBuilder(string[] args)
+        => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
+        {
+            webBuilder.ConfigureServices(services => services
+                    .AddConvey()
+                    .AddErrorHandler<ExceptionToResponseMapper>()
+                    .AddServices()
+                    .AddHttpClient()
+                    .AddCorrelationContextLogging()
+                    .AddConsul()
+                    .AddFabio()
+                    .AddJaeger()
+                    .AddMongo()
+                    .AddMongoRepository<Order, Guid>("orders")
+                    .AddCommandHandlers()
+                    .AddEventHandlers()
+                    .AddQueryHandlers()
+                    .AddInMemoryCommandDispatcher()
+                    .AddInMemoryEventDispatcher()
+                    .AddInMemoryQueryDispatcher()
+                    .AddPrometheus()
+                    .AddRedis()
+                    .AddRabbitMq(plugins: p => p.AddJaegerRabbitMqPlugin())
+                    .AddMessageOutbox(o => o.AddMongo())
+                    .AddWebApi()
+                    .AddSwaggerDocs()
+                    .AddWebApiSwaggerDocs()
+                    .Build())
+                .Configure(app => app
+                    .UseConvey()
+                    .UserCorrelationContextLogging()
+                    .UseErrorHandler()
+                    .UsePrometheus()
+                    .UseRouting()
+                    .UseCertificateAuthentication()
+                    .UseEndpoints(r => r.MapControllers())
+                    .UseDispatcherEndpoints(endpoints => endpoints
+                        .Get("", ctx => ctx.Response.WriteAsync("Orders Service"))
+                        .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
+                        .Get<GetOrder, OrderDto>("orders/{orderId}")
+                        .Post<CreateOrder>("orders",
+                            afterDispatch: (cmd, ctx) => ctx.Response.Created($"orders/{cmd.OrderId}")))
+                    .UseJaeger()
+                    .UseSwaggerDocs()
+                    .UseRabbitMq()
+                    .SubscribeEvent<DeliveryStarted>())
+                .UseLogging()
+                .UseVault();
+        });
 }

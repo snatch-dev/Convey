@@ -1,8 +1,7 @@
-namespace Convey.MessageBrokers.RabbitMQ.Subscribers
+namespace Convey.MessageBrokers.RabbitMQ.Subscribers;
+
+internal enum MessageSubscriberAction
 {
-    internal enum MessageSubscriberAction
-    {
-        Subscribe = 1,
-        Unsubscribe
-    }
+    Subscribe = 1,
+    Unsubscribe
 }

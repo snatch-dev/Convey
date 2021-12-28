@@ -1,7 +1,6 @@
-namespace Convey.MessageBrokers
+namespace Convey.MessageBrokers;
+
+public interface IMessagePropertiesAccessor
 {
-    public interface IMessagePropertiesAccessor
-    {
-        IMessageProperties MessageProperties { get; set; }
-    }
+    IMessageProperties MessageProperties { get; set; }
 }

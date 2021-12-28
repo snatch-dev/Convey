@@ -7,118 +7,117 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Convey.MessageBrokers.Outbox.Processors
+namespace Convey.MessageBrokers.Outbox.Processors;
+
+internal sealed class OutboxProcessor : IHostedService
 {
-    internal sealed class OutboxProcessor : IHostedService
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IBusPublisher _publisher;
+    private readonly OutboxOptions _options;
+    private readonly ILogger<OutboxProcessor> _logger;
+    private readonly TimeSpan _interval;
+    private readonly OutboxType _type;
+    private Timer _timer;
+
+    public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, IBusPublisher publisher, OutboxOptions options,
+        ILogger<OutboxProcessor> logger)
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly IBusPublisher _publisher;
-        private readonly OutboxOptions _options;
-        private readonly ILogger<OutboxProcessor> _logger;
-        private readonly TimeSpan _interval;
-        private readonly OutboxType _type;
-        private Timer _timer;
-
-        public OutboxProcessor(IServiceScopeFactory serviceScopeFactory, IBusPublisher publisher, OutboxOptions options,
-            ILogger<OutboxProcessor> logger)
+        if (options.Enabled && options.IntervalMilliseconds <= 0)
         {
-            if (options.Enabled && options.IntervalMilliseconds <= 0)
-            {
-                throw new Exception($"Invalid outbox interval: {options.IntervalMilliseconds} ms.");
-            }
-
-            _type = OutboxType.Sequential;
-            if (!string.IsNullOrWhiteSpace(options.Type))
-            {
-                if (!Enum.TryParse<OutboxType>(options.Type, true, out var outboxType))
-                {
-                    throw new ArgumentException($"Invalid outbox type: '{_type}', " +
-                                                $"valid types: '{OutboxType.Sequential}', '{OutboxType.Parallel}'.");
-                }
-
-                _type = outboxType;
-            }
-
-            _serviceScopeFactory = serviceScopeFactory;
-            _publisher = publisher;
-            _options = options;
-            _logger = logger;            
-            _interval = TimeSpan.FromMilliseconds(options.IntervalMilliseconds);
-            if (options.Enabled)
-            {
-                _logger.LogInformation($"Outbox is enabled, type: '{_type}', message processing every {options.IntervalMilliseconds} ms.");
-                return;
-            }
-
-            _logger.LogInformation("Outbox is disabled.");
+            throw new Exception($"Invalid outbox interval: {options.IntervalMilliseconds} ms.");
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        _type = OutboxType.Sequential;
+        if (!string.IsNullOrWhiteSpace(options.Type))
         {
-            if (!_options.Enabled)
+            if (!Enum.TryParse<OutboxType>(options.Type, true, out var outboxType))
             {
-                return Task.CompletedTask;
+                throw new ArgumentException($"Invalid outbox type: '{_type}', " +
+                                            $"valid types: '{OutboxType.Sequential}', '{OutboxType.Parallel}'.");
             }
 
-            _timer = new Timer(SendOutboxMessages, null, TimeSpan.Zero, _interval);
+            _type = outboxType;
+        }
+
+        _serviceScopeFactory = serviceScopeFactory;
+        _publisher = publisher;
+        _options = options;
+        _logger = logger;            
+        _interval = TimeSpan.FromMilliseconds(options.IntervalMilliseconds);
+        if (options.Enabled)
+        {
+            _logger.LogInformation($"Outbox is enabled, type: '{_type}', message processing every {options.IntervalMilliseconds} ms.");
+            return;
+        }
+
+        _logger.LogInformation("Outbox is disabled.");
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (!_options.Enabled)
+        {
             return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            if (!_options.Enabled)
-            {
-                return Task.CompletedTask;
-            }
+        _timer = new Timer(SendOutboxMessages, null, TimeSpan.Zero, _interval);
+        return Task.CompletedTask;
+    }
 
-            _timer?.Change(Timeout.Infinite, 0);
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (!_options.Enabled)
+        {
             return Task.CompletedTask;
         }
 
-        private void SendOutboxMessages(object state)
+        _timer?.Change(Timeout.Infinite, 0);
+        return Task.CompletedTask;
+    }
+
+    private void SendOutboxMessages(object state)
+    {
+        _ = SendOutboxMessagesAsync();
+    }
+
+    private async Task SendOutboxMessagesAsync()
+    {
+        var jobId = Guid.NewGuid().ToString("N");
+        _logger.LogTrace($"Started processing outbox messages... [job id: '{jobId}']");
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        using var scope = _serviceScopeFactory.CreateScope();
+        var outbox = scope.ServiceProvider.GetRequiredService<IMessageOutboxAccessor>();
+        var messages = await outbox.GetUnsentAsync();
+        _logger.LogTrace($"Found {messages.Count} unsent messages in outbox [job ID: '{jobId}'].");
+        if (!messages.Any())
         {
-            _ = SendOutboxMessagesAsync();
+            _logger.LogTrace($"No messages to be processed in outbox [job ID: '{jobId}'].");
+            return;
         }
 
-        private async Task SendOutboxMessagesAsync()
+        foreach (var message in messages.OrderBy(m => m.SentAt))
         {
-            var jobId = Guid.NewGuid().ToString("N");
-            _logger.LogTrace($"Started processing outbox messages... [job id: '{jobId}']");
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            using var scope = _serviceScopeFactory.CreateScope();
-            var outbox = scope.ServiceProvider.GetRequiredService<IMessageOutboxAccessor>();
-            var messages = await outbox.GetUnsentAsync();
-            _logger.LogTrace($"Found {messages.Count} unsent messages in outbox [job ID: '{jobId}'].");
-            if (!messages.Any())
+            await _publisher.PublishAsync(message.Message, message.Id, message.CorrelationId,
+                message.SpanContext, message.MessageContext, message.Headers);
+            if (_type == OutboxType.Sequential)
             {
-                _logger.LogTrace($"No messages to be processed in outbox [job ID: '{jobId}'].");
-                return;
+                await outbox.ProcessAsync(message);
             }
+        }
 
-            foreach (var message in messages.OrderBy(m => m.SentAt))
-            {
-                await _publisher.PublishAsync(message.Message, message.Id, message.CorrelationId,
-                    message.SpanContext, message.MessageContext, message.Headers);
-                if (_type == OutboxType.Sequential)
-                {
-                    await outbox.ProcessAsync(message);
-                }
-            }
-
-            if (_type == OutboxType.Parallel)
-            {
-                await outbox.ProcessAsync(messages);
-            }
+        if (_type == OutboxType.Parallel)
+        {
+            await outbox.ProcessAsync(messages);
+        }
             
-            stopwatch.Stop();
-            _logger.LogTrace($"Processed {messages.Count} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job ID: '{jobId}'].");
-        }
+        stopwatch.Stop();
+        _logger.LogTrace($"Processed {messages.Count} outbox messages in {stopwatch.ElapsedMilliseconds} ms [job ID: '{jobId}'].");
+    }
 
-        private enum OutboxType
-        {
-            Sequential,
-            Parallel
-        }
+    private enum OutboxType
+    {
+        Sequential,
+        Parallel
     }
 }

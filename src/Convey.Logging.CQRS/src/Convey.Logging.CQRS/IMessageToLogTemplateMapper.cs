@@ -1,7 +1,6 @@
-namespace Convey.Logging.CQRS
+namespace Convey.Logging.CQRS;
+
+public interface IMessageToLogTemplateMapper
 {
-    public interface IMessageToLogTemplateMapper
-    {
-        HandlerLogTemplate Map<TMessage>(TMessage message) where TMessage : class;
-    }
+    HandlerLogTemplate Map<TMessage>(TMessage message) where TMessage : class;
 }

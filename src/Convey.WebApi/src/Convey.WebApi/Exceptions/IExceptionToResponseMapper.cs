@@ -1,9 +1,8 @@
 using System;
 
-namespace Convey.WebApi.Exceptions
+namespace Convey.WebApi.Exceptions;
+
+public interface IExceptionToResponseMapper
 {
-    public interface IExceptionToResponseMapper
-    {
-        ExceptionResponse Map(Exception exception);
-    }
+    ExceptionResponse Map(Exception exception);
 }

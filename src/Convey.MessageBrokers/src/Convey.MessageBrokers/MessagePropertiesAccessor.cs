@@ -1,33 +1,32 @@
 using System.Threading;
 
-namespace Convey.MessageBrokers
+namespace Convey.MessageBrokers;
+
+public class MessagePropertiesAccessor : IMessagePropertiesAccessor
 {
-    public class MessagePropertiesAccessor : IMessagePropertiesAccessor
+    private static readonly AsyncLocal<MessageContextHolder>
+        Holder = new();
+
+    public IMessageProperties MessageProperties
     {
-        private static readonly AsyncLocal<MessageContextHolder>
-            Holder = new();
-
-        public IMessageProperties MessageProperties
+        get => Holder.Value?.Properties;
+        set
         {
-            get => Holder.Value?.Properties;
-            set
+            var holder = Holder.Value;
+            if (holder != null)
             {
-                var holder = Holder.Value;
-                if (holder != null)
-                {
-                    holder.Properties = null;
-                }
+                holder.Properties = null;
+            }
 
-                if (value != null)
-                {
-                    Holder.Value = new MessageContextHolder {Properties = value};
-                }
+            if (value != null)
+            {
+                Holder.Value = new MessageContextHolder {Properties = value};
             }
         }
+    }
 
-        private class MessageContextHolder
-        {
-            public IMessageProperties Properties;
-        }
+    private class MessageContextHolder
+    {
+        public IMessageProperties Properties;
     }
 }

@@ -16,44 +16,43 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Open.Serialization.Json;
 
-namespace Conveyor.Services.Pricing
-{
-    public class Program
-    {
-        public static Task Main(string[] args)
-            => CreateHostBuilder(args).Build().RunAsync();
+namespace Conveyor.Services.Pricing;
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
-            => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.ConfigureServices(services => services
-                        .AddConvey()
-                        .AddErrorHandler<ExceptionToResponseMapper>()
-                        .AddServices()
-                        .AddConsul()
-                        .AddFabio()
-                        .AddJaeger()
-                        .AddPrometheus()
-                        .AddWebApi()
-                        .Build())
-                    .Configure(app => app
-                        .UseConvey()
-                        .UsePrometheus()
-                        .UseErrorHandler()
-                        .UseJaeger()
-                        .UseCertificateAuthentication()
-                        .UseAuthentication()
-                        .UseAuthorization()
-                        .UseEndpoints(endpoints => endpoints
-                                .Get("", ctx => ctx.Response.WriteAsync("Pricing Service"))
-                                .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
-                                .Get<GetOrderPricing>("orders/{orderId}/pricing", async (query, ctx) =>
-                                    await ctx.RequestServices.GetRequiredService<IJsonSerializer>()
-                                        .SerializeAsync(ctx.Response.Body, new PricingDto
-                                        {
-                                            OrderId = query.OrderId, TotalAmount = 20.50m
-                                        }))))
-                    .UseLogging();
-            });
-    }
+public class Program
+{
+    public static Task Main(string[] args)
+        => CreateHostBuilder(args).Build().RunAsync();
+
+    public static IHostBuilder CreateHostBuilder(string[] args)
+        => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
+        {
+            webBuilder.ConfigureServices(services => services
+                    .AddConvey()
+                    .AddErrorHandler<ExceptionToResponseMapper>()
+                    .AddServices()
+                    .AddConsul()
+                    .AddFabio()
+                    .AddJaeger()
+                    .AddPrometheus()
+                    .AddWebApi()
+                    .Build())
+                .Configure(app => app
+                    .UseConvey()
+                    .UsePrometheus()
+                    .UseErrorHandler()
+                    .UseJaeger()
+                    .UseCertificateAuthentication()
+                    .UseAuthentication()
+                    .UseAuthorization()
+                    .UseEndpoints(endpoints => endpoints
+                        .Get("", ctx => ctx.Response.WriteAsync("Pricing Service"))
+                        .Get("ping", ctx => ctx.Response.WriteAsync("pong"))
+                        .Get<GetOrderPricing>("orders/{orderId}/pricing", async (query, ctx) =>
+                            await ctx.RequestServices.GetRequiredService<IJsonSerializer>()
+                                .SerializeAsync(ctx.Response.Body, new PricingDto
+                                {
+                                    OrderId = query.OrderId, TotalAmount = 20.50m
+                                }))))
+                .UseLogging();
+        });
 }

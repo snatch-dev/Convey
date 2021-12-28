@@ -1,11 +1,10 @@
 using System;
 
-namespace Convey.HTTP.RestEase
+namespace Convey.HTTP.RestEase;
+
+public interface IRestEaseOptionsBuilder
 {
-    public interface IRestEaseOptionsBuilder
-    {
-        IRestEaseOptionsBuilder WithLoadBalancer(string loadBalancer);
-        IRestEaseOptionsBuilder WithService(Func<IRestEaseServiceBuilder, IRestEaseServiceBuilder> buildService);
-        RestEaseOptions Build();
-    }
+    IRestEaseOptionsBuilder WithLoadBalancer(string loadBalancer);
+    IRestEaseOptionsBuilder WithService(Func<IRestEaseServiceBuilder, IRestEaseServiceBuilder> buildService);
+    RestEaseOptions Build();
 }

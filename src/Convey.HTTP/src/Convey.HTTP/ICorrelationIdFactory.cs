@@ -1,7 +1,6 @@
-namespace Convey.HTTP
+namespace Convey.HTTP;
+
+public interface ICorrelationIdFactory
 {
-    public interface ICorrelationIdFactory
-    {
-        string Create();
-    }
+    string Create();
 }

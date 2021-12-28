@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 
-namespace Convey.MessageBrokers.RawRabbit
+namespace Convey.MessageBrokers.RawRabbit;
+
+public interface IMessageProcessor
 {
-    public interface IMessageProcessor
-    {
-        Task<bool> TryProcessAsync(string id);
-        Task RemoveAsync(string id);
-    }
+    Task<bool> TryProcessAsync(string id);
+    Task RemoveAsync(string id);
 }

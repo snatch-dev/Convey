@@ -1,9 +1,8 @@
-﻿namespace Convey.Persistence.OpenStack.OCS.OcsTypes.Definition
+﻿namespace Convey.Persistence.OpenStack.OCS.OcsTypes.Definition;
+
+public enum OperationStatus
 {
-    public enum OperationStatus
-    {
-        Success,
-        NotFound,
-        Failed
-    }
+    Success,
+    NotFound,
+    Failed
 }

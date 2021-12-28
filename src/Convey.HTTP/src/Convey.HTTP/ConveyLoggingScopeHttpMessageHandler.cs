@@ -7,113 +7,112 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Convey.HTTP
+namespace Convey.HTTP;
+
+internal sealed class ConveyLoggingScopeHttpMessageHandler : DelegatingHandler
 {
-    internal sealed class ConveyLoggingScopeHttpMessageHandler : DelegatingHandler
+    private readonly ILogger _logger;
+    private readonly HashSet<string> _maskedRequestUrlParts;
+    private readonly string _maskTemplate;
+
+    public ConveyLoggingScopeHttpMessageHandler(ILogger logger, HttpClientOptions options)
     {
-        private readonly ILogger _logger;
-        private readonly HashSet<string> _maskedRequestUrlParts;
-        private readonly string _maskTemplate;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _ = options ?? throw new ArgumentNullException(nameof(options));
+        _maskedRequestUrlParts =
+            new HashSet<string>(options.RequestMasking?.UrlParts ?? Enumerable.Empty<string>());
+        _maskTemplate = string.IsNullOrWhiteSpace(options.RequestMasking?.MaskTemplate)
+            ? "*****"
+            : options.RequestMasking.MaskTemplate;
+    }
 
-        public ConveyLoggingScopeHttpMessageHandler(ILogger logger, HttpClientOptions options)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        if (request is null)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _ = options ?? throw new ArgumentNullException(nameof(options));
-            _maskedRequestUrlParts =
-                new HashSet<string>(options.RequestMasking?.UrlParts ?? Enumerable.Empty<string>());
-            _maskTemplate = string.IsNullOrWhiteSpace(options.RequestMasking?.MaskTemplate)
-                ? "*****"
-                : options.RequestMasking.MaskTemplate;
+            throw new ArgumentNullException(nameof(request));
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-            CancellationToken cancellationToken)
+        using (Log.BeginRequestPipelineScope(_logger, request, _maskedRequestUrlParts, _maskTemplate))
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            Log.RequestPipelineStart(_logger, request, _maskedRequestUrlParts, _maskTemplate);
+            var response = await base.SendAsync(request, cancellationToken);
+            Log.RequestPipelineEnd(_logger, response);
 
-            using (Log.BeginRequestPipelineScope(_logger, request, _maskedRequestUrlParts, _maskTemplate))
-            {
-                Log.RequestPipelineStart(_logger, request, _maskedRequestUrlParts, _maskTemplate);
-                var response = await base.SendAsync(request, cancellationToken);
-                Log.RequestPipelineEnd(_logger, response);
+            return response;
+        }
+    }
 
-                return response;
-            }
+    private static class Log
+    {
+        private static class EventIds
+        {
+            public static readonly EventId PipelineStart = new(100, "RequestPipelineStart");
+            public static readonly EventId PipelineEnd = new(101, "RequestPipelineEnd");
         }
 
-        private static class Log
+        private static readonly Func<ILogger, HttpMethod, Uri, IDisposable> _beginRequestPipelineScope =
+            LoggerMessage.DefineScope<HttpMethod, Uri>(
+                "HTTP {HttpMethod} {Uri}");
+
+        private static readonly Action<ILogger, HttpMethod, Uri, Exception> _requestPipelineStart =
+            LoggerMessage.Define<HttpMethod, Uri>(
+                LogLevel.Information,
+                EventIds.PipelineStart,
+                "Start processing HTTP request {HttpMethod} {Uri}");
+
+        private static readonly Action<ILogger, HttpStatusCode, Exception> _requestPipelineEnd =
+            LoggerMessage.Define<HttpStatusCode>(
+                LogLevel.Information,
+                EventIds.PipelineEnd,
+                "End processing HTTP request - {StatusCode}");
+
+        public static IDisposable BeginRequestPipelineScope(ILogger logger, HttpRequestMessage request,
+            ISet<string> maskedRequestUrlParts, string maskTemplate)
         {
-            private static class EventIds
+            var uri = MaskUri(request.RequestUri, maskedRequestUrlParts, maskTemplate);
+            return _beginRequestPipelineScope(logger, request.Method, uri);
+        }
+
+        public static void RequestPipelineStart(ILogger logger, HttpRequestMessage request,
+            ISet<string> maskedRequestUrlParts, string maskTemplate)
+        {
+            var uri = MaskUri(request.RequestUri, maskedRequestUrlParts, maskTemplate);
+            _requestPipelineStart(logger, request.Method, uri, null);
+        }
+
+        public static void RequestPipelineEnd(ILogger logger, HttpResponseMessage response)
+        {
+            _requestPipelineEnd(logger, response.StatusCode, null);
+        }
+
+        private static Uri MaskUri(Uri uri, ISet<string> maskedRequestUrlParts, string maskTemplate)
+        {
+            if (!maskedRequestUrlParts.Any())
             {
-                public static readonly EventId PipelineStart = new(100, "RequestPipelineStart");
-                public static readonly EventId PipelineEnd = new(101, "RequestPipelineEnd");
+                return uri;
             }
-
-            private static readonly Func<ILogger, HttpMethod, Uri, IDisposable> _beginRequestPipelineScope =
-                LoggerMessage.DefineScope<HttpMethod, Uri>(
-                    "HTTP {HttpMethod} {Uri}");
-
-            private static readonly Action<ILogger, HttpMethod, Uri, Exception> _requestPipelineStart =
-                LoggerMessage.Define<HttpMethod, Uri>(
-                    LogLevel.Information,
-                    EventIds.PipelineStart,
-                    "Start processing HTTP request {HttpMethod} {Uri}");
-
-            private static readonly Action<ILogger, HttpStatusCode, Exception> _requestPipelineEnd =
-                LoggerMessage.Define<HttpStatusCode>(
-                    LogLevel.Information,
-                    EventIds.PipelineEnd,
-                    "End processing HTTP request - {StatusCode}");
-
-            public static IDisposable BeginRequestPipelineScope(ILogger logger, HttpRequestMessage request,
-                ISet<string> maskedRequestUrlParts, string maskTemplate)
-            {
-                var uri = MaskUri(request.RequestUri, maskedRequestUrlParts, maskTemplate);
-                return _beginRequestPipelineScope(logger, request.Method, uri);
-            }
-
-            public static void RequestPipelineStart(ILogger logger, HttpRequestMessage request,
-                ISet<string> maskedRequestUrlParts, string maskTemplate)
-            {
-                var uri = MaskUri(request.RequestUri, maskedRequestUrlParts, maskTemplate);
-                _requestPipelineStart(logger, request.Method, uri, null);
-            }
-
-            public static void RequestPipelineEnd(ILogger logger, HttpResponseMessage response)
-            {
-                _requestPipelineEnd(logger, response.StatusCode, null);
-            }
-
-            private static Uri MaskUri(Uri uri, ISet<string> maskedRequestUrlParts, string maskTemplate)
-            {
-                if (!maskedRequestUrlParts.Any())
-                {
-                    return uri;
-                }
                 
-                var requestUri = uri.OriginalString;
-                var hasMatch = false;
-                foreach (var part in maskedRequestUrlParts)
+            var requestUri = uri.OriginalString;
+            var hasMatch = false;
+            foreach (var part in maskedRequestUrlParts)
+            {
+                if (string.IsNullOrWhiteSpace(part))
                 {
-                    if (string.IsNullOrWhiteSpace(part))
-                    {
-                        continue;
-                    }
-                    
-                    if (!requestUri.Contains(part))
-                    {
-                        continue;
-                    }
-                    
-                    requestUri = requestUri.Replace(part, maskTemplate);
-                    hasMatch = true;
+                    continue;
                 }
-
-                return hasMatch ? new Uri(requestUri) : uri;
+                    
+                if (!requestUri.Contains(part))
+                {
+                    continue;
+                }
+                    
+                requestUri = requestUri.Replace(part, maskTemplate);
+                hasMatch = true;
             }
+
+            return hasMatch ? new Uri(requestUri) : uri;
         }
     }
 }

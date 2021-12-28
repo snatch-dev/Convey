@@ -50,7 +50,7 @@ namespace Convey.Secrets.Vault.Internals
             {
                 var now = DateTime.UtcNow;
                 var nextIterationAt = now.AddSeconds(2 * _interval);
-                
+
                 if (_options.Pki is not null && _options.Pki.Enabled)
                 {
                     foreach (var (role, cert) in _certificatesService.All)
@@ -59,7 +59,7 @@ namespace Convey.Secrets.Vault.Internals
                         {
                             continue;
                         }
-                        
+
                         _logger.LogInformation($"Issuing a certificate for: '{role}'.");
                         var certificate = await _certificatesIssuer.IssueAsync();
                         _certificatesService.Set(role, certificate);
@@ -75,11 +75,13 @@ namespace Convey.Secrets.Vault.Internals
 
                     _logger.LogInformation($"Renewing a lease with ID: '{lease.Id}', for: '{key}', " +
                                            $"duration: {lease.Duration} s.");
+                    
+                    var beforeRenew = DateTime.UtcNow;
                     var renewedLease = await _client.V1.System.RenewLeaseAsync(lease.Id, lease.Duration);
-                    lease.Refresh(renewedLease.LeaseDurationSeconds);
+                    lease.Refresh(renewedLease.LeaseDurationSeconds - (lease.ExpiryAt - beforeRenew).TotalSeconds);
                 }
 
-                await Task.Delay(interval, stoppingToken);
+                await Task.Delay(interval.Subtract(DateTime.UtcNow - now), stoppingToken);
             }
 
             if (!_options.RevokeLeaseOnShutdown)

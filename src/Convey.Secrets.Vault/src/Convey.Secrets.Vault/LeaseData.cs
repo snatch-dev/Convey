@@ -23,7 +23,7 @@ namespace Convey.Secrets.Vault
             Data = data;
         }
 
-        public void Refresh(int duration)
+        public void Refresh(double duration)
         {
             ExpiryAt = ExpiryAt.AddSeconds(duration);
         }

@@ -22,6 +22,7 @@ public class DefaultConventionsBuilder : IConventionsBuilder
     public string GetSubscriberName(Type type) =>
         _serviceBusOptions.CurrentValue.ServiceName;
 
-    public (string Topic, string Subscriber) GetConventions(Type type) => 
-        (GetTopicName(type), GetSubscriberName(type));
+    public string? GetSubscriptionFilter(Type type) =>
+        null;
+
 }

@@ -4,11 +4,11 @@ using Newtonsoft.Json.Serialization;
 
 namespace Convey.MessageBrokers.AzureServiceBus.Serializers;
 
-public sealed class NewtonsoftJsonRabbitMqSerializer : IAzureServiceBusSerializer
+public sealed class NewtonsoftJsonSerializer : IAzureServiceBusSerializer
 {
     private readonly JsonSerializerSettings _settings;
 
-    public NewtonsoftJsonRabbitMqSerializer(JsonSerializerSettings? settings = null)
+    public NewtonsoftJsonSerializer(JsonSerializerSettings? settings = null)
     {
         _settings = settings ?? new JsonSerializerSettings
         {

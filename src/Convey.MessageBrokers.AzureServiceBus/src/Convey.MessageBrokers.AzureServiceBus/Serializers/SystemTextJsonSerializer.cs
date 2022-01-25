@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace Convey.MessageBrokers.AzureServiceBus.Serializers;
 
-public sealed class SystemTextJsonJsonRabbitMqSerializer : IAzureServiceBusSerializer
+public sealed class SystemTextJsonSerializer : IAzureServiceBusSerializer
 {
     private readonly JsonSerializerOptions _options;
 
-    public SystemTextJsonJsonRabbitMqSerializer(JsonSerializerOptions? options = null)
+    public SystemTextJsonSerializer(JsonSerializerOptions? options = null)
     {
         _options = options ?? new JsonSerializerOptions
         {

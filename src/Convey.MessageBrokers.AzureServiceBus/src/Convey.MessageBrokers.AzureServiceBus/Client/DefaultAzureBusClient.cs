@@ -24,7 +24,8 @@ internal class DefaultAzureBusClient : IAzureBusClient
 
     public async Task<ServiceBusProcessor> GetProcessorAsync(Type type)
     {
-        var (topic, subscriber) = _conventionsBuilder.GetConventions(type);
+        //TODO: look at applying a subscription filter.
+        var (topic, subscriber, _) = _conventionsBuilder.GetSubscriptionConventions(type);
 
         if (_serviceBusOptions.CurrentValue.AutomaticTopologyCreation)
         {

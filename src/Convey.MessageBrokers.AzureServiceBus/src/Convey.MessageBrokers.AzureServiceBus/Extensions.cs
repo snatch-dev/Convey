@@ -1,10 +1,12 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Convey.MessageBrokers.AzureServiceBus.Client;
+using Convey.MessageBrokers.AzureServiceBus.Conventions;
 using Convey.MessageBrokers.AzureServiceBus.Internals;
 using Convey.MessageBrokers.AzureServiceBus.Options;
 using Convey.MessageBrokers.AzureServiceBus.Providers;
 using Convey.MessageBrokers.AzureServiceBus.Registries;
+using Convey.MessageBrokers.AzureServiceBus.Serializers;
 using Convey.MessageBrokers.AzureServiceBus.Subscribers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +23,7 @@ public static class Extensions
     /// <param name="builder">The <see cref="IConveyBuilder"/> instance.</param>
     /// <param name="optionsSectionName">The section name to pull the <see cref="AzureServiceBusOptions"/> from. Defaults to "AzureServiceBusOptions"</param>
     /// <param name="optionsAction">An action to allow options to be provided in code.</param>
+    /// <param name="conventionsBuilder">The builder used to generate publish and subscribe conventions.</param>
     /// <returns>The provided <see cref="IConveyBuilder"/> instance.</returns>
     public static IConveyBuilder AddAzureServiceBus(
         this IConveyBuilder builder,
@@ -44,6 +47,9 @@ public static class Extensions
         builder.Services.AddSingleton<ISubscribersRegistry, SubscribersRegistry>();
         builder.Services.AddSingleton<IAzureBusClient, DefaultAzureBusClient>();
         builder.Services.AddSingleton<INativeClientProvider, DefaultNativeClientProvider>();
+        builder.Services.AddSingleton<IConventionsBuilder, DefaultConventionsBuilder>();
+        builder.Services.AddSingleton<IAzureServiceBusSerializer, SystemTextJsonSerializer>();
+        builder.Services.AddSingleton<IBrokerMessageProcessorHandler, BrokerMessageProcessorHandler>();
 
         return builder;
     }

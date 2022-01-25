@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Convey.MessageBrokers.AzureServiceBus</Description>
+    <Authors>DevMentors.io,mumby0168</Authors>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>Latest</LangVersion>
+    <AssemblyName>Convey.MessageBrokers.AzureServiceBus</AssemblyName>
+    <Title>Convey.MessageBrokers.AzureServiceBus</Title>
+    <PackageId>Convey.MessageBrokers.AzureServiceBus</PackageId>
+    <PackageTags>Convey.MessageBrokers.AzureServiceBus</PackageTags>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.5.1" />
+  </ItemGroup>
+
+</Project>

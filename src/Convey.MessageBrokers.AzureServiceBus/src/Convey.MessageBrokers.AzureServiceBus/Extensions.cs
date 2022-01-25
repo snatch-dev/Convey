@@ -121,6 +121,6 @@ public static class Extensions
     internal static Dictionary<string, string> LoggingDetails(this AzureServiceBusOptions options) => new()
     {
         {nameof(AzureServiceBusOptions.ServiceName), options.ServiceName},
-        {nameof(AzureServiceBusOptions.AutomaticTopologyCreation), options.AutomaticTopologyCreation.ToString()}
+        {nameof(AzureServiceBusOptions.AutomaticMessageEntityCreation), options.AutomaticMessageEntityCreation.ToString()}
     };
 }

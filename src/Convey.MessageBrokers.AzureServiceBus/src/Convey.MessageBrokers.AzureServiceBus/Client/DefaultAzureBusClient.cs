@@ -27,7 +27,7 @@ internal class DefaultAzureBusClient : IAzureBusClient
         //TODO: look at applying a subscription filter.
         var (topic, subscriber, _) = _conventionsBuilder.GetSubscriptionConventions(type);
 
-        if (_serviceBusOptions.CurrentValue.AutomaticTopologyCreation)
+        if (_serviceBusOptions.CurrentValue.AutomaticMessageEntityCreation)
         {
             var createdTopic = await _nativeClientProvider.UseAdminClientAsync(x =>
                 x.TryCreateTopicAsync(new CreateTopicOptions(topic)));

@@ -10,7 +10,7 @@ public class AzureServiceBusOptions
     /// <summary>
     /// Whether or not topics and subscribers will be created by the library.
     /// </summary>
-    public bool AutomaticTopologyCreation { get; set; }
+    public bool AutomaticMessageEntityCreation { get; set; }
 
     /// <summary>
     /// The options on how to connect to the service bus instance.

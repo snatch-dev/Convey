@@ -37,6 +37,12 @@ public static class Extensions
     public static IBusSubscriber UseAzureServiceBus(this IApplicationBuilder builder) =>
         new AzureServiceBusSubscriber(builder.ApplicationServices.GetRequiredService<ISubscribersChannel>());
     
+    /// <summary>
+    /// Provides a way to subscribe to messages.
+    /// </summary>
+    /// <param name="builder">The instance of the <see cref="IApplicationBuilder"/>.</param>
+    /// <param name="busSubscriberAction">An action which provides an <see cref="IBusSubscriber"/> to subscribe to messages.</param>
+    /// <returns>The provided instance of the <see cref="IApplicationBuilder"/>.</returns>
     public static IApplicationBuilder UseAzureServiceBus(this IApplicationBuilder builder, Action<IBusSubscriber> busSubscriberAction)
     {
         var subscriber =  new AzureServiceBusSubscriber(builder.ApplicationServices.GetRequiredService<ISubscribersChannel>());

@@ -16,4 +16,15 @@ public static class LoggingExtensions
     
     public static void LogBackgroundServiceStopped(this ILogger logger, string serviceName) =>
         LoggerMessageDefinitions.SubscriberBackgroundServiceStoppedDef(logger, serviceName, null!);
+    
+    public static void LogServiceBusMessageReceived(this ILogger logger, Type messageType) =>
+        LoggerMessageDefinitions.SubscriberBackgroundServiceStartedDef(logger, messageType.Name, null!);
+    
+    public static void LogServiceBusMessageProcessed(this ILogger logger, Type messageType) =>
+        LoggerMessageDefinitions.SubscriberBackgroundServiceStoppedDef(logger, messageType.Name, null!);
+        
+    // -------------------- ERROR 16_500-16_599 --------------------
+    
+    public static void LogServiceBusMessageProcessingFailed(this ILogger logger, Type messageType, Exception e) =>
+        LoggerMessageDefinitions.SubscriberBackgroundServiceStoppedDef(logger, messageType.Name, e);
 }

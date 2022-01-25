@@ -1,21 +1,22 @@
 using System.Collections.Concurrent;
 using Azure.Messaging.ServiceBus;
 using Convey.MessageBrokers.AzureServiceBus.Client;
-using Convey.MessageBrokers.AzureServiceBus.Conventions;
 using Convey.MessageBrokers.AzureServiceBus.Subscribers;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Convey.MessageBrokers.AzureServiceBus.Registries;
 
 internal class SubscribersRegistry : ISubscribersRegistry
 {
     private readonly IAzureBusClient _azureBusClient;
+    private readonly IBrokerMessageProcessorHandler _brokerMessageProcessorHandler;
     private readonly ConcurrentDictionary<Type, ServiceBusProcessor> _messageProcessorsMap = new();
 
-    public SubscribersRegistry(IAzureBusClient azureBusClient)
+    public SubscribersRegistry(
+        IAzureBusClient azureBusClient, 
+        IBrokerMessageProcessorHandler brokerMessageProcessorHandler)
     {
         _azureBusClient = azureBusClient;
+        _brokerMessageProcessorHandler = brokerMessageProcessorHandler;
     }
 
     public async ValueTask SubscribeAsync(IMessageSubscriber messageSubscriber)
@@ -27,7 +28,7 @@ internal class SubscribersRegistry : ISubscribersRegistry
         }
         
         _messageProcessorsMap[messageSubscriber.Type] = await _azureBusClient.GetProcessorAsync(messageSubscriber.Type);
-        await _messageProcessorsMap[messageSubscriber.Type].StartProcessingAsync();
+        await _brokerMessageProcessorHandler.StartAsync(_messageProcessorsMap[messageSubscriber.Type], messageSubscriber);
     }
 
     public async ValueTask UnSubscribeAsync(IMessageSubscriber messageSubscriber)
@@ -42,4 +43,5 @@ internal class SubscribersRegistry : ISubscribersRegistry
             //TODO: log info
         }
     }
+    
 }

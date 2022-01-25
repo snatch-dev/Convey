@@ -3,6 +3,7 @@ using Azure.Messaging.ServiceBus.Administration;
 using Convey.MessageBrokers.AzureServiceBus.Client;
 using Convey.MessageBrokers.AzureServiceBus.Internals;
 using Convey.MessageBrokers.AzureServiceBus.Options;
+using Convey.MessageBrokers.AzureServiceBus.Providers;
 using Convey.MessageBrokers.AzureServiceBus.Registries;
 using Convey.MessageBrokers.AzureServiceBus.Subscribers;
 using Microsoft.AspNetCore.Builder;
@@ -42,6 +43,7 @@ public static class Extensions
         builder.Services.AddSingleton<IValidateOptions<AzureServiceBusOptions>, AzureServiceBusOptionsValidation>();
         builder.Services.AddSingleton<ISubscribersRegistry, SubscribersRegistry>();
         builder.Services.AddSingleton<IAzureBusClient, DefaultAzureBusClient>();
+        builder.Services.AddSingleton<INativeClientProvider, DefaultNativeClientProvider>();
 
         return builder;
     }

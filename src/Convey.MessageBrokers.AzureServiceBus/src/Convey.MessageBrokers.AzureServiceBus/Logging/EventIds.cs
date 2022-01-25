@@ -14,12 +14,24 @@ public static class EventIds
     public static EventId SubscriberBackgroundServiceStopped = new(
         16_002,
         nameof(SubscriberBackgroundServiceStopped));
+    
+    public static EventId ServiceBusMessageReceived = new(
+        16_003,
+        nameof(ServiceBusMessageReceived));
+    
+    public static EventId ServiceBusMessageProcessed = new(
+        16_004,
+        nameof(ServiceBusMessageProcessed));
 
     // -------------------- INFO 16_200-16_399 --------------------
 
     // -------------------- WARNING 16_400-16_499 --------------------
 
     // -------------------- ERROR 16_500-16_599 --------------------
+    
+    public static EventId ServiceBusMessageProcessingFailed = new(
+        16_500,
+        nameof(ServiceBusMessageProcessingFailed));
 
     // -------------------- CRITICAL 16_600 - 16_650 --------------------
 }

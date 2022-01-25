@@ -11,4 +11,14 @@ public class AzureServiceBusOptions
     /// Whether or not topics and subscribers will be created by the library.
     /// </summary>
     public bool AutomaticTopologyCreation { get; set; }
+
+    /// <summary>
+    /// The options on how to connect to the service bus instance.
+    /// </summary>
+    public ConnectionOptions Connection { get; set; } = new();
+}
+
+public class ConnectionOptions
+{
+    public string? ConnectionString { get; set; }
 }

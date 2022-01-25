@@ -15,4 +15,21 @@ public static class LoggerMessageDefinitions
         LogLevel.Debug,
         EventIds.SubscriberBackgroundServiceStopped,
         "Message broker background service stopped for service {ServiceName}");
+    
+    public static readonly Action<ILogger, string, Exception> ServiceBusMessageReceivedDef = LoggerMessage.Define<string>(
+        LogLevel.Debug,
+        EventIds.ServiceBusMessageReceived,
+        "Service bus message of type {MessageType} received");
+    
+    public static readonly Action<ILogger, string, Exception> ServiceBusMessageProcessedDef = LoggerMessage.Define<string>(
+        LogLevel.Debug,
+        EventIds.ServiceBusMessageProcessed,
+        "Service bus message of type {MessageType} processed");
+    
+    // -------------------- ERROR 16_500-16_599 --------------------
+    
+    public static readonly Action<ILogger, string, Exception> ServiceBusMessageProcessingFailedDef = LoggerMessage.Define<string>(
+        LogLevel.Error,
+        EventIds.ServiceBusMessageProcessed,
+        "Service bus message of type {MessageType} processing failed");
 }

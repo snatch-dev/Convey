@@ -4,6 +4,11 @@ namespace Convey.MessageBrokers.AzureServiceBus.Logging;
 
 public static class LoggingExtensions
 {
+    // -------------------- SCOPES --------------------
+    public static IDisposable BeginSubscriberBackgroundServiceScope(this ILogger logger, AzureServiceBusOptions options) =>
+        logger.BeginScope(options.LoggingDetails());
+    
+    
     // -------------------- DEBUG 16_000-16_199 --------------------
 
     public static void LogBackgroundServiceStarted(this ILogger logger, string serviceName) =>

@@ -22,6 +22,14 @@ public static class LoggingExtensions
     
     public static void LogServiceBusMessageProcessed(this ILogger logger, Type messageType) =>
         LoggerMessageDefinitions.ServiceBusMessageProcessedDef(logger, messageType.Name, null!);
+    
+    // -------------------- INFO 16_200-16_399 --------------------
+    
+    public static void LogServiceBusTopicCreated(this ILogger logger, Type messageType, string topicName) =>
+        LoggerMessageDefinitions.ServiceBusTopicCreatedDef(logger, topicName, messageType.Name, null!);
+    
+    public static void LogServiceBusSubscriptionCreated(this ILogger logger, Type messageType, string topicName, string subscriptionName) =>
+        LoggerMessageDefinitions.ServiceBusSubscriptionCreatedDef(logger, subscriptionName, topicName, messageType.Name, null!);
         
     // -------------------- ERROR 16_500-16_599 --------------------
     

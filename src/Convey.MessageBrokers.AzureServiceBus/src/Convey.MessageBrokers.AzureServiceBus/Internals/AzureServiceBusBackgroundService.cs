@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices.ComTypes;
-using Azure.Messaging.ServiceBus;
 using Convey.MessageBrokers.AzureServiceBus.Logging;
 using Convey.MessageBrokers.AzureServiceBus.Registries;
 using Convey.MessageBrokers.AzureServiceBus.Subscribers;

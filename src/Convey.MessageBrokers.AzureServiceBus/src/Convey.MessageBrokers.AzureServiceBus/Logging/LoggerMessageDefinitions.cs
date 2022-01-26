@@ -29,6 +29,20 @@ public static class LoggerMessageDefinitions
             LogLevel.Debug,
             EventIds.ServiceBusMessageProcessed,
             "Service bus message of type {MessageType} processed");
+    
+    // -------------------- INFO 16_200-16_399 --------------------
+    
+    public static readonly Action<ILogger, string, string, Exception> ServiceBusTopicCreatedDef =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Information,
+            EventIds.ServiceBusTopicCreated,
+            "Service bus message topic created {TopicName} for message {MessageType}");
+    
+    public static readonly Action<ILogger, string, string, string, Exception> ServiceBusSubscriptionCreatedDef =
+        LoggerMessage.Define<string, string, string>(
+            LogLevel.Information,
+            EventIds.ServiceBusSubscriptionCreated,
+            "Service bus message subscription created {SubscriptionName} for topic {TopicName} for message {MessageType}");
 
     // -------------------- ERROR 16_500-16_599 --------------------
 

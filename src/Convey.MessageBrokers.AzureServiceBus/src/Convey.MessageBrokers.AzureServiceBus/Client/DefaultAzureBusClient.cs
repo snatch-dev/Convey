@@ -1,7 +1,9 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Convey.MessageBrokers.AzureServiceBus.Conventions;
+using Convey.MessageBrokers.AzureServiceBus.Logging;
 using Convey.MessageBrokers.AzureServiceBus.Providers;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Convey.MessageBrokers.AzureServiceBus.Client;
@@ -11,15 +13,18 @@ internal class DefaultAzureBusClient : IAzureBusClient
     private readonly INativeClientProvider _nativeClientProvider;
     private readonly IOptionsMonitor<AzureServiceBusOptions> _serviceBusOptions;
     private readonly IConventionsBuilder _conventionsBuilder;
+    private readonly ILogger<DefaultAzureBusClient> _logger;
 
     public DefaultAzureBusClient(
         INativeClientProvider nativeClientProvider,
         IOptionsMonitor<AzureServiceBusOptions> serviceBusOptions,
-        IConventionsBuilder conventionsBuilder)
+        IConventionsBuilder conventionsBuilder,
+        ILogger<DefaultAzureBusClient> logger)
     {
         _nativeClientProvider = nativeClientProvider;
         _serviceBusOptions = serviceBusOptions;
         _conventionsBuilder = conventionsBuilder;
+        _logger = logger;
     }
 
     public async Task<ServiceBusProcessor> GetProcessorAsync(Type type)
@@ -37,12 +42,12 @@ internal class DefaultAzureBusClient : IAzureBusClient
 
             if (createdTopic)
             {
-                //TODO: Log
+                _logger.LogServiceBusTopicCreated(type, topic);
             }
 
             if (createdSubscription)
             {
-                //TODO: Log
+                _logger.LogServiceBusSubscriptionCreated(type, topic, subscriber);
             }
         }
         

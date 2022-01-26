@@ -24,6 +24,14 @@ public static class EventIds
         nameof(ServiceBusMessageProcessed));
 
     // -------------------- INFO 16_200-16_399 --------------------
+    
+    public static EventId ServiceBusTopicCreated = new(
+        16_200,
+        nameof(ServiceBusTopicCreated));
+    
+    public static EventId ServiceBusSubscriptionCreated = new(
+        16_201,
+        nameof(ServiceBusTopicCreated));
 
     // -------------------- WARNING 16_400-16_499 --------------------
 

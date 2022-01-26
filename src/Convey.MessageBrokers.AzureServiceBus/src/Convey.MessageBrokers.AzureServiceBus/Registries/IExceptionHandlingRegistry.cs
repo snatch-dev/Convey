@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
 namespace Convey.MessageBrokers.AzureServiceBus.Registries;

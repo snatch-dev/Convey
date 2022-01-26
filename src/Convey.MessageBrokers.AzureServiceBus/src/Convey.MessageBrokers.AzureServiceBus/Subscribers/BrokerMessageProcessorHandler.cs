@@ -3,7 +3,6 @@ using Convey.MessageBrokers.AzureServiceBus.Logging;
 using Convey.MessageBrokers.AzureServiceBus.Registries;
 using Convey.MessageBrokers.AzureServiceBus.Serializers;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Convey.MessageBrokers.AzureServiceBus.Subscribers;
 
@@ -12,20 +11,17 @@ internal class BrokerMessageProcessorHandler : IBrokerMessageProcessorHandler
     private readonly ILogger<BrokerMessageProcessorHandler> _logger;
     private readonly IAzureServiceBusSerializer _serializer;
     private readonly IServiceProvider _serviceProvider;
-    private readonly IOptionsMonitor<AzureServiceBusOptions> _serviceBusOptions;
     private readonly IExceptionHandlingRegistry _exceptionHandlingRegistry;
 
     public BrokerMessageProcessorHandler(
         ILogger<BrokerMessageProcessorHandler> logger,
         IAzureServiceBusSerializer serializer,
         IServiceProvider serviceProvider,
-        IOptionsMonitor<AzureServiceBusOptions> serviceBusOptions,
         IExceptionHandlingRegistry exceptionHandlingRegistry)
     {
         _logger = logger;
         _serializer = serializer;
         _serviceProvider = serviceProvider;
-        _serviceBusOptions = serviceBusOptions;
         _exceptionHandlingRegistry = exceptionHandlingRegistry;
     }
 
@@ -54,7 +50,7 @@ internal class BrokerMessageProcessorHandler : IBrokerMessageProcessorHandler
         {
             var message = _serializer.Deserialize(arg.Message.Body, subscriber.Type);
 
-            //TODO: extract properties properly.
+            //TODO: extract properties properly. Correlation etc.
             object properties = "todo";
 
             await subscriber.Handle(_serviceProvider, message, properties);

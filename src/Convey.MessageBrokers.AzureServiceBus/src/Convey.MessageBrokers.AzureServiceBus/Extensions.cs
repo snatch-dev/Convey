@@ -24,11 +24,13 @@ public static class Extensions
     /// <param name="optionsSectionName">The section name to pull the <see cref="AzureServiceBusOptions"/> from. Defaults to "AzureServiceBusOptions"</param>
     /// <param name="optionsAction">An action to allow options to be provided in code.</param>
     /// <param name="conventionsBuilder">The builder used to generate publish and subscribe conventions.</param>
+    /// <param name="exceptionsToDeadLetterRegistryAction">Allows for mapping exceptions straight to the dead letter queue.</param>
     /// <returns>The provided <see cref="IConveyBuilder"/> instance.</returns>
     public static IConveyBuilder AddAzureServiceBus(
         this IConveyBuilder builder,
         string? optionsSectionName = null,
-        Action<AzureServiceBusOptions>? optionsAction = null)
+        Action<AzureServiceBusOptions>? optionsAction = null,
+        Action<IExceptionToDeadLetterRegistry>? exceptionsToDeadLetterRegistryAction = null)
     {
         optionsSectionName ??= nameof(AzureServiceBusOptions);
 
@@ -40,6 +42,10 @@ public static class Extensions
         {
             builder.Services.PostConfigure(optionsAction);
         }
+
+        var exceptionsToDeadLetterRegistry = new ExceptionToDeadLetterRegistry();
+        exceptionsToDeadLetterRegistryAction?.Invoke(exceptionsToDeadLetterRegistry);
+        builder.Services.AddSingleton<IExceptionToDeadLetterRegistry>(exceptionsToDeadLetterRegistry);
 
         builder.Services.AddHostedService<AzureServiceBusHostedService>();
         builder.Services.AddSingleton<ISubscribersChannel, SubscribersChannel>();

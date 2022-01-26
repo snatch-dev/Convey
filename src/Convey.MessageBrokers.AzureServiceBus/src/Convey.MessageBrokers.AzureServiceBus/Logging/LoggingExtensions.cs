@@ -27,4 +27,10 @@ public static class LoggingExtensions
     
     public static void LogServiceBusMessageProcessingFailed(this ILogger logger, Type messageType, Exception e) =>
         LoggerMessageDefinitions.ServiceBusMessageProcessingFailedDef(logger, messageType.Name, e);
+    
+    public static void LogServiceBusAdminClientPermissionsError(this ILogger logger, string serviceName, Exception e) =>
+        LoggerMessageDefinitions.ServiceBusAdminClientPermissionsErrorDef(logger, serviceName, e);
+    
+    public static void LogServiceBusSubscriberError(this ILogger logger, Type messageType, Exception e) =>
+        LoggerMessageDefinitions.ServiceBusAdminClientPermissionsErrorDef(logger, messageType.Name, e);
 }

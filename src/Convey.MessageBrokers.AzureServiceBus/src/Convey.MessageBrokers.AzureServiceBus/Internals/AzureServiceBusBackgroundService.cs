@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices.ComTypes;
+using Azure.Messaging.ServiceBus;
 using Convey.MessageBrokers.AzureServiceBus.Logging;
 using Convey.MessageBrokers.AzureServiceBus.Registries;
 using Convey.MessageBrokers.AzureServiceBus.Subscribers;
@@ -43,9 +44,14 @@ internal class AzureServiceBusHostedService : BackgroundService
 
                     await messageSubscriberActionTask;
                 }
+                catch (UnauthorizedAccessException e)
+                {
+                    _logger.LogServiceBusAdminClientPermissionsError(_serviceBusOptions.CurrentValue.ServiceName, e);
+                    throw;
+                }
                 catch (Exception e)
                 {
-                    //TODO: catch all cases, log properly.
+                    _logger.LogServiceBusSubscriberError(subscriber.Type, e);
                     throw;
                 }
             }

@@ -5,31 +5,50 @@ namespace Convey.MessageBrokers.AzureServiceBus.Logging;
 public static class LoggerMessageDefinitions
 {
     // -------------------- DEBUG 16_000-16_199 --------------------
-    
-    public static readonly Action<ILogger, string, Exception> SubscriberBackgroundServiceStartedDef = LoggerMessage.Define<string>(
-        LogLevel.Debug,
-        EventIds.SubscriberBackgroundServiceStarted,
-        "Message broker listener started for service {ServiceName}");
-    
-    public static readonly Action<ILogger, string, Exception> SubscriberBackgroundServiceStoppedDef = LoggerMessage.Define<string>(
-        LogLevel.Debug,
-        EventIds.SubscriberBackgroundServiceStopped,
-        "Message broker background service stopped for service {ServiceName}");
-    
-    public static readonly Action<ILogger, string, Exception> ServiceBusMessageReceivedDef = LoggerMessage.Define<string>(
-        LogLevel.Debug,
-        EventIds.ServiceBusMessageReceived,
-        "Service bus message of type {MessageType} received");
-    
-    public static readonly Action<ILogger, string, Exception> ServiceBusMessageProcessedDef = LoggerMessage.Define<string>(
-        LogLevel.Debug,
-        EventIds.ServiceBusMessageProcessed,
-        "Service bus message of type {MessageType} processed");
-    
+
+    public static readonly Action<ILogger, string, Exception> SubscriberBackgroundServiceStartedDef =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            EventIds.SubscriberBackgroundServiceStarted,
+            "Message broker listener started for service {ServiceName}");
+
+    public static readonly Action<ILogger, string, Exception> SubscriberBackgroundServiceStoppedDef =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            EventIds.SubscriberBackgroundServiceStopped,
+            "Message broker background service stopped for service {ServiceName}");
+
+    public static readonly Action<ILogger, string, Exception> ServiceBusMessageReceivedDef =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            EventIds.ServiceBusMessageReceived,
+            "Service bus message of type {MessageType} received");
+
+    public static readonly Action<ILogger, string, Exception> ServiceBusMessageProcessedDef =
+        LoggerMessage.Define<string>(
+            LogLevel.Debug,
+            EventIds.ServiceBusMessageProcessed,
+            "Service bus message of type {MessageType} processed");
+
     // -------------------- ERROR 16_500-16_599 --------------------
+
+    public static readonly Action<ILogger, string, Exception> ServiceBusMessageProcessingFailedDef =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            EventIds.ServiceBusMessageProcessed,
+            "Service bus message of type {MessageType} processing failed");
+
+    public static readonly Action<ILogger, string, Exception> ServiceBusAdminClientPermissionsErrorDef =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            EventIds.ServiceBusAdminClientPermissionsError,
+            "The service bus admin client does not have sufficient permissions to create resources, please check the connection strings permissions for {ServiceName} or disable AutomaticMessageEntityCreation");
     
-    public static readonly Action<ILogger, string, Exception> ServiceBusMessageProcessingFailedDef = LoggerMessage.Define<string>(
-        LogLevel.Error,
-        EventIds.ServiceBusMessageProcessed,
-        "Service bus message of type {MessageType} processing failed");
+    public static readonly Action<ILogger, string, Exception> ServiceBusSubscriberErrorDef =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            EventIds.ServiceBusAdminClientPermissionsError,
+            "Failed to start listening to events for message {MessageType}");
+    
+    
 }

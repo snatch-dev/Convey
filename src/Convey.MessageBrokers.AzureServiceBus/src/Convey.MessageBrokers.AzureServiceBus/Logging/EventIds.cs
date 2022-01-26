@@ -32,6 +32,14 @@ public static class EventIds
     public static EventId ServiceBusMessageProcessingFailed = new(
         16_500,
         nameof(ServiceBusMessageProcessingFailed));
+    
+    public static EventId ServiceBusAdminClientPermissionsError = new(
+        16_501,
+        nameof(ServiceBusAdminClientPermissionsError));
+
+    public static EventId ServiceBusSubscriberError = new(
+        16_502,
+        nameof(ServiceBusSubscriberError));
 
     // -------------------- CRITICAL 16_600 - 16_650 --------------------
 }

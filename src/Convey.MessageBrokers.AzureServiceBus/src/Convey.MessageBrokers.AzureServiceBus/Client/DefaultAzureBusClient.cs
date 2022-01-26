@@ -53,4 +53,19 @@ internal class DefaultAzureBusClient : IAzureBusClient
         
         return _nativeClientProvider.UseClient(x => x.CreateProcessor(topic, subscriber));
     }
+
+    public async Task<ServiceBusSender> GetSenderAsync(Type type)
+    {
+        var topicName = _conventionsBuilder.GetTopicName(type);
+        
+        var createdTopic = await _nativeClientProvider.UseAdminClientAsync(x =>
+            x.TryCreateTopicAsync(new CreateTopicOptions(topicName)));
+
+        if (createdTopic)
+        {
+            _logger.LogServiceBusTopicCreated(type, topicName);
+        }
+
+        return _nativeClientProvider.UseClient(x => x.CreateSender(topicName));
+    }
 }

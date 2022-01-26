@@ -5,6 +5,7 @@ using Convey.MessageBrokers.AzureServiceBus.Conventions;
 using Convey.MessageBrokers.AzureServiceBus.Internals;
 using Convey.MessageBrokers.AzureServiceBus.Options;
 using Convey.MessageBrokers.AzureServiceBus.Providers;
+using Convey.MessageBrokers.AzureServiceBus.Publishers;
 using Convey.MessageBrokers.AzureServiceBus.Registries;
 using Convey.MessageBrokers.AzureServiceBus.Serializers;
 using Convey.MessageBrokers.AzureServiceBus.Subscribers;
@@ -56,6 +57,11 @@ public static class Extensions
         builder.Services.AddSingleton<IConventionsBuilder, DefaultConventionsBuilder>();
         builder.Services.AddSingleton<IAzureServiceBusSerializer, SystemTextJsonSerializer>();
         builder.Services.AddSingleton<IBrokerMessageProcessorHandler, BrokerMessageProcessorHandler>();
+        builder.Services.AddSingleton<IBusPublisher, AzureServiceBusPublisher>();
+        builder.Services.AddSingleton<ISenderRegistry, SenderRegistry>();
+        
+        //TODO: figure out what this does.
+        builder.Services.AddSingleton<IMessagePropertiesAccessor>(new MessagePropertiesAccessor());
 
         return builder;
     }

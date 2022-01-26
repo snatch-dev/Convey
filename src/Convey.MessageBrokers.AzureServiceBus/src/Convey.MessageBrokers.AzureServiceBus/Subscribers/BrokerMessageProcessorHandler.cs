@@ -2,6 +2,7 @@ using Azure.Messaging.ServiceBus;
 using Convey.MessageBrokers.AzureServiceBus.Logging;
 using Convey.MessageBrokers.AzureServiceBus.Registries;
 using Convey.MessageBrokers.AzureServiceBus.Serializers;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Convey.MessageBrokers.AzureServiceBus.Subscribers;
@@ -44,7 +45,16 @@ internal class BrokerMessageProcessorHandler : IBrokerMessageProcessorHandler
     {
         _logger.LogServiceBusMessageReceived(subscriber.Type);
 
-        //TODO: consider a message plugin pipeline here. Before processing the message.
+        using var scope = _serviceProvider.CreateScope();
+        
+        var messagePropertiesAccessor = scope.ServiceProvider.GetRequiredService<IMessagePropertiesAccessor>();
+
+        //TODO: figure out time and dictionary mapping.
+        messagePropertiesAccessor.MessageProperties = new MessageProperties
+        {
+            CorrelationId = arg.Message.CorrelationId,
+            MessageId = arg.Message.MessageId
+        };
 
         try
         {

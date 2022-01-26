@@ -31,6 +31,8 @@ internal class AzureServiceBusHostedService : BackgroundService
     {
         using (_logger.BeginSubscriberBackgroundServiceScope(_serviceBusOptions.CurrentValue))
         {
+            _logger.LogBackgroundServiceStarted(_serviceBusOptions.CurrentValue.ServiceName);
+            
             await foreach (var subscriber in _subscribersChannel.ReadAsync(stoppingToken))
             {
                 try
@@ -46,7 +48,9 @@ internal class AzureServiceBusHostedService : BackgroundService
                     //TODO: catch all cases, log properly.
                     throw;
                 }
-            }    
+            }
+            
+            _logger.LogBackgroundServiceStopped(_serviceBusOptions.CurrentValue.ServiceName);
         }
     }
 }

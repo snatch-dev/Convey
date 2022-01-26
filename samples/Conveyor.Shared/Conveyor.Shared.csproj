@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Convey.MessageBrokers.AzureServiceBus\src\Convey.MessageBrokers.AzureServiceBus\Convey.MessageBrokers.AzureServiceBus.csproj" />
+      <ProjectReference Include="..\..\src\Convey.MessageBrokers.RabbitMQ\src\Convey.MessageBrokers.RabbitMQ\Convey.MessageBrokers.RabbitMQ.csproj" />
+      <ProjectReference Include="..\..\src\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
+      <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger.RabbitMQ\src\Convey.Tracing.Jaeger.RabbitMQ\Convey.Tracing.Jaeger.RabbitMQ.csproj" />
+      <ProjectReference Include="..\..\src\Convey\src\Convey\Convey.csproj" />
+    </ItemGroup>
+
+</Project>

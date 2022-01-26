@@ -211,6 +211,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D0DB347B-756
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Convey.MessageBrokers.AzureServiceBus", "src\Convey.MessageBrokers.AzureServiceBus\src\Convey.MessageBrokers.AzureServiceBus\Convey.MessageBrokers.AzureServiceBus.csproj", "{73DDD16E-47FD-4026-B568-5FAD236EFED3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conveyor.Shared", "samples\Conveyor.Shared\Conveyor.Shared.csproj", "{8FA5EF96-4FF8-4B66-A553-136378121C78}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -653,6 +655,18 @@ Global
 		{73DDD16E-47FD-4026-B568-5FAD236EFED3}.Release|x64.Build.0 = Release|Any CPU
 		{73DDD16E-47FD-4026-B568-5FAD236EFED3}.Release|x86.ActiveCfg = Release|Any CPU
 		{73DDD16E-47FD-4026-B568-5FAD236EFED3}.Release|x86.Build.0 = Release|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Debug|x64.Build.0 = Debug|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Debug|x86.Build.0 = Debug|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Release|x64.ActiveCfg = Release|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Release|x64.Build.0 = Release|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Release|x86.ActiveCfg = Release|Any CPU
+		{8FA5EF96-4FF8-4B66-A553-136378121C78}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -760,6 +774,7 @@ Global
 		{666CB324-5CD0-41DD-B298-8259E306F903} = {C6B61C07-E175-48F3-A689-5BF7E741AA9F}
 		{D0DB347B-7568-4C37-BBEE-FC0300B9A28C} = {666CB324-5CD0-41DD-B298-8259E306F903}
 		{73DDD16E-47FD-4026-B568-5FAD236EFED3} = {D0DB347B-7568-4C37-BBEE-FC0300B9A28C}
+		{8FA5EF96-4FF8-4B66-A553-136378121C78} = {95165ECF-176D-46C0-A026-7E2F73696629}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A3CCF644-0A79-4D5E-87D8-D90975CA57EF}

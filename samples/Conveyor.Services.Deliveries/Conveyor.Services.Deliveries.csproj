@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi.CQRS\src\Convey.WebApi.CQRS\Convey.WebApi.CQRS.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
+    <ProjectReference Include="..\Conveyor.Shared\Conveyor.Shared.csproj" />
   </ItemGroup>
 
 </Project>

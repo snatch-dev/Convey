@@ -13,22 +13,22 @@ internal class BrokerMessageProcessorHandler : IBrokerMessageProcessorHandler
     private readonly IAzureServiceBusSerializer _serializer;
     private readonly IServiceProvider _serviceProvider;
     private readonly IOptionsMonitor<AzureServiceBusOptions> _serviceBusOptions;
-    private readonly IExceptionToDeadLetterRegistry _exceptionToDeadLetterRegistry;
+    private readonly IExceptionHandlingRegistry _exceptionHandlingRegistry;
 
     public BrokerMessageProcessorHandler(
         ILogger<BrokerMessageProcessorHandler> logger,
         IAzureServiceBusSerializer serializer,
         IServiceProvider serviceProvider,
         IOptionsMonitor<AzureServiceBusOptions> serviceBusOptions,
-        IExceptionToDeadLetterRegistry exceptionToDeadLetterRegistry)
+        IExceptionHandlingRegistry exceptionHandlingRegistry)
     {
         _logger = logger;
         _serializer = serializer;
         _serviceProvider = serviceProvider;
         _serviceBusOptions = serviceBusOptions;
-        _exceptionToDeadLetterRegistry = exceptionToDeadLetterRegistry;
+        _exceptionHandlingRegistry = exceptionHandlingRegistry;
     }
-    
+
     public Task StartAsync(ServiceBusProcessor processor, IMessageSubscriber subscriber)
     {
         processor.ProcessMessageAsync += args => OnProcessMessageAsync(args, subscriber);
@@ -47,7 +47,7 @@ internal class BrokerMessageProcessorHandler : IBrokerMessageProcessorHandler
     private async Task OnProcessMessageAsync(ProcessMessageEventArgs arg, IMessageSubscriber subscriber)
     {
         _logger.LogServiceBusMessageReceived(subscriber.Type);
-        
+
         //TODO: consider a message plugin pipeline here. Before processing the message.
 
         try
@@ -56,51 +56,46 @@ internal class BrokerMessageProcessorHandler : IBrokerMessageProcessorHandler
 
             //TODO: extract properties properly.
             object properties = "todo";
-            
+
             await subscriber.Handle(_serviceProvider, message, properties);
         }
         catch (Exception e)
         {
             _logger.LogServiceBusMessageProcessingFailed(subscriber.Type, e);
 
-            var (shouldDeadLetter, reason) = ShouldBeDeadLettered(e);
+            var operation = GetExceptionHandlingOperation(e, arg);
 
-            if (shouldDeadLetter)
+            switch (operation)
             {
-                await arg.DeadLetterMessageAsync(arg.Message, reason ?? e.Message);
-                return;
+                case DeadLetterMessageExceptionHandlingOperation deadLetter:
+                    await arg.DeadLetterMessageAsync(arg.Message, deadLetter.Reason ?? e.Message);
+                    return;
+                case DeferMessageExceptionHandlingOperation:
+                    await arg.DeferMessageAsync(arg.Message);
+                    return;
             }
 
             throw;
         }
-        
+
         _logger.LogServiceBusMessageProcessed(subscriber.Type);
     }
 
-    private (bool ShouldDeadLetter, string? Reason) ShouldBeDeadLettered(Exception e)
+    private IMessageExceptionHandlingOperation? GetExceptionHandlingOperation(Exception e, ProcessMessageEventArgs args)
     {
-        if (_serviceBusOptions.CurrentValue.DeadLetterUnHandledExceptions)
+        var entries =
+            _exceptionHandlingRegistry.GetOrderedEntries(e.GetType());
+
+        foreach (var handler in entries)
         {
-            return (true, null);
-        }
+            var result = handler.Execute(e, args.Message, _logger);
 
-        var entries = 
-            _exceptionToDeadLetterRegistry.GetEntries(e.GetType());
-
-        foreach (var entry in entries)
-        {
-            if (entry.ShouldDeadLetter is null)
+            if (result is not null)
             {
-                return (true, entry.DeadLetterReason);
-            }
-
-            var should = entry.ShouldDeadLetter(e);
-            if (should)
-            {
-                return (true, entry.DeadLetterReason);
+                return result;
             }
         }
 
-        return (false, null);
+        return null;
     }
 }

@@ -30,7 +30,7 @@ public static class Extensions
         this IConveyBuilder builder,
         string? optionsSectionName = null,
         Action<AzureServiceBusOptions>? optionsAction = null,
-        Action<IExceptionToDeadLetterRegistry>? exceptionsToDeadLetterRegistryAction = null)
+        Action<IExceptionHandlingRegistry>? exceptionsToDeadLetterRegistryAction = null)
     {
         optionsSectionName ??= nameof(AzureServiceBusOptions);
 
@@ -43,9 +43,9 @@ public static class Extensions
             builder.Services.PostConfigure(optionsAction);
         }
 
-        var exceptionsToDeadLetterRegistry = new ExceptionToDeadLetterRegistry();
+        var exceptionsToDeadLetterRegistry = new ExceptionHandlingRegistry();
         exceptionsToDeadLetterRegistryAction?.Invoke(exceptionsToDeadLetterRegistry);
-        builder.Services.AddSingleton<IExceptionToDeadLetterRegistry>(exceptionsToDeadLetterRegistry);
+        builder.Services.AddSingleton<IExceptionHandlingRegistry>(exceptionsToDeadLetterRegistry);
 
         builder.Services.AddHostedService<AzureServiceBusHostedService>();
         builder.Services.AddSingleton<ISubscribersChannel, SubscribersChannel>();

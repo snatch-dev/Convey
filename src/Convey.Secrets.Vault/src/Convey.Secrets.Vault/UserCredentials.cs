@@ -1,4 +1,4 @@
-namespace Convey.Secrets.Vault;
+namespace Dylan.Convey.Secrets.Vault;
 
 public class UserCredentials
 {

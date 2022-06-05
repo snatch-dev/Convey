@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using VaultSharp;
 
-namespace Convey.Secrets.Vault.Internals;
+namespace Dylan.Convey.Secrets.Vault.Internals;
 
 internal sealed class VaultHostedService : BackgroundService
 {

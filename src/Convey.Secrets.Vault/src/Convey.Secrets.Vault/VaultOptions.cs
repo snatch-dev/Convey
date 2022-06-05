@@ -22,8 +22,9 @@ public class VaultOptions
         public bool Enabled { get; set; }
         public int EngineVersion { get; set; } = 2;
         public string MountPoint { get; set; } = "kv";
-        public string Path { get; set; }
+        public List<string> Paths { get; set; }
         public int? Version { get; set; }
+        public bool AutoRenewal { get; set; }
     }
 
     public class LeaseOptions

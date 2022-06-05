@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 
-namespace Convey.Secrets.Vault;
+namespace Dylan.Convey.Secrets.Vault;
 
 //Credits goes to .NET Foundation Team.
 //JSON parser is based on JsonConfigurationFileParser found in Microsoft.Extensions.Configuration.Json library.

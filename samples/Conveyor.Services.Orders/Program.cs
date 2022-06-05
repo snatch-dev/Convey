@@ -16,7 +16,7 @@ using Convey.MessageBrokers.RabbitMQ;
 using Convey.Metrics.Prometheus;
 using Convey.Persistence.MongoDB;
 using Convey.Persistence.Redis;
-using Convey.Secrets.Vault;
+using Dylan.Convey.Secrets.Vault;
 using Convey.Tracing.Jaeger;
 using Convey.Tracing.Jaeger.RabbitMQ;
 using Convey.WebApi;
@@ -87,6 +87,6 @@ public class Program
                     .UseRabbitMq()
                     .SubscribeEvent<DeliveryStarted>())
                 .UseLogging()
-                .UseVault();
+               // .UseVault(webBuilder.);
         });
 }

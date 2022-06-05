@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Convey.Secrets.Vault.Internals;
+using Convey;
+using Dylan.Convey.Secrets.Vault.Internals;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
@@ -15,7 +16,7 @@ using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
 using VaultSharp.V1.SecretsEngines;
 
-namespace Convey.Secrets.Vault;
+namespace Dylan.Convey.Secrets.Vault;
 
 public static class Extensions
 {
@@ -23,9 +24,9 @@ public static class Extensions
     private static readonly ILeaseService LeaseService = new LeaseService();
     private static readonly ICertificatesService CertificatesService = new CertificatesService();
 
-    public static IHostBuilder UseVault(this IHostBuilder builder, string keyValuePath = null,
+    public static IHostBuilder UseVault(this IHostBuilder builder,IConfiguration configuration, string keyValuePath = null,
         string sectionName = SectionName)
-        => builder.ConfigureServices(services => services.AddVault(sectionName))
+        => builder.ConfigureServices(services => services.AddVault(configuration, sectionName))
             .ConfigureAppConfiguration((ctx, cfg) =>
             {
                 var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
@@ -37,9 +38,9 @@ public static class Extensions
                 cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
             });
 
-    public static IWebHostBuilder UseVault(this IWebHostBuilder builder, string keyValuePath = null,
+    public static IWebHostBuilder UseVault(this IWebHostBuilder builder,IConfiguration configuration, string keyValuePath = null,
         string sectionName = SectionName)
-        => builder.ConfigureServices(services => services.AddVault(sectionName))
+        => builder.ConfigureServices(services => services.AddVault(configuration, sectionName))
             .ConfigureAppConfiguration((ctx, cfg) =>
             {
                 var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
@@ -51,18 +52,14 @@ public static class Extensions
                 cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
             });
 
-    private static IServiceCollection AddVault(this IServiceCollection services, string sectionName)
+    private static IServiceCollection AddVault(this IServiceCollection services,IConfiguration configuration, string sectionName)
     {
         if (string.IsNullOrWhiteSpace(sectionName))
         {
             sectionName = SectionName;
         }
 
-        IConfiguration configuration;
-        using (var serviceProvider = services.BuildServiceProvider())
-        {
-            configuration = serviceProvider.GetRequiredService<IConfiguration>();
-        }
+     
 
         var options = configuration.GetOptions<VaultOptions>(sectionName);
         VerifyOptions(options);

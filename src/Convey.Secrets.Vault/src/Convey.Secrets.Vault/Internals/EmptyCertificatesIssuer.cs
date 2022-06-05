@@ -1,7 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Convey.Secrets.Vault.Internals;
+namespace Dylan.Convey.Secrets.Vault.Internals;
 
 public class EmptyCertificatesIssuer : ICertificatesIssuer
 {

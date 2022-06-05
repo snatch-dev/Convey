@@ -87,6 +87,6 @@ public class Program
                     .UseRabbitMq()
                     .SubscribeEvent<DeliveryStarted>())
                 .UseLogging()
-                .UseVault();
+               // .UseVault(webBuilder.);
         });
 }

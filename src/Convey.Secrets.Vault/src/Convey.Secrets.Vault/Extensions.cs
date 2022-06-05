@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Convey;
 using Dylan.Convey.Secrets.Vault.Internals;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

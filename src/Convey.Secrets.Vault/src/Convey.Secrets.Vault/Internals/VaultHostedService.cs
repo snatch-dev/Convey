@@ -37,7 +37,8 @@ internal sealed class VaultHostedService : BackgroundService
             return;
         }
 
-        if ((_options.Pki is null || !_options.Pki.Enabled) &&
+        if ((_options.Kv is null || !_options.Kv.Enabled || !_options.Kv.AutoRenewal) &&
+            (_options.Pki is null || !_options.Pki.Enabled) &&
             (_options.Lease is null || _options.Lease.All(l => !l.Value.Enabled) ||
              !_options.Lease.Any(l => l.Value.AutoRenewal)))
         {
@@ -50,6 +51,11 @@ internal sealed class VaultHostedService : BackgroundService
         {
             var now = DateTime.UtcNow;
             var nextIterationAt = now.AddSeconds(2 * _interval);
+            if (_options.Kv is not null && _options.Kv.Enabled && _options.Kv.AutoRenewal)
+            {
+                var manager = new KeyValueConfigurationManager(_client, _options);
+                await manager.UpdateConfiguration();
+            }
 
             if (_options.Pki is not null && _options.Pki.Enabled)
             {

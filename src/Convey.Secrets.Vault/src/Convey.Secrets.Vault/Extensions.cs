@@ -83,7 +83,7 @@ public static class Extensions
         return services;
     }
 
-    private static void VerifyOptions(VaultOptions options)
+    private static void VerifyOptions(VaultOptions options, string keyValuePath = null)
     {
         if (options.Kv is null)
         {
@@ -92,7 +92,7 @@ public static class Extensions
                 options.Kv = new VaultOptions.KeyValueOptions
                 {
                     Enabled = options.Enabled,
-                    Path = options.Key
+                    Paths = new List<string> { options.Key }
                 };
             }
 
@@ -108,25 +108,21 @@ public static class Extensions
         {
             options.Kv.EngineVersion = 2;
         }
+
+        if (!string.IsNullOrEmpty(keyValuePath) && options.Kv.AutoRenewal)
+        {
+            throw new VaultException($"Autorenewal is not possible when submitting a path through the builder.");
+        }
     }
 
     private static async Task AddVaultAsync(this IConfigurationBuilder builder, VaultOptions options,
         string keyValuePath)
     {
-        VerifyOptions(options);
-        var kvPath = string.IsNullOrWhiteSpace(keyValuePath) ? options.Kv?.Path : keyValuePath;
+        VerifyOptions(options, keyValuePath);
         var (client, _) = GetClientAndSettings(options);
-        if (!string.IsNullOrWhiteSpace(kvPath) && options.Kv.Enabled)
-        {
-            Console.WriteLine($"Loading settings from Vault: '{options.Url}', KV path: '{kvPath}'.");
-            var keyValueSecrets = new KeyValueSecrets(client, options);
-            var secret = await keyValueSecrets.GetAsync(kvPath);
-            var parser = new JsonParser();
-            var json = JsonConvert.SerializeObject(secret);
-            var data = parser.Parse(json);
-            var source = new MemoryConfigurationSource {InitialData = data};
-            builder.Add(source);
-        }
+        var manager = new KeyValueConfigurationManager(client, options);
+        await manager.UpdateConfiguration(keyValuePath);
+        builder.AddJsonFile(manager.FileName, false, true);
 
         if (options.Pki is not null && options.Pki.Enabled)
         {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Dylan.Convey.Secrets.Vault;
+namespace Convey.Secrets.Vault;
 
 internal sealed class VaultException : Exception
 {

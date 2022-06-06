@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using VaultSharp;
 
-namespace Dylan.Convey.Secrets.Vault.Internals;
+namespace Convey.Secrets.Vault.Internals;
 
 internal sealed class KeyValueSecrets : IKeyValueSecrets
 {

@@ -7,7 +7,7 @@ using VaultSharp;
 using VaultSharp.V1.SecretsEngines;
 using VaultSharp.V1.SecretsEngines.PKI;
 
-namespace Dylan.Convey.Secrets.Vault.Internals;
+namespace Convey.Secrets.Vault.Internals;
 
 internal sealed class CertificatesIssuer : ICertificatesIssuer
 {

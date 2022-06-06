@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Convey;
-using Dylan.Convey.Secrets.Vault.Internals;
+using Convey.Secrets.Vault.Internals;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
@@ -16,7 +16,7 @@ using VaultSharp.V1.AuthMethods.Token;
 using VaultSharp.V1.AuthMethods.UserPass;
 using VaultSharp.V1.SecretsEngines;
 
-namespace Dylan.Convey.Secrets.Vault;
+namespace Convey.Secrets.Vault;
 
 public static class Extensions
 {
@@ -24,8 +24,7 @@ public static class Extensions
     private static readonly ILeaseService LeaseService = new LeaseService();
     private static readonly ICertificatesService CertificatesService = new CertificatesService();
 
-    public static IHostBuilder UseVault(this IHostBuilder builder,IConfiguration configuration, string keyValuePath = null,
-        string sectionName = SectionName)
+    public static IHostBuilder UseVault(this IHostBuilder builder,IConfiguration configuration, string sectionName = SectionName)
         => builder.ConfigureServices(services => services.AddVault(configuration, sectionName))
             .ConfigureAppConfiguration((ctx, cfg) =>
             {
@@ -35,11 +34,10 @@ public static class Extensions
                     return;
                 }
 
-                cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
+                cfg.AddVaultAsync(options).GetAwaiter().GetResult();
             });
 
-    public static IWebHostBuilder UseVault(this IWebHostBuilder builder,IConfiguration configuration, string keyValuePath = null,
-        string sectionName = SectionName)
+    public static IWebHostBuilder UseVault(this IWebHostBuilder builder,IConfiguration configuration, string sectionName = SectionName)
         => builder.ConfigureServices(services => services.AddVault(configuration, sectionName))
             .ConfigureAppConfiguration((ctx, cfg) =>
             {
@@ -49,7 +47,7 @@ public static class Extensions
                     return;
                 }
 
-                cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
+                cfg.AddVaultAsync(options).GetAwaiter().GetResult();
             });
 
     private static IServiceCollection AddVault(this IServiceCollection services,IConfiguration configuration, string sectionName)
@@ -83,7 +81,7 @@ public static class Extensions
         return services;
     }
 
-    private static void VerifyOptions(VaultOptions options, string keyValuePath = null)
+    private static void VerifyOptions(VaultOptions options)
     {
         if (options.Kv is null)
         {
@@ -108,21 +106,13 @@ public static class Extensions
         {
             options.Kv.EngineVersion = 2;
         }
-
-        if (!string.IsNullOrEmpty(keyValuePath) && options.Kv.AutoRenewal)
-        {
-            throw new VaultException($"Autorenewal is not possible when submitting a path through the builder.");
-        }
     }
 
-    private static async Task AddVaultAsync(this IConfigurationBuilder builder, VaultOptions options,
-        string keyValuePath)
+    private static async Task AddVaultAsync(this IConfigurationBuilder builder, VaultOptions options)
     {
-        VerifyOptions(options, keyValuePath);
+        VerifyOptions(options);
         var (client, _) = GetClientAndSettings(options);
-        var manager = new KeyValueConfigurationManager(client, options);
-        await manager.UpdateConfiguration(keyValuePath);
-        builder.AddJsonFile(manager.FileName, false, true);
+        builder.AddVaultKeyValueConfiguration(options, client);
 
         if (options.Pki is not null && options.Pki.Enabled)
         {

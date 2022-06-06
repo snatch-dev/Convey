@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Dylan.Convey.Secrets.Vault.Internals;
+namespace Convey.Secrets.Vault.Internals;
 
 internal sealed class CertificatesService : ICertificatesService
 {

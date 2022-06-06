@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Dylan.Convey.Secrets.Vault;
+namespace Convey.Secrets.Vault;
 
 public interface ILeaseService
 {

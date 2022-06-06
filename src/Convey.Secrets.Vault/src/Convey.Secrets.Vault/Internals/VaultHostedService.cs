@@ -2,11 +2,12 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using VaultSharp;
 
-namespace Dylan.Convey.Secrets.Vault.Internals;
+namespace Convey.Secrets.Vault.Internals;
 
 internal sealed class VaultHostedService : BackgroundService
 {
@@ -17,9 +18,10 @@ internal sealed class VaultHostedService : BackgroundService
     private readonly VaultOptions _options;
     private readonly ILogger<VaultHostedService> _logger;
     private readonly int _interval;
+    private readonly IConfiguration _configuration;
 
     public VaultHostedService(IVaultClient client, ILeaseService leaseService, ICertificatesIssuer certificatesIssuer,
-        ICertificatesService certificatesService, VaultOptions options, ILogger<VaultHostedService> logger)
+        ICertificatesService certificatesService, VaultOptions options, ILogger<VaultHostedService> logger, IConfiguration configuration)
     {
         _client = client;
         _leaseService = leaseService;
@@ -28,6 +30,7 @@ internal sealed class VaultHostedService : BackgroundService
         _options = options;
         _logger = logger;
         _interval = _options.RenewalsInterval <= 0 ? 10 : _options.RenewalsInterval;
+        _configuration = configuration;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -51,11 +54,12 @@ internal sealed class VaultHostedService : BackgroundService
         {
             var now = DateTime.UtcNow;
             var nextIterationAt = now.AddSeconds(2 * _interval);
-            if (_options.Kv is not null && _options.Kv.Enabled && _options.Kv.AutoRenewal)
-            {
-                var manager = new KeyValueConfigurationManager(_client, _options);
-                await manager.UpdateConfiguration();
-            }
+            //if (_options.Kv is not null && _options.Kv.Enabled && _options.Kv.AutoRenewal)
+            //{
+            // _configuration.Pro   
+            //    //var manager = new VaultKeyValueConfigurationProvider(_client, _options);
+            //    //await manager.UpdateConfiguration();
+            //}
 
             if (_options.Pki is not null && _options.Pki.Enabled)
             {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Dylan.Convey.Secrets.Vault;
+namespace Convey.Secrets.Vault;
 
 public interface ICertificatesService
 {

@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Dylan.Convey.Secrets.Vault.Internals;
+namespace Convey.Secrets.Vault.Internals;
 
 internal sealed class LeaseService : ILeaseService
 {

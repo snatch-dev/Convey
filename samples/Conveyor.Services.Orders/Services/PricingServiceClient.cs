@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Convey.HTTP;
-using Dylan.Convey.Secrets.Vault;
+using Convey.Secrets.Vault;
 using Convey.WebApi.Security;
 using Conveyor.Services.Orders.DTO;
 

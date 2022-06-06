@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Dylan.Convey.Secrets.Vault;
+namespace Convey.Secrets.Vault;
 
 public interface IKeyValueSecrets
 {

@@ -41,6 +41,10 @@ namespace Convey.Secrets.Vault.Internals
         public override void Load()
         {
             var kvPaths =  _options.Kv?.Paths;
+            if(kvPaths is null || kvPaths.Count() == 0)
+            {
+                kvPaths.Add(_options.Kv.Path);
+            }
             JObject kvConfiguration = new JObject();
             foreach (var kvPath in kvPaths)
             {

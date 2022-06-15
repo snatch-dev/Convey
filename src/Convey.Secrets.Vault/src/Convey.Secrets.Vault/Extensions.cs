@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Convey;
 using Convey.Secrets.Vault.Internals;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -23,9 +24,8 @@ public static class Extensions
     private static readonly ILeaseService LeaseService = new LeaseService();
     private static readonly ICertificatesService CertificatesService = new CertificatesService();
 
-    public static IHostBuilder UseVault(this IHostBuilder builder, string keyValuePath = null,
-        string sectionName = SectionName)
-        => builder.ConfigureServices(services => services.AddVault(sectionName))
+    public static IHostBuilder UseVault(this IHostBuilder builder,IConfiguration configuration, string sectionName = SectionName)
+        => builder.ConfigureServices(services => services.AddVault(configuration, sectionName))
             .ConfigureAppConfiguration((ctx, cfg) =>
             {
                 var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
@@ -34,12 +34,11 @@ public static class Extensions
                     return;
                 }
 
-                cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
+                cfg.AddVaultAsync(options).GetAwaiter().GetResult();
             });
 
-    public static IWebHostBuilder UseVault(this IWebHostBuilder builder, string keyValuePath = null,
-        string sectionName = SectionName)
-        => builder.ConfigureServices(services => services.AddVault(sectionName))
+    public static IWebHostBuilder UseVault(this IWebHostBuilder builder,IConfiguration configuration, string sectionName = SectionName)
+        => builder.ConfigureServices(services => services.AddVault(configuration, sectionName))
             .ConfigureAppConfiguration((ctx, cfg) =>
             {
                 var options = cfg.Build().GetOptions<VaultOptions>(sectionName);
@@ -48,21 +47,17 @@ public static class Extensions
                     return;
                 }
 
-                cfg.AddVaultAsync(options, keyValuePath).GetAwaiter().GetResult();
+                cfg.AddVaultAsync(options).GetAwaiter().GetResult();
             });
 
-    private static IServiceCollection AddVault(this IServiceCollection services, string sectionName)
+    private static IServiceCollection AddVault(this IServiceCollection services,IConfiguration configuration, string sectionName)
     {
         if (string.IsNullOrWhiteSpace(sectionName))
         {
             sectionName = SectionName;
         }
 
-        IConfiguration configuration;
-        using (var serviceProvider = services.BuildServiceProvider())
-        {
-            configuration = serviceProvider.GetRequiredService<IConfiguration>();
-        }
+     
 
         var options = configuration.GetOptions<VaultOptions>(sectionName);
         VerifyOptions(options);
@@ -95,7 +90,7 @@ public static class Extensions
                 options.Kv = new VaultOptions.KeyValueOptions
                 {
                     Enabled = options.Enabled,
-                    Path = options.Key
+                    Paths = new List<string> { options.Key }
                 };
             }
 
@@ -113,23 +108,11 @@ public static class Extensions
         }
     }
 
-    private static async Task AddVaultAsync(this IConfigurationBuilder builder, VaultOptions options,
-        string keyValuePath)
+    private static async Task AddVaultAsync(this IConfigurationBuilder builder, VaultOptions options)
     {
         VerifyOptions(options);
-        var kvPath = string.IsNullOrWhiteSpace(keyValuePath) ? options.Kv?.Path : keyValuePath;
         var (client, _) = GetClientAndSettings(options);
-        if (!string.IsNullOrWhiteSpace(kvPath) && options.Kv.Enabled)
-        {
-            Console.WriteLine($"Loading settings from Vault: '{options.Url}', KV path: '{kvPath}'.");
-            var keyValueSecrets = new KeyValueSecrets(client, options);
-            var secret = await keyValueSecrets.GetAsync(kvPath);
-            var parser = new JsonParser();
-            var json = JsonConvert.SerializeObject(secret);
-            var data = parser.Parse(json);
-            var source = new MemoryConfigurationSource {InitialData = data};
-            builder.Add(source);
-        }
+        builder.AddVaultKeyValueConfiguration(options, client);
 
         if (options.Pki is not null && options.Pki.Enabled)
         {

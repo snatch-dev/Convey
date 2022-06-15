@@ -31,6 +31,7 @@ using Conveyor.Services.Orders.Queries;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Conveyor.Services.Orders;
@@ -43,6 +44,12 @@ public class Program
     public static IHostBuilder CreateHostBuilder(string[] args)
         => Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
         {
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .AddJsonFile("appsettings.json")
+                .Build();
+
             webBuilder.ConfigureServices(services => services
                     .AddConvey()
                     .AddErrorHandler<ExceptionToResponseMapper>()
@@ -87,6 +94,6 @@ public class Program
                     .UseRabbitMq()
                     .SubscribeEvent<DeliveryStarted>())
                 .UseLogging()
-                .UseVault();
+                .UseVault(configuration);
         });
 }

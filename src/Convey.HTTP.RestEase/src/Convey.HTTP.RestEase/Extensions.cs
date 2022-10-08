@@ -52,11 +52,7 @@ public static class Extensions
     private static IConveyBuilder AddServiceClient<T>(this IConveyBuilder builder, string serviceName, 
         RestEaseOptions options, Action<IConveyBuilder> registerFabio)
         where T : class
-    {
-        if (!builder.TryRegister(RegistryName))
         {
-            return builder;
-        }
             
         var clientName = typeof(T).ToString();
             

@@ -34,7 +34,18 @@ public class CreateOrderHandler : ICommandHandler<CreateOrder>
         _logger = logger;
     }
 
-    public async Task HandleAsync(CreateOrder command, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(CreateOrder command, CancellationToken cancellationToken)
+    {
+        await HandleCreateOrder(command, cancellationToken);
+    }
+
+    
+    public async Task HandleAsync(CreateOrder command)
+    {
+        await HandleCreateOrder(command, CancellationToken.None);
+    }
+    
+    private async Task HandleCreateOrder(CreateOrder command, CancellationToken cancellationToken)
     {
         var exists = await _repository.ExistsAsync(o => o.Id == command.OrderId);
         if (exists)

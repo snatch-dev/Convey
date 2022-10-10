@@ -25,7 +25,7 @@ internal sealed class CommandHandlerLoggingDecorator<TCommand> : ICommandHandler
         _mapper = serviceProvider.GetService<IMessageToLogTemplateMapper>() ?? new EmptyMessageToLogTemplateMapper();
     }
 
-    public async Task HandleAsync(TCommand command, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(TCommand command, CancellationToken cancellationToken)
     {
         var template = _mapper.Map(command);
 
@@ -39,6 +39,31 @@ internal sealed class CommandHandlerLoggingDecorator<TCommand> : ICommandHandler
         {
             Log(command, template.Before);
             await _handler.HandleAsync(command, cancellationToken);
+            Log(command, template.After);
+        }
+        catch (Exception ex)
+        {
+            var exceptionTemplate = template.GetExceptionTemplate(ex);
+
+            Log(command, exceptionTemplate, isError: true);
+            throw;
+        }
+    }
+
+    public async Task HandleAsync(TCommand command)
+    {
+        var template = _mapper.Map(command);
+
+        if (template is null)
+        {
+            await _handler.HandleAsync(command);
+            return;
+        }
+
+        try
+        {
+            Log(command, template.Before);
+            await _handler.HandleAsync(command);
             Log(command, template.After);
         }
         catch (Exception ex)

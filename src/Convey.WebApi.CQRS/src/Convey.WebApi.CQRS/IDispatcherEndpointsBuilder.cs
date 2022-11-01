@@ -48,4 +48,14 @@ public interface IDispatcherEndpointsBuilder
         bool auth = false, string roles = null,
         params string[] policies)
         where T : class, ICommand;
+
+    IDispatcherEndpointsBuilder Head(string path, Func<HttpContext, Task> context = null,
+        Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+        params string[] policies);
+
+    IDispatcherEndpointsBuilder Head<T>(string path,
+        Func<T, HttpContext, Task> beforeDispatch = null,
+        Func<T, bool, HttpContext, Task> afterDispatch = null,
+        Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+        params string[] policies) where T : class, IQuery<bool>;
 }

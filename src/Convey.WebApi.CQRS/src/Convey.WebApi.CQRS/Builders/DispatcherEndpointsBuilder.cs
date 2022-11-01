@@ -122,6 +122,42 @@ public class DispatcherEndpointsBuilder : IDispatcherEndpointsBuilder
         return this;
     }
 
+    public IDispatcherEndpointsBuilder Head(string path, Func<HttpContext, Task> context = null,
+        Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+        params string[] policies)
+    {
+        _builder.Head(path, context, endpoint, auth, roles, policies);
+
+        return this;
+    }
+
+    public IDispatcherEndpointsBuilder Head<T>(string path,
+        Func<T, HttpContext, Task> beforeDispatch = null,
+        Func<T, bool, HttpContext, Task> afterDispatch = null,
+        Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+        params string[] policies) where T : class, IQuery<bool>
+    {
+        _builder.Head<T>(path, async (query, ctx) =>
+        {
+            if (beforeDispatch is not null)
+            {
+                await beforeDispatch(query, ctx);
+            }
+
+            var dispatcher = ctx.RequestServices.GetRequiredService<IQueryDispatcher>();
+            var result = await dispatcher.QueryAsync<T, bool>(query);
+            if (afterDispatch is null)
+            {
+                ctx.Response.StatusCode = result ? 200 : 404;
+                return;
+            }
+
+            await afterDispatch(query, result, ctx);
+        }, endpoint, auth, roles, policies);
+
+        return this;
+    }
+
     private static async Task BuildCommandContext<T>(T command, HttpContext context,
         Func<T, HttpContext, Task> beforeDispatch = null,
         Func<T, HttpContext, Task> afterDispatch = null) where T : class, ICommand

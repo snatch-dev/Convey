@@ -1,19 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.WebApi.Swagger</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.WebApi.Swagger</AssemblyName>
-    <Title>Convey.WebApi.Swagger</Title>
-    <PackageId>Convey.WebApi.Swagger</PackageId>
-    <PackageTags>Convey.WebApi.Swagger</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
     <ProjectReference Include="..\..\..\Convey.Docs.Swagger\src\Convey.Docs.Swagger\Convey.Docs.Swagger.csproj" />
   </ItemGroup>
-  
+
 </Project>

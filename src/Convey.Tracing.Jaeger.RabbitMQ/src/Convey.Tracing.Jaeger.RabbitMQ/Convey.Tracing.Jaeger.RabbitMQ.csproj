@@ -1,16 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.Tracing.Jaeger.RabbitMQ</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.Tracing.Jaeger.RabbitMQ</AssemblyName>
-    <Title>Convey.Tracing.Jaeger.RabbitMQ</Title>
-    <PackageId>Convey.Tracing.Jaeger.RabbitMQ</PackageId>
-    <PackageTags>Convey.Tracing.Jaeger.RabbitMQ</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey.MessageBrokers.RabbitMQ\src\Convey.MessageBrokers.RabbitMQ\Convey.MessageBrokers.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\..\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />

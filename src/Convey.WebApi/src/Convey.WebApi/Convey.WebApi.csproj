@@ -1,23 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.WebApi</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.WebApi</AssemblyName>
-    <Title>Convey.WebApi</Title>
-    <PackageId>Convey.WebApi</PackageId>
-    <PackageTags>Convey.WebApi</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Serialization.Json.System" Version="2.3.2" />
-    <PackageReference Include="Open.Serialization.Json.Utf8Json" Version="2.3.1" />
+    <PackageReference Include="Open.Serialization.Json.System" Version="3.0.0" />
+    <PackageReference Include="Open.Serialization.Json.Utf8Json" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

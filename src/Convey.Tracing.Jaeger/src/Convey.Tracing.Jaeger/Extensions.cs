@@ -1,50 +1,43 @@
-using System;
-using System.Threading;
 using Convey.Tracing.Jaeger.Builders;
 using Convey.Tracing.Jaeger.Tracers;
-using Jaeger;
-using Jaeger.Reporters;
-using Jaeger.Samplers;
-using Jaeger.Senders;
-using Jaeger.Senders.Thrift;
+using Convey.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Extensions.Docker.Resources;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Shims.OpenTracing;
+using OpenTelemetry.Trace;
 using OpenTracing;
-using OpenTracing.Contrib.NetCore.Configuration;
 using OpenTracing.Util;
+using System;
+using System.Linq;
+using System.Threading;
 
 namespace Convey.Tracing.Jaeger;
 
 public static class Extensions
 {
-    private static int _initialized;
     private const string SectionName = "jaeger";
     private const string RegistryName = "tracing.jaeger";
 
-    public static IConveyBuilder AddJaeger(this IConveyBuilder builder, string sectionName = SectionName,
-        Action<IOpenTracingBuilder> openTracingBuilder = null)
-    {
-        if (string.IsNullOrWhiteSpace(sectionName))
-        {
-            sectionName = SectionName;
-        }
+    private static int _initialized;
 
-        var options = builder.GetOptions<JaegerOptions>(sectionName);
-        return builder.AddJaeger(options, sectionName, openTracingBuilder);
+    public static IConveyBuilder AddJaeger(this IConveyBuilder builder, string sectionName = SectionName)
+    {
+        var options = builder.GetOptions<JaegerOptions>(string.IsNullOrWhiteSpace(sectionName) ? SectionName : sectionName);
+        return builder.AddJaeger(options);
     }
 
-    public static IConveyBuilder AddJaeger(this IConveyBuilder builder,
-        Func<IJaegerOptionsBuilder, IJaegerOptionsBuilder> buildOptions,
-        string sectionName = SectionName,
-        Action<IOpenTracingBuilder> openTracingBuilder = null)
+    public static IConveyBuilder AddJaeger(this IConveyBuilder builder, Func<IJaegerOptionsBuilder, IJaegerOptionsBuilder> buildOptions)
     {
         var options = buildOptions(new JaegerOptionsBuilder()).Build();
-        return builder.AddJaeger(options, sectionName, openTracingBuilder);
+        return builder.AddJaeger(options);
     }
 
-    public static IConveyBuilder AddJaeger(this IConveyBuilder builder, JaegerOptions options,
-        string sectionName = SectionName, Action<IOpenTracingBuilder> openTracingBuilder = null)
+    public static IConveyBuilder AddJaeger(this IConveyBuilder builder, JaegerOptions options)
     {
         if (Interlocked.Exchange(ref _initialized, 1) == 1)
         {
@@ -52,6 +45,7 @@ public static class Extensions
         }
 
         builder.Services.AddSingleton(options);
+
         if (!options.Enabled)
         {
             var defaultTracer = ConveyDefaultTracer.Create();
@@ -64,86 +58,54 @@ public static class Extensions
             return builder;
         }
 
-        if (options.ExcludePaths is not null)
-        {
-            builder.Services.Configure<AspNetCoreDiagnosticOptions>(o =>
-            {
-                foreach (var path in options.ExcludePaths)
+        builder.Services.AddOpenTelemetryTracing(telemetryBuilder =>
+            telemetryBuilder
+                .SetResourceBuilder(
+                    ResourceBuilder
+                        .CreateDefault()
+                        .AddDetector(new DockerResourceDetector()))
+                .AddAspNetCoreInstrumentation(string.Empty, aspCoreOptions =>
                 {
-                    o.Hosting.IgnorePatterns.Add(x => x.Request.Path == path);
-                }
-            });
-        }
+                    aspCoreOptions.Filter = context =>
+                    {
+                        return options.ExcludePaths?.Contains(context.Request.Path.ToString()) != true;
+                    };
+                })
+                .AddHttpClientInstrumentation()
+                .AddJaegerExporter(jaegerOptions =>
+                {
+                    jaegerOptions.AgentHost = options?.UdpHost ?? "localhost";
+                    jaegerOptions.AgentPort = options?.UdpPort ?? 6831;
 
-        builder.Services.AddOpenTracing(x => openTracingBuilder?.Invoke(x));
+                    var senderType = string.IsNullOrWhiteSpace(options.Sender) ? "udp" : options.Sender?.ToLowerInvariant();
 
-        builder.Services.AddSingleton<ITracer>(sp =>
+                    jaegerOptions.Protocol = senderType switch
+                    {
+                        "http" => JaegerExportProtocol.HttpBinaryThrift,
+                        "udp" => JaegerExportProtocol.UdpCompactThrift,
+                        _ => throw new InvalidOperationException($"Invalid Jaeger sender type: '{senderType}'.")
+                    };
+
+                    jaegerOptions.MaxPayloadSizeInBytes = options.MaxPacketSize <= 0 ? 4096 : options.MaxPacketSize;
+
+                    if (senderType == "http" && options.HttpSender is not null)
+                    {
+                        jaegerOptions.Endpoint = new Uri(options.HttpSender.Endpoint ?? "http://localhost:14268/api/traces");
+                        jaegerOptions.MaxPayloadSizeInBytes = options.HttpSender.MaxPacketSize <= 0 ? 4096 : options.HttpSender.MaxPacketSize;
+                    }
+                })
+        );
+
+        builder.Services.AddSingleton<ITracer>(serviceProvider =>
         {
-            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            var maxPacketSize = options.MaxPacketSize <= 0 ? 64967 : options.MaxPacketSize;
-            var senderType = string.IsNullOrWhiteSpace(options.Sender) ? "udp" : options.Sender?.ToLowerInvariant();
-            ISender sender = senderType switch
-            {
-                "http" => BuildHttpSender(options.HttpSender),
-                "udp" => new UdpSender(options.UdpHost, options.UdpPort, maxPacketSize),
-                _ => throw new Exception($"Invalid Jaeger sender type: '{senderType}'.")
-            };
-                
-            var reporter = new RemoteReporter.Builder()
-                .WithSender(sender)
-                .WithLoggerFactory(loggerFactory)
-                .Build();
-
-            var sampler = GetSampler(options);
-
-            var tracer = new Tracer.Builder(options.ServiceName)
-                .WithLoggerFactory(loggerFactory)
-                .WithReporter(reporter)
-                .WithSampler(sampler)
-                .Build();
-
-            GlobalTracer.Register(tracer);
-
+            var appOptions = serviceProvider.GetRequiredService<AppOptions>();
+            var traceProvider = serviceProvider.GetRequiredService<TracerProvider>();
+            var tracer = new TracerShim(traceProvider.GetTracer(appOptions.Name), Propagators.DefaultTextMapPropagator);
+            GlobalTracer.RegisterIfAbsent(tracer);
             return tracer;
         });
 
         return builder;
-    }
-
-    private static HttpSender BuildHttpSender(JaegerOptions.HttpSenderOptions options)
-    {
-        if (options is null)
-        {
-            throw new Exception("Missing Jaeger HTTP sender options.");
-        }
-
-        if (string.IsNullOrWhiteSpace(options.Endpoint))
-        {
-            throw new Exception("Missing Jaeger HTTP sender endpoint.");
-        }
-            
-        var builder = new HttpSender.Builder(options.Endpoint);
-        if (options.MaxPacketSize > 0)
-        {
-            builder = builder.WithMaxPacketSize(options.MaxPacketSize);
-        }
-
-        if (!string.IsNullOrWhiteSpace(options.AuthToken))
-        {
-            builder = builder.WithAuth(options.AuthToken);
-        }
-            
-        if (!string.IsNullOrWhiteSpace(options.Username) && !string.IsNullOrWhiteSpace(options.Password))
-        {
-            builder = builder.WithAuth(options.Username, options.Password);
-        }
-            
-        if (!string.IsNullOrWhiteSpace(options.UserAgent))
-        {
-            builder = builder.WithUserAgent(options.Username);
-        }
-
-        return builder.Build();
     }
 
     public static IApplicationBuilder UseJaeger(this IApplicationBuilder app)
@@ -151,18 +113,6 @@ public static class Extensions
         // Could be extended with some additional middleware
         using var scope = app.ApplicationServices.CreateScope();
         var options = scope.ServiceProvider.GetRequiredService<JaegerOptions>();
-
         return app;
-    }
-
-    private static ISampler GetSampler(JaegerOptions options)
-    {
-        switch (options.Sampler)
-        {
-            case "const": return new ConstSampler(true);
-            case "rate": return new RateLimitingSampler(options.MaxTracesPerSecond);
-            case "probabilistic": return new ProbabilisticSampler(options.SamplingRate);
-            default: return new ConstSampler(true);
-        }
     }
 }

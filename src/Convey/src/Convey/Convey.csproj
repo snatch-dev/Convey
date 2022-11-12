@@ -1,23 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey</AssemblyName>
-    <Title>Convey</Title>
-    <PackageId>Convey</PackageId>
-    <PackageTags>Convey</PackageTags>
-  </PropertyGroup>
-  
   <ItemGroup>
-    <PackageReference Include="Figgle" Version="0.4.0" />
-    <PackageReference Include="Scrutor" Version="3.3.0" />
+    <PackageReference Include="Figgle" Version="0.4.1" />
+    <PackageReference Include="Scrutor" Version="4.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
+
 </Project>

@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>Latest</LangVersion>
+    <Product>$(ProjectName)</Product>
+    <Description>$(ProjectName)</Description>
+    <Authors>DevMentors.io</Authors>
+    <AssemblyName>$(ProjectName)</AssemblyName>
+    <Title>$(ProjectName)</Title>
+    <PackageId>$(ProjectName)</PackageId>
+    <PackageTags>$(ProjectName)</PackageTags>
+  </PropertyGroup>
+</Project>

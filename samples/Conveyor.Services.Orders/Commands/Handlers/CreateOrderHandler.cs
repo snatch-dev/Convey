@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Convey.CQRS.Commands;
@@ -9,7 +10,6 @@ using Conveyor.Services.Orders.Domain;
 using Conveyor.Services.Orders.Events;
 using Conveyor.Services.Orders.Services;
 using Microsoft.Extensions.Logging;
-using OpenTracing;
 
 namespace Conveyor.Services.Orders.Commands.Handlers;
 
@@ -20,17 +20,15 @@ public class CreateOrderHandler : ICommandHandler<CreateOrder>
     private readonly IMessageOutbox _outbox;
     private readonly IPricingServiceClient _pricingServiceClient;
     private readonly ILogger<CreateOrderHandler> _logger;
-    private readonly ITracer _tracer;
 
     public CreateOrderHandler(IMongoRepository<Order, Guid> repository, IBusPublisher publisher,
-        IMessageOutbox outbox, IPricingServiceClient pricingServiceClient, ITracer tracer,
+        IMessageOutbox outbox, IPricingServiceClient pricingServiceClient,
         ILogger<CreateOrderHandler> logger)
     {
         _repository = repository;
         _publisher = publisher;
         _outbox = outbox;
         _pricingServiceClient = pricingServiceClient;
-        _tracer = tracer;
         _logger = logger;
     }
 
@@ -53,7 +51,7 @@ public class CreateOrderHandler : ICommandHandler<CreateOrder>
         var order = new Order(command.OrderId, command.CustomerId, pricingDto.TotalAmount);
         await _repository.AddAsync(order);
         _logger.LogInformation($"Created an order with id: {command.OrderId}, customer: {command.CustomerId}.");
-        var spanContext = _tracer.ActiveSpan?.Context.ToString();
+        var spanContext = Activity.Current?.Context is null ? string.Empty : Activity.Current?.Context.ToString();
         var @event = new OrderCreated(order.Id);
         if (_outbox.Enabled)
         {

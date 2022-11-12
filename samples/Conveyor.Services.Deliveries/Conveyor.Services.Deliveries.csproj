@@ -1,9 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\Convey.Discovery.Consul\src\Convey.Discovery.Consul\Convey.Discovery.Consul.csproj" />
     <ProjectReference Include="..\..\src\Convey.HTTP\src\Convey.HTTP\Convey.HTTP.csproj" />
@@ -18,6 +14,10 @@
     <ProjectReference Include="..\..\src\Convey.Tracing.Jaeger\src\Convey.Tracing.Jaeger\Convey.Tracing.Jaeger.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi.CQRS\src\Convey.WebApi.CQRS\Convey.WebApi.CQRS.csproj" />
     <ProjectReference Include="..\..\src\Convey.WebApi\src\Convey.WebApi\Convey.WebApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

@@ -1,27 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.Docs.Swagger</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.Docs.Swagger</AssemblyName>
-    <Title>Convey.Docs.Swagger</Title>
-    <PackageId>Convey.Docs.Swagger</PackageId>
-    <PackageTags>Convey.Docs.Swagger</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" Version="6.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.4.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.4.0" />
   </ItemGroup>
-  
+
 </Project>

@@ -1,20 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.LoadBalancing.Fabio</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.LoadBalancing.Fabio</AssemblyName>
-    <Title>Convey.LoadBalancing.Fabio</Title>
-    <PackageId>Convey.LoadBalancing.Fabio</PackageId>
-    <PackageTags>Convey.LoadBalancing.Fabio</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     <ProjectReference Include="..\..\..\Convey.HTTP\src\Convey.HTTP\Convey.HTTP.csproj" />
     <ProjectReference Include="..\..\..\Convey.Discovery.Consul\src\Convey.Discovery.Consul\Convey.Discovery.Consul.csproj" />
   </ItemGroup>
-  
+
 </Project>

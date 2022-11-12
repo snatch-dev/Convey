@@ -1,20 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.MessageBrokers.CQRS</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.MessageBrokers.CQRS</AssemblyName>
-    <Title>Convey.MessageBrokers.CQRS</Title>
-    <PackageId>Convey.MessageBrokers.CQRS</PackageId>
-    <PackageTags>Convey.MessageBrokers.CQRS</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey.MessageBrokers\src\Convey.MessageBrokers\Convey.MessageBrokers.csproj" />
     <ProjectReference Include="..\..\..\Convey.CQRS.Commands\src\Convey.CQRS.Commands\Convey.CQRS.Commands.csproj" />
     <ProjectReference Include="..\..\..\Convey.CQRS.Events\src\Convey.CQRS.Events\Convey.CQRS.Events.csproj" />
   </ItemGroup>
-  
+
 </Project>

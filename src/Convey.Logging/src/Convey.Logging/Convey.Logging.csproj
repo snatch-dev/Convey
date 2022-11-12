@@ -1,30 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.Logging</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.Logging</AssemblyName>
-    <Title>Convey.Logging</Title>
-    <PackageId>Convey.Logging</PackageId>
-    <PackageTags>Convey.Logging</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.ElasticSearch" Version="8.4.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="7.1.0" />
-    <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
+    <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.0.1" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.1" />
   </ItemGroup>
 
 </Project>

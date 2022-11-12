@@ -1,23 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.Tracing.Jaeger</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.Tracing.Jaeger</AssemblyName>
-    <Title>Convey.Tracing.Jaeger</Title>
-    <PackageId>Convey.Tracing.Jaeger</PackageId>
-    <PackageTags>Convey.Tracing.Jaeger</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Jaeger" Version="1.0.3" />
-    <PackageReference Include="OpenTracing.Contrib.NetCore" Version="0.8.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.4.0-beta.3" />
+    <PackageReference Include="OpenTelemetry.Extensions.Docker" Version="1.0.0-beta.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.9" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.9" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.9" />
+    <PackageReference Include="OpenTelemetry.Shims.OpenTracing" Version="1.0.0-rc9.9" />
   </ItemGroup>
 
   <ItemGroup>

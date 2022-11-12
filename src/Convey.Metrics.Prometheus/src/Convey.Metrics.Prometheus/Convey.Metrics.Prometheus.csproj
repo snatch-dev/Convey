@@ -1,26 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <Description>Convey.Metrics.Prometheus</Description>
-        <Authors>DevMentors.io</Authors>
-        <TargetFramework>net6.0</TargetFramework>
-        <LangVersion>Latest</LangVersion>
-        <AssemblyName>Convey.Metrics.Prometheus</AssemblyName>
-        <Title>Convey.Metrics.Prometheus</Title>
-        <PackageId>Convey.Metrics.Prometheus</PackageId>
-        <PackageTags>Convey.Metrics.Prometheus</PackageTags>
-    </PropertyGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="prometheus-net" Version="5.0.2" />
-      <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.2" />
-      <PackageReference Include="prometheus-net.AspNetCore.Grpc" Version="5.0.2" />
-      <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="5.0.2" />
-      <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.2.2" />
+      <PackageReference Include="prometheus-net" Version="7.0.0" />
+      <PackageReference Include="prometheus-net.AspNetCore" Version="7.0.0" />
+      <PackageReference Include="prometheus-net.AspNetCore.Grpc" Version="7.0.0" />
+      <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="7.0.0" />
+      <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.3.0" />
       <PackageReference Include="prometheus-net.SystemMetrics" Version="2.0.0" />
     </ItemGroup>
 

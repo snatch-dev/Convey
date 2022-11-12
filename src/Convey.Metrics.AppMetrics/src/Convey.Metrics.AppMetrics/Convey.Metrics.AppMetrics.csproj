@@ -1,20 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.Metrics.AppMetrics</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.Metrics.AppMetrics</AssemblyName>
-    <Title>Convey.Metrics.AppMetrics</Title>
-    <PackageId>Convey.Metrics.AppMetrics</PackageId>
-    <PackageTags>Convey.Metrics.AppMetrics</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="App.Metrics.AspNetCore" Version="4.3.0" />
     <PackageReference Include="App.Metrics.AspNetCore.Core" Version="4.3.0" />

@@ -1,16 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.MessageBrokers</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.MessageBrokers</AssemblyName>
-    <Title>Convey.MessageBrokers</Title>
-    <PackageId>Convey.MessageBrokers</PackageId>
-    <PackageTags>Convey.MessageBrokers</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>

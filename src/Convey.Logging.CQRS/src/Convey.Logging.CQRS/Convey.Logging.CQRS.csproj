@@ -1,9 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
     <ProjectReference Include="..\..\..\Convey.Logging\src\Convey.Logging\Convey.Logging.csproj" />
@@ -13,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SmartFormat.NET" Version="2.7.2" />
+    <PackageReference Include="SmartFormat.NET" Version="3.2.0" />
   </ItemGroup>
 
 </Project>

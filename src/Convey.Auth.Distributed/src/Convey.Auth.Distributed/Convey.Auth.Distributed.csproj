@@ -1,16 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.Auth.Distributed</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.Auth.Distributed</AssemblyName>
-    <Title>Convey.Auth.Distributed</Title>
-    <PackageId>Convey.Auth.Distributed</PackageId>
-    <PackageTags>Convey.Auth.Distributed</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey.Auth\src\Convey.Auth\Convey.Auth.csproj" />
   </ItemGroup>

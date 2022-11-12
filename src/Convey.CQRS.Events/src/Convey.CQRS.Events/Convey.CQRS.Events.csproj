@@ -1,18 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Convey.CQRS.Events</Description>
-    <Authors>DevMentors.io</Authors>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
-    <AssemblyName>Convey.CQRS.Events</AssemblyName>
-    <Title>Convey.CQRS.Events</Title>
-    <PackageId>Convey.CQRS.Events</PackageId>
-    <PackageTags>Convey.CQRS.Events</PackageTags>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Convey\src\Convey\Convey.csproj" />
   </ItemGroup>
-  
+
 </Project>

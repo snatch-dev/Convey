@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,7 +7,6 @@ using Convey.CQRS.Events;
 using Convey.MessageBrokers;
 using Convey.MessageBrokers.RabbitMQ;
 using Microsoft.Extensions.Logging;
-using OpenTracing;
 
 namespace Conveyor.Services.Deliveries.Events.External.Handlers;
 
@@ -14,16 +14,14 @@ public class OrderCreatedHandler : IEventHandler<OrderCreated>
 {
     private readonly IBusPublisher _publisher;
     private readonly IMessagePropertiesAccessor _messagePropertiesAccessor;
-    private readonly ITracer _tracer;
     private readonly ILogger<OrderCreatedHandler> _logger;
     private readonly string _spanContextHeader;
 
     public OrderCreatedHandler(IBusPublisher publisher, IMessagePropertiesAccessor messagePropertiesAccessor,
-        RabbitMqOptions rabbitMqOptions, ITracer tracer, ILogger<OrderCreatedHandler> logger)
+        RabbitMqOptions rabbitMqOptions, ILogger<OrderCreatedHandler> logger)
     {
         _publisher = publisher;
         _messagePropertiesAccessor = messagePropertiesAccessor;
-        _tracer = tracer;
         _logger = logger;
         _spanContextHeader = string.IsNullOrWhiteSpace(rabbitMqOptions.SpanContextHeader)
             ? "span_context"
@@ -47,7 +45,7 @@ public class OrderCreatedHandler : IEventHandler<OrderCreated>
 
         if (string.IsNullOrWhiteSpace(spanContext))
         {
-            spanContext = _tracer.ActiveSpan is null ? string.Empty : _tracer.ActiveSpan.Context.ToString();
+            spanContext = Activity.Current?.Context is null ? string.Empty : Activity.Current?.Context.ToString();
         }
 
         return _publisher.PublishAsync(new DeliveryStarted(deliveryId), correlationId: correlationId,

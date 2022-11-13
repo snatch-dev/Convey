@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Convey.WebApi.CQRS;
@@ -59,7 +60,13 @@ public static class Extensions
             string.IsNullOrWhiteSpace(endpoint) ? "/_contracts" : endpoint.StartsWith("/") ? endpoint : $"/{endpoint}",
             attributeType ?? typeof(PublicContractAttribute),
             attributeRequired,
-            jsonSerializerOptions);
+            jsonSerializerOptions ?? new()
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+                WriteIndented = true
+            });
 
     public static Task SendAsync<T>(this HttpContext context, T command) where T : class, ICommand
         => context.RequestServices.GetRequiredService<ICommandDispatcher>().SendAsync(command);

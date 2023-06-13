@@ -15,3 +15,8 @@ jobs:
         dotnet-version: 6.0.100
     - name: Build with dotnet
       run: dotnet build --configuration Release
+    - name: Publish NuGet packacges
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: ./scripts/pack.sh
+      shell: bash

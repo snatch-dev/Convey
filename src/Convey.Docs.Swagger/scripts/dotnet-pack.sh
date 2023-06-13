@@ -1,13 +1,13 @@
 #!/bin/bash
-echo Executing after success scripts on branch $TRAVIS_BRANCH
+echo Executing after success scripts on branch $GITHUB_REF_NAME
 echo Triggering Nuget package build
 
 cd src/Convey.Docs.Swagger/src/Convey.Docs.Swagger
-dotnet pack -c release /p:PackageVersion=1.0.$TRAVIS_BUILD_NUMBER --no-restore -o .
+dotnet pack -c release /p:PackageVersion=1.1.$GITHUB_RUN_NUMBER--no-restore -o .
 
-echo Uploading Convey.Docs.Swagger package to Nuget using branch $TRAVIS_BRANCH
+echo Uploading Convey.Docs.Swagger package to Nuget using branch $GITHUB_REF_NAME
 
-case "$TRAVIS_BRANCH" in
+case "$GITHUB_REF_NAME" in
   "master")
     dotnet nuget push *.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
     ;;

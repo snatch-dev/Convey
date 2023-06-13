@@ -3,7 +3,7 @@ echo Executing after success scripts on branch $GITHUB_REF_NAME
 echo Triggering Nuget package build
 
 cd src/Convey.Security/src/Convey.Security
-dotnet pack -c release /p:PackageVersion=1.1.$GITHUB_RUN_NUMBER--no-restore -o .
+dotnet pack -c release /p:PackageVersion=1.1.$GITHUB_RUN_NUMBER --no-restore -o .
 
 echo Uploading Convey.Security package to Nuget using branch $GITHUB_REF_NAME
 

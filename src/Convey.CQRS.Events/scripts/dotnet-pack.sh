@@ -3,7 +3,7 @@ echo Executing after success scripts on branch $GITHUB_REF_NAME
 echo Triggering Nuget package build
 
 cd src/Convey.CQRS.Events/src/Convey.CQRS.Events
-dotnet pack -c release /p:PackageVersion=1.1.$GITHUB_RUN_NUMBER--no-restore -o .
+dotnet pack -c release /p:PackageVersion=1.1.$GITHUB_RUN_NUMBER --no-restore -o .
 
 echo Uploading Convey.CQRS.Events package to Nuget using branch $GITHUB_REF_NAME
 

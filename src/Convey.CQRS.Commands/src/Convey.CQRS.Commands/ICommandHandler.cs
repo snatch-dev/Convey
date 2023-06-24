@@ -5,5 +5,6 @@ namespace Convey.CQRS.Commands;
 
 public interface ICommandHandler<in TCommand> where TCommand : class, ICommand
 {
-    Task HandleAsync(TCommand command, CancellationToken cancellationToken = default);
+    Task HandleAsync(TCommand command, CancellationToken cancellationToken) => HandleAsync((command));
+    Task HandleAsync(TCommand command);
 }

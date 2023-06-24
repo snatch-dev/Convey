@@ -53,10 +53,6 @@ public static class Extensions
         RestEaseOptions options, Action<IConveyBuilder> registerFabio)
         where T : class
     {
-        if (!builder.TryRegister(RegistryName))
-        {
-            return builder;
-        }
             
         var clientName = typeof(T).ToString();
             

@@ -134,6 +134,31 @@ public class EndpointsBuilder : IEndpointsBuilder
         return this;
     }
 
+    public IEndpointsBuilder Head(string path, Func<HttpContext, Task> context = null,
+        Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+        params string[] policies)
+    {
+        var builder = _routeBuilder.MapMethods(path, new[] { "HEAD" }, ctx => context?.Invoke(ctx) ?? Task.CompletedTask);
+        endpoint?.Invoke(builder);
+        ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
+        AddEndpointDefinition(HttpMethods.Head, path);
+
+        return this;
+    }
+
+    public IEndpointsBuilder Head<T>(string path, Func<T, HttpContext, Task> context = null,
+        Action<IEndpointConventionBuilder> endpoint = null, bool auth = false, string roles = null,
+        params string[] policies)
+        where T : class
+    {
+        var builder = _routeBuilder.MapMethods(path, new[] { "HEAD" }, ctx => BuildQueryContext(ctx, context));
+        endpoint?.Invoke(builder);
+        ApplyAuthRolesAndPolicies(builder, auth, roles, policies);
+        AddEndpointDefinition<T>(HttpMethods.Head, path);
+
+        return this;
+    }
+
     private static void ApplyAuthRolesAndPolicies(IEndpointConventionBuilder builder, bool auth, string roles,
         params string[] policies)
     {

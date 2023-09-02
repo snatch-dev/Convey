@@ -16,34 +16,38 @@ namespace Convey.WebApi.CQRS.Middlewares;
 public class PublicContractsMiddleware
 {
     private const string ContentType = "application/json";
-    private readonly RequestDelegate _next;
-    private readonly string _endpoint;
-    private readonly bool _attributeRequired;
-
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-        WriteIndented = true
-    };
 
     private static readonly ContractTypes Contracts = new();
     private static int _initialized;
     private static string _serializedContracts = "{}";
 
-    public PublicContractsMiddleware(RequestDelegate next, string endpoint, Type attributeType,
-        bool attributeRequired)
+    private readonly RequestDelegate _next;
+    private readonly string _endpoint;
+
+    public PublicContractsMiddleware(
+        RequestDelegate next,
+        string endpoint,
+        Type attributeType,
+        bool attributeRequired,
+        JsonSerializerOptions jsonSerializerOptions)
     {
         _next = next;
         _endpoint = endpoint;
-        _attributeRequired = attributeRequired;
+
         if (_initialized == 1)
         {
             return;
         }
 
-        Load(attributeType);
+        jsonSerializerOptions ??= new()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+            WriteIndented = true
+        };
+
+        Load(attributeType, attributeRequired, jsonSerializerOptions);
     }
 
     public Task InvokeAsync(HttpContext context)
@@ -59,19 +63,27 @@ public class PublicContractsMiddleware
         return Task.CompletedTask;
     }
 
-    private void Load(Type attributeType)
+    private void Load(
+        Type attributeType,
+        bool attributeRequired,
+        JsonSerializerOptions jsonSerializerOptions)
     {
         if (Interlocked.Exchange(ref _initialized, 1) == 1)
         {
             return;
         }
 
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        var contracts = assemblies.SelectMany(a => a.GetTypes())
-            .Where(t => (!_attributeRequired || t.GetCustomAttribute(attributeType) is not null) && !t.IsInterface)
-            .ToArray();
+        var contractTypes =
+            AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t =>
+                    !t.IsInterface &&
+                    (!attributeRequired || t.GetCustomAttribute(attributeType) is not null) &&
+                    (typeof(ICommand).IsAssignableFrom(t) ||
+                        typeof(IEvent).IsAssignableFrom(t)))
+                .ToArray();
 
-        foreach (var command in contracts.Where(t => typeof(ICommand).IsAssignableFrom(t)))
+        foreach (var command in contractTypes.Where(t => typeof(ICommand).IsAssignableFrom(t)))
         {
             var instance = command.GetDefaultInstance();
             var name = instance.GetType().Name;
@@ -84,8 +96,7 @@ public class PublicContractsMiddleware
             Contracts.Commands[name] = instance;
         }
 
-        foreach (var @event in contracts.Where(t => typeof(IEvent).IsAssignableFrom(t) &&
-                                                    t != typeof(RejectedEvent)))
+        foreach (var @event in contractTypes.Where(t => typeof(IEvent).IsAssignableFrom(t) && t != typeof(RejectedEvent)))
         {
             var instance = @event.GetDefaultInstance();
             var name = instance.GetType().Name;
@@ -98,7 +109,7 @@ public class PublicContractsMiddleware
             Contracts.Events[name] = instance;
         }
 
-        _serializedContracts = JsonSerializer.Serialize(Contracts, SerializerOptions);
+        _serializedContracts = JsonSerializer.Serialize(Contracts, jsonSerializerOptions);
     }
 
     private class ContractTypes

@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Convey.CQRS.Commands;
 using Convey.CQRS.Queries;
 using Convey.WebApi.CQRS.Builders;
@@ -7,6 +5,10 @@ using Convey.WebApi.CQRS.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace Convey.WebApi.CQRS;
 
@@ -48,11 +50,23 @@ public static class Extensions
         bool attributeRequired, string endpoint = "/_contracts")
         => app.UsePublicContracts(endpoint, null, attributeRequired);
 
-    public static IApplicationBuilder UsePublicContracts(this IApplicationBuilder app,
-        string endpoint = "/_contracts", Type attributeType = null, bool attributeRequired = true)
-        => app.UseMiddleware<PublicContractsMiddleware>(string.IsNullOrWhiteSpace(endpoint) ? "/_contracts" :
-            endpoint.StartsWith("/") ? endpoint : $"/{endpoint}", attributeType ?? typeof(PublicContractAttribute),
-            attributeRequired);
+    public static IApplicationBuilder UsePublicContracts(
+        this IApplicationBuilder app,
+        string endpoint = "/_contracts",
+        Type attributeType = null,
+        bool attributeRequired = true,
+        JsonSerializerOptions jsonSerializerOptions = null)
+        => app.UseMiddleware<PublicContractsMiddleware>(
+            string.IsNullOrWhiteSpace(endpoint) ? "/_contracts" : endpoint.StartsWith("/") ? endpoint : $"/{endpoint}",
+            attributeType ?? typeof(PublicContractAttribute),
+            attributeRequired,
+            jsonSerializerOptions ?? new()
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+                WriteIndented = true
+            });
 
     public static Task SendAsync<T>(this HttpContext context, T command) where T : class, ICommand
         => context.RequestServices.GetRequiredService<ICommandDispatcher>().SendAsync(command);
